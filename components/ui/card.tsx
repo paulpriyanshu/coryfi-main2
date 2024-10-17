@@ -5,20 +5,12 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
-
-// export function Card({ className, children, ...props }: CardProps) {
-//   return (
-//     <div className={`bg-white shadow-md rounded-lg overflow-hidden ${className}`}>
-//       {children}
-//     </div>
-//   )
-// }
-
 export const Card: React.FC<CardProps> = ({ children, className, ...props }) => (
   <div className={`bg-white shadow-md rounded-lg overflow-hidden ${className}`} {...props}>
     {children}
   </div>
 );
+
 export function CardHeader({ className, children }: CardProps) {
   return (
     <div className={`px-6 py-4 border-b ${className}`}>
@@ -42,6 +34,7 @@ export function CardContent({ className, children }: CardProps) {
     </div>
   )
 }
+
 export const CardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
@@ -52,6 +45,8 @@ export const CardDescription = React.forwardRef<
     {...props}
   />
 ))
+CardDescription.displayName = 'CardDescription'
+
 export const CardFooter = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -62,3 +57,4 @@ export const CardFooter = React.forwardRef<
     {...props}
   />
 ))
+CardFooter.displayName = 'CardFooter'

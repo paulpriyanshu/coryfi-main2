@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect} from 'react'
 import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/button"
@@ -39,8 +39,8 @@ export default function NearbyUsersPage() {
   const [users, setUsers] = useState<User[]>(mockUsers)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
-  const radarRef = useRef<HTMLDivElement>(null)
-  const [radarSize, setRadarSize] = useState(0)
+  // const radarRef = useRef<HTMLDivElement>(null)
+  // const [radarSize, setRadarSize] = useState(0)
 
   useEffect(() => {
     const filteredUsers = mockUsers.filter(user => user.distance <= radius)
@@ -49,10 +49,10 @@ export default function NearbyUsersPage() {
 
   useEffect(() => {
     const updateRadarSize = () => {
-      if (radarRef.current) {
-        const width = radarRef.current.offsetWidth
-        setRadarSize(width)
-      }
+      // if (radarRef.current) {
+      //   // const width = radarRef.current.offsetWidth
+      //   // setRadarSize(width)
+      // }
     }
 
     updateRadarSize()
@@ -72,13 +72,13 @@ export default function NearbyUsersPage() {
     user.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const getNodeSize = (distance: number) => {
-    const baseSize = radarSize / 8
-    const userCount = users.length
-    const scaleFactor = 1 - (distance / radius) * 0.3
-    const countAdjustment = Math.max(1 - userCount / 30, 0.6)
-    return Math.max(baseSize * scaleFactor * countAdjustment, radarSize / 16)
-  }
+  // const getNodeSize = (distance: number) => {
+  //   const baseSize = radarSize / 8
+  //   const userCount = users.length
+  //   const scaleFactor = 1 - (distance / radius) * 0.3
+  //   const countAdjustment = Math.max(1 - userCount / 30, 0.6)
+  //   return Math.max(baseSize * scaleFactor * countAdjustment, radarSize / 16)
+  // }
 
   return (
     <div className="container mx-auto p-4 min-h-screen">

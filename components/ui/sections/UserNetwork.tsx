@@ -1,9 +1,22 @@
-"use client"
+'use client'
 
 import { useEffect, useRef } from "react"
 import * as d3 from "d3"
 
-export const data = {
+interface Node extends d3.SimulationNodeDatum {
+  id: string
+  group: number
+  connections: number
+  avatar: string
+  bio: string
+  visible: boolean
+}
+
+interface Link extends d3.SimulationLinkDatum<Node> {
+  value: number
+}
+
+export const data: { nodes: Node[], links: Link[] } = {
   nodes: [
     { id: "You", group: 1, connections: 5, avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?fit=facearea&facepad=2&w=256&h=256&q=80", bio: "That's you!", visible: true },
     { id: "Alice", group: 2, connections: 4, avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?fit=facearea&facepad=2&w=256&h=256&q=80", bio: "Software Engineer passionate about AI", visible: true },
@@ -22,7 +35,7 @@ export const data = {
 }
 
 interface UserNetworkProps {
-  onNodeClick: (node: any) => void
+  onNodeClick: (node: Node) => void
 }
 
 export default function UserNetwork({ onNodeClick }: UserNetworkProps) {
@@ -49,13 +62,19 @@ export default function UserNetwork({ onNodeClick }: UserNetworkProps) {
 
     svg.call(zoom)
 
-    const userConnections = data.links.filter(link => link.source === "You" || link.target === "You")
+    const userConnections = data.links.filter(link => 
+      (typeof link.source === 'string' && link.source === "You") || 
+      (typeof link.target === 'string' && link.target === "You")
+    )
     const connectedNodes = data.nodes.filter(node => 
-      node.id === "You" || userConnections.some(link => link.source === node.id || link.target === node.id)
+      node.id === "You" || userConnections.some(link => 
+        (typeof link.source === 'string' && link.source === node.id) || 
+        (typeof link.target === 'string' && link.target === node.id)
+      )
     )
 
-    const simulation = d3.forceSimulation(connectedNodes)
-      .force("link", d3.forceLink<any, any>(userConnections).id(d => d.id).distance(100))
+    const simulation = d3.forceSimulation<Node>(connectedNodes)
+      .force("link", d3.forceLink<Node, Link>(userConnections).id(d => d.id).distance(100))
       .force("charge", d3.forceManyBody().strength(-300))
       .force("center", d3.forceCenter(width / 2, height / 2))
       .force("collision", d3.forceCollide().radius(() => 35))
@@ -69,14 +88,14 @@ export default function UserNetwork({ onNodeClick }: UserNetworkProps) {
       .attr("stroke-width", d => Math.sqrt(d.value))
 
     const node = g.append("g")
-      .attr("stroke", "#fff")
-      .attr("stroke-width", 1.5)
-      .selectAll("g")
-      .data(connectedNodes)
-      .join("g")
-      .call(drag(simulation))
-      .on("click", (event, d) => onNodeClick(d))
-
+    .attr("stroke", "#fff")
+    .attr("stroke-width", 1.5)
+    .selectAll<SVGGElement, Node>("g")
+    .data(connectedNodes)
+    .join("g")
+    .call(drag(simulation))
+    .on("click", (event, d) => onNodeClick(d))
+    
     node.append("circle")
       .attr("r", 30)
       .attr("fill", d => d.id === "You" ? "#4f46e5" : "white")
@@ -96,34 +115,34 @@ export default function UserNetwork({ onNodeClick }: UserNetworkProps) {
 
     simulation.on("tick", () => {
       link
-        .attr("x1", d => (d.source as any).x)
-        .attr("y1", d => (d.source as any).y)
-        .attr("x2", d => (d.target as any).x)
-        .attr("y2", d => (d.target as any).y)
+        .attr("x1", d => (d.source as Node).x ?? 0)
+        .attr("y1", d => (d.source as Node).y ?? 0)
+        .attr("x2", d => (d.target as Node).x ?? 0)
+        .attr("y2", d => (d.target as Node).y ?? 0)
 
       node
-        .attr("transform", d => `translate(${d.x},${d.y})`)
+        .attr("transform", d => `translate(${d.x ?? 0},${d.y ?? 0})`)
     })
 
-    function drag(simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>) {
-      function dragstarted(event: any) {
+    function drag(simulation: d3.Simulation<Node, undefined>) {
+      function dragstarted(event: d3.D3DragEvent<SVGGElement, Node, Node>) {
         if (!event.active) simulation.alphaTarget(0.3).restart()
         event.subject.fx = event.subject.x
         event.subject.fy = event.subject.y
       }
 
-      function dragged(event: any) {
+      function dragged(event: d3.D3DragEvent<SVGGElement, Node, Node>) {
         event.subject.fx = event.x
         event.subject.fy = event.y
       }
 
-      function dragended(event: any) {
+      function dragended(event: d3.D3DragEvent<SVGGElement, Node, Node>) {
         if (!event.active) simulation.alphaTarget(0)
         event.subject.fx = null
         event.subject.fy = null
       }
 
-      return d3.drag<SVGGElement, any>()
+      return d3.drag<SVGGElement, Node>()
         .on("start", dragstarted)
         .on("drag", dragged)
         .on("end", dragended)

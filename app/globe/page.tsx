@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import React from 'react';
 import dynamic from 'next/dynamic';
 import { globeConfig } from '../api/actions/globestats';
-import { colors } from '../api/actions/globestats';
 import { sampleArcs } from '../api/actions/globestats';
 
 

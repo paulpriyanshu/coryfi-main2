@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef} from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
-import { Bell, Search, Menu, X, Calendar, MapPin, Users, Play, Pause } from 'lucide-react'
+import { X, Calendar, MapPin, Users, Play, Pause } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 type Event = {

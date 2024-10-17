@@ -126,7 +126,7 @@ export default function ExpandableCardDemoStandard() {
         ) : null}
       </AnimatePresence>
       <ul className="max-w-2xl mx-auto w-full gap-4">
-        {cards.map((card, index) => (
+        {cards.map((card) => (
           <motion.div
             layoutId={`card-${card.title}-${id}`}
             key={`card-${card.title}-${id}`}
@@ -237,15 +237,16 @@ const cards = [
     content: () => {
       return (
         <>
-          Daft Punk, the iconic French electronic music duo, are pioneers in the
-          house and electronic music scene. Their unique blend of house beats,
-          funk, and disco has made them one of the most influential acts in
-          electronic music history.
-          <br />
-          <br />
-          Known for their robot personas and innovative production techniques,
-          Daft Punk's music has earned numerous accolades, with hits like *Get
-          Lucky* and *Around the World* cementing their legacy in modern music.
+         Daft Punk, the iconic French electronic music duo, are pioneers in the
+  house and electronic music scene. Their unique blend of house beats,
+  funk, and disco has made them one of the most influential acts in
+  electronic music history.
+  <br />
+  <br />
+  Known for their robot personas and innovative production techniques,
+  Daft Punk&apos;s music has earned numerous accolades, with hits like <em>Get
+  Lucky</em> and <em>Around the World</em> cementing their legacy in modern music.
+
         </>
       );
     },
@@ -259,14 +260,16 @@ const cards = [
     content: () => {
       return (
         <>
-          Nirvana, the band that defined the grunge movement of the 1990s, is
-          synonymous with alternative rock's raw, emotional edge. Led by Kurt
-          Cobain, their music spoke to a generation's angst and disillusionment.
-          <br />
-          <br />
-          Nirvana's breakout hit *Smells Like Teen Spirit* brought grunge into
-          the mainstream, and their album *Nevermind* is widely regarded as one
-          of the greatest rock albums ever.
+         <p>
+  Nirvana, the band that defined the grunge movement of the 1990s, is
+  synonymous with alternative rock&apos;s raw, emotional edge. Led by Kurt
+  Cobain, their music spoke to a generation&apos;s angst and disillusionment.
+  <br />
+  <br />
+  Nirvana&apos;s breakout hit <em>Smells Like Teen Spirit</em> brought grunge into
+  the mainstream, and their album <em>Nevermind</em> is widely regarded as one
+  of the greatest rock albums ever.
+</p>
         </>
       );
     },
@@ -281,14 +284,14 @@ const cards = [
       return (
         <>
           The Beatles, perhaps the most famous and influential band in history,
-          changed the face of modern music. John Lennon, Paul McCartney, George
-          Harrison, and Ringo Starr defined the 1960s with their innovative
-          songwriting and genre-spanning albums.
-          <br />
-          <br />
-          From early hits like *Love Me Do* to later masterpieces like *Abbey
-          Road*, The Beatles' legacy in rock and pop music is unmatched, and
-          they continue to influence musicians across the globe.
+  changed the face of modern music. John Lennon, Paul McCartney, George
+  Harrison, and Ringo Starr defined the 1960s with their innovative
+  songwriting and genre-spanning albums.
+  <br />
+  <br />
+  From early hits like <em>Love Me Do</em> to later masterpieces like <em>Abbey
+  Road</em>, The Beatles&apos; legacy in rock and pop music is unmatched, and
+  they continue to influence musicians across the globe.
         </>
       );
     },

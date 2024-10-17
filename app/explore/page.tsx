@@ -1,16 +1,16 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { Bell, Menu, Search, ArrowLeftRight } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion';
-import dynamic from 'next/dynamic';
-import { globeConfig, colors, sampleArcs } from '../api/actions/globestats';
-import { Progress } from '@/components/ui/progress';
+import React, { useState, useCallback } from 'react'
+import { ArrowLeftRight } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import dynamic from 'next/dynamic'
+import { globeConfig, sampleArcs } from '../api/actions/globestats'
+import { Progress } from '@/components/ui/progress'
 
 const World = dynamic(() => import("../../components/ui/globe").then((m) => m.World), {
   ssr: false,
   loading: () => <p className='flex justify-center items-center h-full text-2xl font-bold'><Progress value={50}/></p>
-});
+})
 
 interface Account {
   name: string
@@ -66,7 +66,7 @@ const initialPosts: Post[] = [
 
 export default function Page() {
   const [accounts, setAccounts] = useState<Account[]>(initialAccounts)
-  const [communities, setCommunities] = useState<Community[]>(initialCommunities)
+  const [communities] = useState<Community[]>(initialCommunities)
   const [isExpanded, setIsExpanded] = useState(false)
   const [showGlobe, setShowGlobe] = useState(false)
   const [globeKey, setGlobeKey] = useState(0)
@@ -112,9 +112,8 @@ export default function Page() {
             <input
               type="text"
               placeholder="Search"
-              className="w-2/3  pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-2/3 pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {/* <Search className="h-5 w-5 text-gray-400" /> */}
           </div>
         </div>
         <div className="flex gap-8">
@@ -158,7 +157,7 @@ export default function Page() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="flex flex-col items-center justify-center  bg-white animate-bg-transition"
+                  className="flex flex-col items-center justify-center bg-white animate-bg-transition"
                 >
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -209,5 +208,6 @@ export default function Page() {
         </div>
       </main>
     </div>
-  )
+  ) 
 }
+

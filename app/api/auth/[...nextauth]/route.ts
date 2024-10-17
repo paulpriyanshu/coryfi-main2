@@ -1,11 +1,16 @@
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthOptions, User } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaClient } from "@prisma/client";
 
+
 const prisma = new PrismaClient();
 
-const authOptions = {
+interface CustomUser extends User {
+  id: string;
+}
+
+const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -18,7 +23,8 @@ const authOptions = {
         email: { label: "Email", type: "text", placeholder: "Email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials: any) {
+      async authorize(credentials) {
+        if (!credentials) return null;
         const { email, username } = credentials;
 
         // Return user object if found in DB or new user if created
@@ -35,19 +41,19 @@ const authOptions = {
     signIn: "/signup", // Define your custom signup page
   },
   callbacks: {
-    async signIn({ user, account, profile }:any) {
+    async signIn({ user, profile }) {
       // Check if the user exists in the database
       const existingUser = await prisma.user.findUnique({
-        where: { email: user.email },
+        where: { email: user.email || "" },
       });
 
-      if (!existingUser) {
+      if (!existingUser && user.email) {
         // If the user does not exist, create a new user in the database
         await prisma.user.create({
           data: {
             email: user.email,
-            name: user.name || profile.name, // Use name from profile if available
-            // image: user.image || profile.picture, // Use profile picture if available
+            name: user.name || (profile as { name?: string })?.name || "", // Use name from profile if available
+            // image: user.image || (profile as { picture?: string })?.picture || "", // Use profile picture if available
           },
         });
       }
@@ -55,14 +61,16 @@ const authOptions = {
       // Allow the sign-in process to continue
       return true;
     },
-    async session({ session, token, user }:any) {
+    async session({ session, token }) {
       // Attach the user ID to the session object
-      session.user.id = token.id;
+      if (session.user) {
+        (session.user as CustomUser).id = token.id as string;
+      }
       return session;
     },
-    async jwt({ token, user }:any) {
+    async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        token.id = (user as CustomUser).id;
       }
       return token;
     },
