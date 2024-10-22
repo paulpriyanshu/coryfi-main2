@@ -40,16 +40,16 @@ export default function CoryfiMobile() {
   const [thoughts, setThoughts] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
 
-  const { scrollY } = useScroll()
-  const headerRef = useRef(null)
+  // const { scrollY } = useScroll()
+  // const headerRef = useRef(null)
 
-  const headerHeight = useTransform(scrollY, [0, 100], [80, 50])
-  const headerPadding = useTransform(scrollY, [0, 100], [16, 8])
-  const logoScale = useTransform(scrollY, [0, 100], [1, 0.8])
+  // const headerHeight = useTransform(scrollY, [0, 100], [80, 50])
+  // const headerPadding = useTransform(scrollY, [0, 100], [16, 8])
+  // const logoScale = useTransform(scrollY, [0, 100], [1, 0.8])
 
-  const smoothHeight = useSpring(headerHeight, { damping: 20, stiffness: 200 })
-  const smoothPadding = useSpring(headerPadding, { damping: 20, stiffness: 200 })
-  const smoothLogoScale = useSpring(logoScale, { damping: 20, stiffness: 200 })
+  // const smoothHeight = useSpring(headerHeight, { damping: 20, stiffness: 200 })
+  // const smoothPadding = useSpring(headerPadding, { damping: 20, stiffness: 200 })
+  // const smoothLogoScale = useSpring(logoScale, { damping: 20, stiffness: 200 })
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
