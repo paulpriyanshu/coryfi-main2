@@ -35,7 +35,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       ><Providers>
-        <div className="hidden">
+        <div className="hidden md:block">
         <Header /> 
         </div>
         {/* Header displayed on every page */}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Home, Search, PlusSquare, Zap, User, Calendar, MapPin, Clock, Image as ImageIcon, X, Heart, MessageCircle, Share2, Send } from 'lucide-react'
 import { Button } from "@/components/ui/button"
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 
-const sampleUsers = [
+const users = [
   { id: 1, username: 'nature_lover', name: 'Emma Green', avatar: 'https://i.pravatar.cc/150?img=1' },
   { id: 2, username: 'tech_guru', name: 'Alex Chen', avatar: 'https://i.pravatar.cc/150?img=2' },
   { id: 3, username: 'foodie_adventures', name: 'Sophie Lee', avatar: 'https://i.pravatar.cc/150?img=3' },
@@ -38,7 +38,7 @@ export default function CoryfiMobile() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [posts, setPosts] = useState(initialPosts)
   const [thoughts, setThoughts] = useState([])
-  const [users, setUsers] = useState(sampleUsers)
+  // const [users, setUsers] = useState(sampleUsers)
   const [searchQuery, setSearchQuery] = useState('')
 
   const renderPage = () => {

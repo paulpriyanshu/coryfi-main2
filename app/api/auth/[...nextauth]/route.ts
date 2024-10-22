@@ -57,7 +57,7 @@ const authOptions: NextAuthOptions = {
             // image: user.image || (profile as { picture?: string })?.picture || "", // Use profile picture if available
           },
         });
-        const user_add=await axios.post("http://localhost:3003/api/v1/create/User",{
+          await axios.post("http://localhost:3003/api/v1/create/User",{
           email:user.email,
           name:user.email
         })
