@@ -2,6 +2,7 @@ import NextAuth, { NextAuthOptions, User } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaClient } from "@prisma/client";
+import axios from "axios"
 
 
 const prisma = new PrismaClient();
@@ -56,6 +57,10 @@ const authOptions: NextAuthOptions = {
             // image: user.image || (profile as { picture?: string })?.picture || "", // Use profile picture if available
           },
         });
+        const user_add=await axios.post("http://localhost:3003/api/v1/create/User",{
+          email:user.email,
+          name:user.email
+        })
       }
 
       // Allow the sign-in process to continue
