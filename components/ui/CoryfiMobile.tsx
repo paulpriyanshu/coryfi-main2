@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import React, { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'framer-motion'
 import { Home, Search, PlusSquare, Zap, User, Calendar, MapPin, Clock, Image as ImageIcon, X, Heart, MessageCircle, Share2, Send } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
@@ -38,8 +38,25 @@ export default function CoryfiMobile() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [posts, setPosts] = useState(initialPosts)
   const [thoughts, setThoughts] = useState([])
-  // const [users, setUsers] = useState(sampleUsers)
   const [searchQuery, setSearchQuery] = useState('')
+
+  const { scrollY } = useScroll()
+  const headerRef = useRef(null)
+
+  const headerHeight = useTransform(scrollY, [0, 100], [80, 50])
+  const headerPadding = useTransform(scrollY, [0, 100], [16, 8])
+  const logoScale = useTransform(scrollY, [0, 100], [1, 0.8])
+
+  const smoothHeight = useSpring(headerHeight, { damping: 20, stiffness: 200 })
+  const smoothPadding = useSpring(headerPadding, { damping: 20, stiffness: 200 })
+  const smoothLogoScale = useSpring(logoScale, { damping: 20, stiffness: 200 })
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = 'auto'
+    }
+  }, [])
 
   const renderPage = () => {
     switch (activePage) {
@@ -77,20 +94,108 @@ export default function CoryfiMobile() {
       post.id === postId ? { ...post, comments: [...post.comments, comment] } : post
     ))
   }
+//   import React, { useEffect, useRef } from 'react';
+// import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+
+const ShrinkingHeader = () => {
+  const headerRef = useRef(null);
+  const [isVisible, setIsVisible] = useState(true);
+  const { scrollY } = useScroll();
+  const lastScrollY = useRef(0);
+  const threshold = 5; // Adjust this for sensitivity (higher means less sensitive)
+
+  // Define animation ranges
+  const initialHeight = 60;   // Initial header height
+  const finalHeight = 40;     // Final header height when scrolled
+  const scrollRange = [0, 200]; // Adjust this for faster/slower transformation
+
+  // Create smooth animations
+  const height = useTransform(scrollY, scrollRange, [initialHeight, finalHeight]);
+  const logoScale = useTransform(scrollY, scrollRange, [1, 0.8]);
+
+  // Add spring physics for smoother animation
+  const smoothHeight = useSpring(height, {
+    damping: 20,
+    stiffness: 200,
+    mass: 0.5
+  });
+
+  const smoothLogoScale = useSpring(logoScale, {
+    damping: 20,
+    stiffness: 200,
+    mass: 0.5
+  });
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (Math.abs(currentScrollY - lastScrollY.current) > threshold) {
+        if (currentScrollY > lastScrollY.current) {
+          setIsVisible(false); // Hide when scrolling down
+        } else {
+          setIsVisible(true); // Show when scrolling up
+        }
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-blue-50">
-      <motion.header
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="flex justify-center items-center p-4 bg-white shadow-md"
-      >
-        {/* <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Coryfi</h1> */}
-        <img src="logo.png" className='w-20 ' />
-      </motion.header>
+    <motion.header
+      ref={headerRef}
+      style={{ height: smoothHeight }}
+      animate={{
+        y: isVisible ? 0 : -100,
+        opacity: isVisible ? 1 : 0,
+      }}
+      transition={{
+        duration: 0.3,
+        ease: 'easeInOut',
+      }}
+      className="fixed top-0 left-0 w-full flex justify-center items-center bg-white opacity-80 backdrop-blur-sm shadow-md z-50"
+    >
+      <motion.img
+        src="/logo.png"
+        alt="Coryfi Logo"
+        className="h-2/4 object-contain"
+        style={{ scale: smoothLogoScale }}
+      />
+    </motion.header>
+  );
+};
 
-      <main className="flex-1 overflow-y-auto">
+
+
+  return (
+    <div className="flex flex-col h-screen bg-blue-50 overflow-hidden">
+      {/* <motion.header
+        ref={headerRef}
+        style={{ 
+          height: smoothHeight, 
+          padding: smoothPadding,
+        }}
+        className="flex justify-center items-center bg-white shadow-md z-10"
+      >
+        <motion.img
+          src="/logo.png"
+          alt="Coryfi Logo"
+          className="h-full"
+          style={{ scale: smoothLogoScale }}
+        />
+      </motion.header> */}
+      <div className='mb-10'>
+      <ShrinkingHeader/>
+
+      </div>
+     
+
+      <main className="flex-1 overflow-y-auto pt-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={activePage}
@@ -130,13 +235,13 @@ export default function CoryfiMobile() {
 
 function NavButton({ icon, label, isActive, onClick }) {
   return (
-    <Button
-      variant="ghost"
-      size="icon"
+    <motion.button
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.95 }}
       onClick={onClick}
       className={cn(
-        "relative w-12 h-12 rounded-full transition-colors",
-        isActive && "text-blue-600"
+        "relative w-12 h-12 rounded-full transition-colors flex items-center justify-center",
+        isActive ? "text-blue-600 bg-blue-100" : "text-gray-600"
       )}
     >
       {icon}
@@ -150,7 +255,7 @@ function NavButton({ icon, label, isActive, onClick }) {
           style={{ x: '-50%' }}
         />
       )}
-    </Button>
+    </motion.button>
   )
 }
 
@@ -186,7 +291,7 @@ function CreateModal({ isOpen, onClose, onCreatePost, onCreateThought, users }) 
   const handleSubmit = (type) => {
     const newContent = {
       id: Date.now(),
-      userId: users[0].id, // Assuming the first user is the current user
+      userId: users[0].id,
       content,
       image,
       timestamp: new Date().toISOString(),
@@ -296,7 +401,7 @@ function PostCard({ item, users, onLike, onComment }) {
           <p className="text-sm text-blue-900">{item.content}</p>
         </CardContent>
         <CardFooter className="flex flex-col items-start text-sm text-blue-600">
-          <div className="flex items-center space-x-2 w-full mb-2">
+          <div className="flex items-center space-x-2  w-full mb-2">
             <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800 hover:bg-blue-50" onClick={() => onLike(item.id)}>
               <Heart className="h-4 w-4 mr-1" />
               {item.likes}
@@ -311,7 +416,7 @@ function PostCard({ item, users, onLike, onComment }) {
           </div>
           <div className="w-full space-y-2">
             {item.comments.map((comment, index) => (
-              <div key={index} className="flex items-start  space-x-2">
+              <div key={index} className="flex items-start space-x-2">
                 <Avatar className="h-6 w-6">
                   <AvatarImage src={users.find(u => u.id === comment.userId).avatar} />
                   <AvatarFallback>{users.find(u => u.id === comment.userId).username[0].toUpperCase()}</AvatarFallback>
@@ -420,7 +525,7 @@ function FlashPage() {
 }
 
 function ProfilePage({ posts, thoughts, users }) {
-  const currentUser = users[0] // Assuming the first user is the current user
+  const currentUser = users[0]
 
   return (
     <div className="p-4 space-y-4">
