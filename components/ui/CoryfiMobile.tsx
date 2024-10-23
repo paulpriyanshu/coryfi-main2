@@ -210,17 +210,18 @@ const ShrinkingHeader = () => {
       </main>
 
       <motion.nav
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="flex justify-between items-center p-4 bg-white shadow-top"
-      >
-        <NavButton icon={<Home />} label="Home" isActive={activePage === 'home'} onClick={() => setActivePage('home')} />
-        <NavButton icon={<Search />} label="Search" isActive={activePage === 'search'} onClick={() => setActivePage('search')} />
-        <CreateButton onClick={() => setIsCreateModalOpen(true)} />
-        <NavButton icon={<Zap />} label="Flash" isActive={activePage === 'flash'} onClick={() => setActivePage('flash')} />
-        <NavButton icon={<User />} label="Profile" isActive={activePage === 'profile'} onClick={() => setActivePage('profile')} />
-      </motion.nav>
+  initial={{ y: 50, opacity: 0 }}
+  animate={{ y: 0, opacity: 1 }}
+  transition={{ duration: 0.5 }}
+  className="flex justify-between items-center p-4 bg-white shadow-top"
+  style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+>
+  <NavButton icon={<Home />} label="Home" isActive={activePage === 'home'} onClick={() => setActivePage('home')} />
+  <NavButton icon={<Search />} label="Search" isActive={activePage === 'search'} onClick={() => setActivePage('search')} />
+  <CreateButton onClick={() => setIsCreateModalOpen(true)} />
+  <NavButton icon={<Zap />} label="Flash" isActive={activePage === 'flash'} onClick={() => setActivePage('flash')} />
+  <NavButton icon={<User />} label="Profile" isActive={activePage === 'profile'} onClick={() => setActivePage('profile')} />
+</motion.nav>
 
       <CreateModal
         isOpen={isCreateModalOpen}
