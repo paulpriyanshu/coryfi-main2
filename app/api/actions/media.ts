@@ -288,7 +288,7 @@ export const likePost=async(id:number,viewerEmail:string)=>{
     where: { id },
     data: {
       likes: {
-        push: viewerEmail, // Prisma's `push` adds to a `text[]` field
+        push: viewerEmail, // db's `push` adds to a `text[]` field
       },
     },
   });
@@ -347,7 +347,7 @@ export async function createComment(
     }
 
     // Create a comment or a reply
-    const comment = await prisma.comment.create({
+    const comment = await db.comment.create({
       data: {
         postId,
         userId,
@@ -377,7 +377,7 @@ export async function replyToComment(
     }
 
     // Create a reply to the comment
-    const reply = await prisma.comment.create({
+    const reply = await db.comment.create({
       data: {
         postId,
         userId,
@@ -400,7 +400,7 @@ export async function fetchCommentsWithReplies(postId: number) {
       throw new Error('postId is required.');
     }
 
-    const comments = await prisma.comment.findMany({
+    const comments = await db.comment.findMany({
       where: { postId, parentId: null }, // Only top-level comments
       include: {
         user: true, // Include user details for each comment (if needed)
