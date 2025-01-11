@@ -277,7 +277,7 @@ export default function EnhancedInfiniteScrollNetwork() {
 
   const handleShare = async (e, postId) => {
     e.stopPropagation(); // Prevent post modal from opening
-    const url = `http://localhost:3000/p/${postId}`;
+    const url = `https://connect.coryfi.com/p/${postId}`;
     try {
       await navigator.clipboard.writeText(url);
       toast.success('Link copied to clipboard', {
