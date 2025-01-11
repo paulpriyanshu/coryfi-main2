@@ -35,7 +35,7 @@ export default function Chat() {
 
   const getUserChatId = useCallback(async (email) => {
     try {
-      const res = await axios.get(`http://localhost:8080/api/v1/users/getOneUser/${email}`)
+      const res = await axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${email}`)
       setCurrentUserId(res.data.data._id)
       return res.data.data._id
     } catch (error) {

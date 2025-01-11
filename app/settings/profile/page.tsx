@@ -159,7 +159,7 @@ export default function ProfilePage() {
       const blob = await response.blob()
       const file = new File([blob], 'profile_image.jpg', { type: 'image/jpeg' })
 
-      const uploadUrlResponse = await axios.get(`http://localhost:8000/api/imageUpload/${file.name}`)
+      const uploadUrlResponse = await axios.get(`https://media.coryfi.com/api/imageUpload/${file.name}`)
       const { url, filename } = uploadUrlResponse.data
 
       await axios.put(url, file, {
@@ -170,7 +170,7 @@ export default function ProfilePage() {
         },
       })
 
-      const previewResponse = await axios.get(`http://localhost:8000/api/image/${filename}`)
+      const previewResponse = await axios.get(`https://media.coryfi.com/api/image/${filename}`)
       setProfileImageUrl(previewResponse.data.url)
 
       toast.success('Profile image uploaded successfully')

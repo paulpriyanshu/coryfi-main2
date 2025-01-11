@@ -23,7 +23,7 @@ export function ChatSearchBar({ onSelectUser, currentUserId }: SearchBarProps) {
 
   const fetchUsers = React.useCallback(async (search: string) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/users/${currentUserId}`)
+      const response = await fetch(`https://chat.coryfi.com/api/v1/users/${currentUserId}`)
       const data = await response.json()
       setSuggestions(data.data)
     } catch (error) {

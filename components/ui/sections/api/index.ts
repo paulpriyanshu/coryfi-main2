@@ -41,16 +41,16 @@ const logoutUser = () => {
 };
 
 const getAvailableUsers = (id:any) => {
-  return axios.get(`http://localhost:8080/api/v1/chat-app/chats/users/${id}`);
+  return axios.get(`https://chat.coryfi.com/api/v1/chat-app/chats/users/${id}`);
 };
 
 const getUserChats = (id:any) => {
-  return axios.get(`http://localhost:8080/api/v1/chat-app/chats/${id}`);
+  return axios.get(`https://chat.coryfi.com/api/v1/chat-app/chats/${id}`);
 };
 
 const createUserChat = (receiverId: string,id:string) => {
   
-  return axios.post(`http://localhost:8080/api/v1/chat-app/chats/c/${receiverId}/${id}`);
+  return axios.post(`https://chat.coryfi.com/api/v1/chat-app/chats/c/${receiverId}/${id}`);
 };
 
 const createGroupChat = (data: { name: string; participants: string[] }) => {
@@ -82,7 +82,7 @@ const removeParticipantFromGroup = (chatId: string, participantId: string) => {
 };
 
 const getChatMessages = (chatId: string,userId:any) => {
-  return axios.get(`http://localhost:8080/api/v1/chat-app/messages/${chatId}/${userId}`);
+  return axios.get(`https://chat.coryfi.com/api/v1/chat-app/messages/${chatId}/${userId}`);
 };
 
 const sendMessage = (chatId: string, content: string, attachments: File[],userId:string) => {
@@ -94,7 +94,7 @@ const sendMessage = (chatId: string, content: string, attachments: File[],userId
     formData.append("attachments", file);
   });
   console.log(formData)
-  return axios.post(`http://localhost:8080/api/v1/chat-app/messages/${chatId}/${userId}`, formData);
+  return axios.post(`https://chat.coryfi.com/api/v1/chat-app/messages/${chatId}/${userId}`, formData);
 };
 
 const deleteMessage = (chatId: string, messageId: string) => {

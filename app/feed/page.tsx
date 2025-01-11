@@ -177,7 +177,7 @@ export default function EnhancedInfiniteScrollNetwork() {
       const blob = await response.blob()
       const file = new File([blob], 'edited_image.jpg', { type: 'image/jpeg' })
 
-      const uploadUrlResponse = await axios.get(`http://localhost:8000/api/imageUpload/${file.name}`)
+      const uploadUrlResponse = await axios.get(`https://media.coryfi.com/api/imageUpload/${file.name}`)
       const { url, filename } = uploadUrlResponse.data
 
       await axios.put(url, file, {
@@ -188,7 +188,7 @@ export default function EnhancedInfiniteScrollNetwork() {
         },
       })
 
-      const previewResponse = await axios.get(`http://localhost:8000/api/image/${filename}`)
+      const previewResponse = await axios.get(`https://media.coryfi.com/api/image/${filename}`)
       setNewPostContent((prev) => ({
         ...prev,
         images: [...prev.images, { url: previewResponse.data.url, filename }],

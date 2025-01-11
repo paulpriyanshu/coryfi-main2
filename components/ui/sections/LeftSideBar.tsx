@@ -23,7 +23,7 @@ export default function LeftSidebar({userEmail}) {
 const handleFindPath = async (email: string) => {
         if (userEmail) {
           try {
-            const response = await axios.post("http://localhost:3003/api/v1/getpathranking", {
+            const response = await axios.post("https://neo.coryfi.com/api/v1/getpathranking", {
               targetEmail: email,
               sourceEmail: userEmail,
               pathIndex:0

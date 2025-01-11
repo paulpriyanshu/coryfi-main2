@@ -78,7 +78,7 @@ export default function ConnectionRequestsDropdown() {
       const result = await approve_request(request.requester.email, session.user.email)
       
       // Update connection strength in the backend
-      await axios.post('http://localhost:3003/api/v1/connect', {
+      await axios.post('https://neo.coryfi.com/api/v1/connect', {
         email1: session.user.email,
         email2: request.requester.email,
         strength: request.StrengthLevel

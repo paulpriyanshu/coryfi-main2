@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = 'http://localhost:8080/';
+const SOCKET_URL = 'https://chat.coryfi.com/';
 
 const SocketContext = createContext({
   socket: null,

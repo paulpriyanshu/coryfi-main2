@@ -24,7 +24,7 @@ export function ChatList({ chats, onSelectChat, currentUserId }) {
         // Fetch avatar for each participant
         for (const participant of allParticipants) {
           const response = await axios.get(
-            `http://localhost:8080/api/v1/users/getOneUserWithId/${participant._id}`
+            `https://chat.coryfi.com/api/v1/users/getOneUserWithId/${participant._id}`
           );
           console.log("this is data",response)
           

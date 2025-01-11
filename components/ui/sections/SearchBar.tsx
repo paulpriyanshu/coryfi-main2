@@ -52,7 +52,7 @@ export default function SearchBar() {
       if (term.length > 0 && session?.user?.email) {
         setIsLoading(true)
         try {
-          const response = await fetch('http://localhost:3003/api/v1/search', {
+          const response = await fetch('https://neo.coryfi.com/api/v1/search', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ export default function SearchBar() {
   const handleFindPath = async (email: string) => {
     if (session?.user?.email) {
       try {
-        const response = await axios.post("http://localhost:3003/api/v1/getpathranking", {
+        const response = await axios.post("https://neo.coryfi.com/api/v1/getpathranking", {
           targetEmail: email,
           sourceEmail: session.user.email,
           pathIndex:0

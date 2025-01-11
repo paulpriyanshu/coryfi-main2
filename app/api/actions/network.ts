@@ -597,8 +597,8 @@ export const handleApproval = async (
           console.log("inside the connection api",relationshipPayload.email1,relationshipPayload.email2)
           // const id1=await fetchUserId(relationshipPayload.email1)
           // const id2=await fetchUserId(relationshipPayload.email2)
-          const id1=await axios.get(`http://localhost:8080/api/v1/users/getOneUser/${relationshipPayload.email1}`)
-          const id2=await axios.get(`http://localhost:8080/api/v1/users/getOneUser/${relationshipPayload.email2}`)
+          const id1=await axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${relationshipPayload.email1}`)
+          const id2=await axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${relationshipPayload.email2}`)
           console.log("these are the ids",id2.data.data._id,id1.data.data._id)
           try {
             const response=await createUserChat(id2.data.data._id,id1.data.data._id)
@@ -696,8 +696,8 @@ export const handleApproval = async (
     });
     if(!nextPath)  return { success: true, message: "Approval processed successfully." };
     console.log("this is next path",nextPath)
-    const nextPathUserId=await axios.get(`http://localhost:8080/api/v1/users/getOneUser/${nextPath.intermediary.email}`)
-    const initiatorUser=await axios.get(`http://localhost:8080/api/v1/users/getOneUser/${nextPath?.evaluation?.requester?.email}`)
+    const nextPathUserId=await axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${nextPath.intermediary.email}`)
+    const initiatorUser=await axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${nextPath?.evaluation?.requester?.email}`)
     console.log("this is current user id",initiatorUser.data)
     console.log("this is nexpath user id",nextPathUserId.data.data)
     await createUserChat(nextPathUserId.data.data._id,initiatorUser.data.data._id)
@@ -970,7 +970,7 @@ export const handleApproval = async (
         },
       });
       if(name){
-        const updateMongoUser=await axios.post(`http://localhost:8080/api/v1/users/editUser/`,{
+        const updateMongoUser=await axios.post(`https://chat.coryfi.com/api/v1/users/editUser/`,{
           email,
           name
         })

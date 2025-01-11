@@ -33,7 +33,7 @@ type ConnectionPath = {
 
 async function getPathRanking(index: number, userEmail: string, targetEmail: string): Promise<ConnectionPath | null> {
   try {
-    const response = await axios.post('http://localhost:3003/api/v1/getpathranking', {
+    const response = await axios.post('https://neo.coryfi.com/api/v1/getpathranking', {
       sourceEmail: userEmail,
       targetEmail: targetEmail,
       pathIndex: index
