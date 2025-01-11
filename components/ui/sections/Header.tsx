@@ -2,18 +2,28 @@
 
 import React, { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
-import { Home, Compass, Bell, User, Zap, Users, Menu } from "lucide-react"
+import { Home, Compass, User, Zap, Users, Menu, Settings, LogOut, Sun, Moon, Laptop,Network} from "lucide-react"
 import Link from "next/link"
-import { useSession } from "next-auth/react"
+import Image from "next/image"
+import { useSession,signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
+import { Avatar, AvatarImage } from "@/components/ui/avatar"
+import Notifications from "./Notifications"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/Label"
+import { fetchUserId } from "@/app/api/actions/media"
 
 interface NavItemProps {
   icon: React.ReactNode
@@ -28,58 +38,72 @@ const NavItem: React.FC<NavItemProps> = ({ icon, href, isActive, tooltip }) => {
       href={href}
       className={`relative inline-flex items-center justify-center w-12 h-12 rounded-full ${
         isActive ? "text-blue-600 bg-blue-100" : "text-gray-500 hover:text-blue-700 hover:bg-blue-50"
-      }`}
+      } transition-all duration-200 ease-in-out`}
     >
       {icon}
       <span className="sr-only">{tooltip}</span>
       {isActive && (
-        <span className="absolute bottom-0 left-1/2 w-1/2 h-0.5 bg-blue-600 transform -translate-x-1/2" />
+        <motion.span
+          layoutId="activeIndicator"
+          className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"
+          initial={false}
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        />
       )}
     </Link>
   )
 }
 
+
+
+
 export default function Component() {
   const pathname = usePathname()
   const [activeTab, setActiveTab] = useState("")
-  const { data: session} = useSession()
+  const { data: session } = useSession()
   const router = useRouter()
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [mode, setMode] = useState("normal")
+  const [userDp,setUserDp]=useState("")
 
   const handleClick = () => {
     router.push('/signup')
   }
 
+  const handleLogout = async() => {
+    // Implement logout logic here
+    console.log("Logging out...")
+    await signOut()
+  }
+
   useEffect(() => {
-    switch (pathname) {
-      case "/feed":
-        setActiveTab("Home")
-        break
-      case "/explore":
-        setActiveTab("Explore")
-        break
-      case "/":
-        setActiveTab("Dashboard")
-        break
-      case "/notifications":
-        setActiveTab("Notifications")
-        break
-      case "/flash":
-        setActiveTab("Flash")
-        break
-      case "/nearby":
-        setActiveTab("Nearby")
-        break
-      case "/profile":
-        setActiveTab("Profile")
-        break
-      default:
-        setActiveTab("")
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10)
     }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    setActiveTab(pathname)
   }, [pathname])
+  
+  useEffect(()=>{
+    if(session?.user?.email){
+      const getuserDp=async()=>{
+        const user=await fetchUserId(session?.user?.email)
+        console.log("logged in user",user)
+        setUserDp(user?.userdp)
+
+      }
+      getuserDp()
+    }
+  })
   
   const navItems = [
     { icon: <Home className="h-5 w-5" />, href: "/feed", tooltip: "Home" },
     { icon: <Compass className="h-5 w-5" />, href: "/explore", tooltip: "Explore" },
+    { icon: <Network className="h-5 w-5" />, href: "/", tooltip: "Network" },
     { icon: <Zap className="h-5 w-5" />, href: "/flash", tooltip: "Flash" },
     { icon: <Users className="h-5 w-5" />, href: "/nearby", tooltip: "Nearby" },
   ]
@@ -89,47 +113,141 @@ export default function Component() {
       initial={{ opacity: 0, y: -50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-white border-b sticky top-0 z-10 shadow-sm"
+      className={`sticky top-0 z-50 w-full transition-all duration-200 ${isScrolled ? 'bg-white/80 backdrop-blur-md shadow-md' : 'bg-white'}`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex-shrink-0 flex items-center">
-           <img src="logo.png" className="w-36" alt="corify" />
-          </div>
-          <nav className="hidden md:flex items-center justify-center flex-1 space-x-4">
-            {navItems.map((item) => (
-              <NavItem
-                key={item.tooltip}
-                icon={item.icon}
-                href={item.href}
-                isActive={activeTab === item.tooltip}
-                tooltip={item.tooltip}
+      <div className="container mx-auto px-4">
+        <div className="flex h-16 items-center justify-between">
+          <div className="flex items-center">
+            <Sheet>
+              <SheetTrigger asChild className="md:hidden">
+                <Button variant="ghost" size="icon" className="mr-2">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[300px] sm:w-[400px] flex flex-col">
+                <div className="flex-grow">
+                  <nav className="flex flex-col space-y-4 mt-4">
+                    {navItems.map((item) => (
+                      <motion.div
+                        key={item.tooltip}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Link href={item.href} className="flex items-center text-2xl font-bold space-x-2 text-blue-600 hover:text-blue-800">
+                          {item.icon}
+                          <span>{item.tooltip}</span>
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </nav>
+                  <div className="mt-8">
+                    <h3 className="text-lg font-semibold mb-4">Mode Selection</h3>
+                    <RadioGroup value={mode} onValueChange={setMode} className="grid gap-4">
+                      {[
+                        { value: "normal", label: "Normal", icon: Sun },
+                        { value: "professional", label: "Professional", icon: Laptop },
+                        { value: "business", label: "Business", icon: Moon },
+                      ].map(({ value, label, icon: Icon }) => (
+                        <Label
+                          key={value}
+                          htmlFor={value}
+                          className={`flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary ${
+                            mode === value ? "border-primary" : ""
+                          }`}
+                        >
+                          <RadioGroupItem value={value} id={value} className="sr-only" />
+                          <Icon className="mb-3 h-6 w-6" />
+                          <span>{label}</span>
+                        </Label>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                  <Button variant="outline" className="w-full mt-8" onClick={() => router.push('/settings/profile')}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </Button>
+                </div>
+                <Button variant="outline" className="w-full mt-auto mb-4" onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              </SheetContent>
+            </Sheet>
+            <Link href="/" className="flex items-center justify-start ml-2">
+              <Image
+                src="/logo.png"
+                alt="Company Logo"
+                width={120}
+                height={40}
+                className="w-auto h-8 md:h-10"
               />
-            ))}
+            </Link>
+          </div>
+
+          <nav className="hidden md:flex items-center justify-center space-x-4">
+            <AnimatePresence>
+              {navItems.map((item) => (
+                <motion.div
+                  key={item.tooltip}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <NavItem
+                    icon={item.icon}
+                    href={item.href}
+                    isActive={activeTab === item.href}
+                    tooltip={item.tooltip}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </nav>
-          <div className="flex items-center space-x-4">
-            <NavItem
-              icon={<Bell className="h-5 w-5" />}
-              href="/notifications"
-              isActive={activeTab === "Notifications"}
-              tooltip="Notifications"
-            />
+
+          <div className="flex items-center space-x-5">
+            <Notifications/>
             {session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full">
-                    <User className="h-10 w-10 text-slate-500 border border-slate-300 p-1 rounded-full" />
-                    <span className="sr-only">User Profile</span>
+                  <Button variant="ghost" className="p-px rounded-full h-8 w-8">
+                    <Avatar className="h-8 w-8 border border-slate-200">
+                      <AvatarImage src={userDp || session?.user?.image} alt="User" />
+                    </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile" className="flex items-center">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
-                    </Link>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{session.user.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{session.user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={()=>router.push("/profile")}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
                   </DropdownMenuItem>
-                  {/* Add more menu items here if needed */}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => setMode("normal")}>
+                    Normal Mode
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setMode("professional")}>
+                    Professional Mode
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setMode("business")}>
+                    Business Mode
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => router.push('/settings/profile')}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
@@ -140,34 +258,6 @@ export default function Component() {
                 Signup
               </Button>
             )}
-            <div className="md:hidden">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Menu className="h-5 w-5" />
-                    <span className="sr-only">Menu</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {navItems.map((item) => (
-                    <DropdownMenuItem key={item.tooltip} asChild>
-                      <Link href={item.href} className="flex items-center">
-                        {item.icon}
-                        <span className="ml-2">{item.tooltip}</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                  {session && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile" className="flex items-center">
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
           </div>
         </div>
       </div>

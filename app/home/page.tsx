@@ -1,9 +1,7 @@
 "use client"
 import { Mail, MessageSquare, Calendar, Play, List } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-// import { useSession } from 'next-auth/react'
 import { useSession } from 'next-auth/react'
-// Import custom components (defined below)
 import MailSection from '@/components/ui/sections/MailSection'
 import DMSection from '@/components/ui/sections/DMSections'
 import MeetingSection from '@/components/ui/sections/MeetingSection'
@@ -12,8 +10,19 @@ import ThreadList from '@/components/ui/sections/ThreadList'
 import YourList from '@/components/ui/sections/YourList'
 
 export default function Page() {
+  const { data: session, status } = useSession()
 
-  const session=useSession()
+  // Show a loading state while checking session status
+  if (status === 'loading') {
+    return <div>Loading...</div>
+  }
+
+  // If there is no session, display the login message
+  if (!session) {
+    return <div>Please login</div>
+  }
+
+  // If a session exists, render the dashboard
   return (
     <div className="p-8 bg-gray-100 h-full">
       <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
@@ -34,9 +43,7 @@ export default function Page() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <MessageSquare className="mr-2" />
-              {session.data?.user?.email}
               DMs
-              
             </CardTitle>
           </CardHeader>
           <CardContent>

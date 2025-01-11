@@ -1,331 +1,600 @@
-"use client"
+'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
-import { Mail, MessageSquare, Award, User, Play, Pause, Volume2, VolumeX } from 'lucide-react'
+import React, { useEffect, useRef, useState, useCallback } from "react"
+import { useSession } from "next-auth/react"
+import { MessageSquare, ThumbsUp, Share2, ChevronUp, Mail, ImageIcon, Smile, Video, AlertCircle, X, ChevronLeft, ChevronRight, Send } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Textarea } from "@/components/ui/textarea"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/Input"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+import SearchBar from "@/components/ui/sections/SearchBar"
+import axios from 'axios'
+import { fetchImages, fetchUserId, uploadPost } from "../api/actions/media"
+import ImageEditModal from '@/components/ui/ImageEditModal'
+import { useRouter } from "next/navigation"
+import LeftSidebar from "@/components/ui/sections/LeftSideBar"
+import { likePost, dislikePost } from "../api/actions/media"
+import { PostModal } from "@/components/ui/sections/PostModal"
+import { Toaster, toast } from 'react-hot-toast'
+import ModernUserCarousel from "@/components/ui/sections/ModernUserCarousel"
 
-interface DM {
-  id: number;
-  name: string;
-  message: string;
-}
+const DRAFT_STORAGE_KEY = 'postDraft'
 
-interface Mail {
-  id: number;
-  subject: string;
-  sender: string;
-}
+const users = [
+  { name: 'Emma Johnson', avatar: 'https://i.pravatar.cc/150?img=1' },
+  { name: 'Liam Wilson', avatar: 'https://i.pravatar.cc/150?img=2' },
+  { name: 'Olivia Davis', avatar: 'https://i.pravatar.cc/150?img=3' },
+  { name: 'Noah Martinez', avatar: 'https://i.pravatar.cc/150?img=4' },
+  { name: 'Ava Taylor', avatar: 'https://i.pravatar.cc/150?img=5' },
+  { name: 'Ethan Anderson', avatar: 'https://i.pravatar.cc/150?img=6' },
+  { name: 'Sophia Thomas', avatar: 'https://i.pravatar.cc/150?img=7' },
+  { name: 'Mason Jackson', avatar: 'https://i.pravatar.cc/150?img=8' },
+]
 
-interface Reach {
-  id: number;
-  name: string;
-}
-
-interface Video {
-  id: number;
-  title: string;
-  author: string;
-  likes: number;
-  comments: number;
-  views: string;
-  src: string;
-}
-
-interface Recognition {
-  id: number;
-  name: string;
-  date: string;
-}
-
-interface CardProps {
-  title: string;
-  icon?: React.ReactNode;
-  children: React.ReactNode;
-}
-
-interface VideoPlayerProps {
-  video: Video;
-}
-
-export default function Page() {
-  return (
-    <div className="h-screen flex flex-col overflow-hidden bg-gray-100">
-      <div className="flex overflow-hidden">
-        <div className="max-w-full w-full mx-auto flex">
-          <div className="w-1/2 p-6 overflow-y-auto">
-            <div className="space-y-6 ">
-              <Card title="DMs" icon={<MessageSquare />}>
-                <DMList />
-              </Card>
-              <Card title="Mails" icon={<Mail />}>
-                <MailList />
-              </Card>
-              <Card title="New Reaches" icon={<User />}>
-                <ReachesList />
-              </Card>
-            </div>
-          </div>
-
-          <div className='w-full  m-5 overflow-auto flex justify-center'>
-            <div className="w-full p-6 overflow-y-auto">
-              <div className="space-y-6">
-                <Card title="Videos">
-                  <VideoFeed />
-                </Card>
-              </div>
-            </div>
-          </div>
-
-          <div className="w-1/2 p-6 overflow-y-auto">
-            <div className="space-y-6">
-              <Card title="Your Recognition" icon={<Award />}>
-                <RecognitionList />
-              </Card>
-              <Card title="Profile">
-                <Profile />
-              </Card>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function Card({ title, icon, children }: CardProps) {
-  return (
-    <div className="bg-white overflow-hidden shadow rounded-lg">
-      <div className="px-4 py-5 sm:p-6">
-        <h3 className="text-lg leading-6 font-medium text-gray-900 flex items-center">
-          {icon && <span className="mr-2">{icon}</span>}
-          {title}
-        </h3>
-        <div className="mt-4">{children}</div>
-      </div>
-    </div>
-  )
-}
-
-function DMList() {
-  const dms: DM[] = [
-    { id: 1, name: 'John Doe', message: 'Hey, how are you?' },
-    { id: 2, name: 'Jane Smith', message: 'Can we meet tomorrow?' },
-  ]
-  return (
-    <ul className="divide-y divide-gray-200">
-      {dms.map((dm) => (
-        <li key={dm.id} className="py-4">
-          <div className="flex space-x-3">
-            <img className="h-6 w-6 rounded-full" src="/placeholder.svg?height=24&width=24" alt="" />
-            <div className="flex-1 space-y-1">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium">{dm.name}</h3>
-              </div>
-              <p className="text-sm text-gray-500">{dm.message}</p>
-            </div>
-          </div>
-        </li>
-      ))}
-    </ul>
-  )
-}
-
-function MailList() {
-  const mails: Mail[] = [
-    { id: 1, subject: 'New project proposal', sender: 'Alice Johnson' },
-    { id: 2, subject: 'Meeting minutes', sender: 'Bob Williams' },
-  ]
-  return (
-    <ul className="divide-y divide-gray-200">
-      {mails.map((mail) => (
-        <li key={mail.id} className="py-4">
-          <div className="flex space-x-3">
-            <div className="flex-1 space-y-1">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium">{mail.subject}</h3>
-              </div>
-              <p className="text-sm text-gray-500">{mail.sender}</p>
-            </div>
-          </div>
-        </li>
-      ))}
-    </ul>
-  )
-}
-
-function ReachesList() {
-  const reaches: Reach[] = [
-    { id: 1, name: 'Emma Thompson' },
-    { id: 2, name: 'Michael Brown' },
-    { id: 3, name: 'Garvit Singh' },
-    { id: 4, name:'Parth Sharma' }
-  ]
-  return (
-    <ul className="divide-y divide-gray-200">
-      {reaches.map((reach) => (
-        <li key={reach.id} className="py-4">
-          <div className="flex items-center space-x-3">
-            <img className="h-6 w-6 rounded-full" src="/placeholder.svg?height=24&width=24" alt="" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">{reach.name}</p>
-            </div>
-            <button className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-              Connect
-            </button>
-          </div>
-        </li>
-      ))}
-    </ul>
-  )
-}
-
-function VideoFeed() {
-  const [videos, setVideos] = useState<Video[]>([
-    { id: 1, title: 'Amazing Sunset', author: 'NatureLover', likes: 1200, comments: 89, views: '10K', src: 'https://example.com/video1.mp4' },
-    { id: 2, title: 'Cooking Italian Pasta', author: 'ChefMaster', likes: 3500, comments: 156, views: '50K', src: 'https://example.com/video2.mp4' },
-    { id: 3, title: 'Cute Puppies Playing', author: 'PetLover', likes: 8900, comments: 412, views: '100K', src: 'https://example.com/video3.mp4' },
-  ])
+export default function EnhancedInfiniteScrollNetwork() {
+  const [posts, setPosts] = useState([])
+  const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(false)
-  const [page, setPage] = useState(1)
-  const loader = useRef<HTMLDivElement>(null)
+  const [hasMore, setHasMore] = useState(true)
+  const observer = useRef(null)
+  const [showScrollTop, setShowScrollTop] = useState(false)
+  const [newPostContent, setNewPostContent] = useState({ text: '', images: [] })
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [notification, setNotification] = useState(null)
+  const [Email, setEmail] = useState("")
+  const [userId, setUserId] = useState(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [currentEditingImage, setCurrentEditingImage] = useState(null)
+  const { data: session } = useSession()
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
+  const router = useRouter()
+  const [selectedPost, setSelectedPost] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [user,setUser]=useState(null)
 
-  const handleObserver = (entities: IntersectionObserverEntry[]) => {
-    const target = entities[0]
-    if (target.isIntersecting) {
-      setPage((prev) => prev + 1)
+  useEffect(() => {
+    const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY)
+    if (savedDraft) {
+      try {
+        const parsedDraft = JSON.parse(savedDraft)
+        setNewPostContent(parsedDraft)
+      } catch (error) {
+        console.error('Error parsing saved draft:', error)
+        localStorage.removeItem(DRAFT_STORAGE_KEY)
+      }
     }
+  }, [])
+
+  
+
+  useEffect(() => {
+    if (newPostContent.text.trim() || newPostContent.images.length > 0) {
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(newPostContent))
+    } else {
+      localStorage.removeItem(DRAFT_STORAGE_KEY)
+    }
+  }, [newPostContent])
+
+  const lastPostElementRef = useCallback((node) => {
+    if (loading) return
+    if (observer.current) observer.current.disconnect()
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage(prevPage => prevPage + 1)
+      }
+    })
+    if (node) observer.current.observe(node)
+  }, [loading, hasMore])
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      const fetchCred = async () => {
+        try {
+          const data = await fetchUserId(session?.user?.email)
+          setUser(data)
+          console.log("User ID fetched:", data)
+
+          setUserId(data.id)
+        } catch (error) {
+          console.log("Error while fetching user ID:", error)
+        }
+      }
+
+      fetchCred()
+      fetchUserCred(session.user.email)
+    }
+  }, [session])
+
+  const fetchUserCred = (email) => {
+    setEmail(email)
   }
 
   useEffect(() => {
-    const option = {
-      root: null,
-      rootMargin: "20px",
-      threshold: 1.0
+    const getImages = async () => {
+      setIsInitialLoading(true)
+      try {
+        const images = await fetchImages()
+        console.log("these are images", images)
+        setPosts(images)
+      } catch (error) {
+        console.error("Error fetching images:", error)
+      } finally {
+        setIsInitialLoading(false)
+      }
     }
-    const observer = new IntersectionObserver(handleObserver, option)
-    if (loader.current) observer.observe(loader.current)
+    getImages()
   }, [])
 
   useEffect(() => {
-    const fetchVideos = async () => {
-      setLoading(true)
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      const newVideos: Video[] = [
-        { id: videos.length + 1, title: 'New Video ' + (videos.length + 1), author: 'User' + (videos.length + 1), likes: Math.floor(Math.random() * 1000), comments: Math.floor(Math.random() * 100), views: Math.floor(Math.random() * 100) + 'K', src: 'https://example.com/video' + (videos.length + 1) + '.mp4' },
-        { id: videos.length + 2, title: 'New Video ' + (videos.length + 2), author: 'User' + (videos.length + 2), likes: Math.floor(Math.random() * 1000), comments: Math.floor(Math.random() * 100), views: Math.floor(Math.random() * 100) + 'K', src: 'https://example.com/video' + (videos.length + 2) + '.mp4' },
-      ]
-      setVideos(prev => [...prev, ...newVideos])
-      setLoading(false)
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300)
     }
-    fetchVideos()
-  }, [page])
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
-  return (
-    <div className="space-y-6">
-      {videos.map((video) => (
-        <VideoPlayer key={video.id} video={video} />
-      ))}
-      {loading && <p className="text-center">Loading more videos...</p>}
-      <div ref={loader} />
-    </div>
-  )
-}
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
-function VideoPlayer({ video }: VideoPlayerProps) {
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [isMuted, setIsMuted] = useState(true)
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type })
+    setTimeout(() => setNotification(null), 5000)
+  }
 
-  const togglePlay = () => {
-    if (videoRef.current?.paused) {
-      videoRef.current.play()
-      setIsPlaying(true)
-    } else {
-      videoRef.current?.pause()
-      setIsPlaying(false)
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setCurrentEditingImage(event.target.result as string)
+          setIsEditModalOpen(true)
+        }
+      }
+      reader.readAsDataURL(file)
     }
   }
 
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted
-      setIsMuted(!isMuted)
+  const handleSaveEditedImage = async (editedImage) => {
+    setIsUploading(true)
+    setUploadProgress(0)
+
+    try {
+      const response = await fetch(editedImage)
+      const blob = await response.blob()
+      const file = new File([blob], 'edited_image.jpg', { type: 'image/jpeg' })
+
+      const uploadUrlResponse = await axios.get(`http://localhost:8000/api/imageUpload/${file.name}`)
+      const { url, filename } = uploadUrlResponse.data
+
+      await axios.put(url, file, {
+        headers: { 'Content-Type': file.type },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+          setUploadProgress(percentCompleted)
+        },
+      })
+
+      const previewResponse = await axios.get(`http://localhost:8000/api/image/${filename}`)
+      setNewPostContent((prev) => ({
+        ...prev,
+        images: [...prev.images, { url: previewResponse.data.url, filename }],
+      }))
+
+      showNotification('Image uploaded successfully')
+    } catch (error) {
+      console.error('Error uploading edited image:', error)
+      showNotification('Failed to upload edited image', 'error')
+    } finally {
+      setIsUploading(false)
+      setUploadProgress(0)
+      setIsEditModalOpen(false)
     }
   }
 
-  return (
-    <div className="bg-white shadow rounded-lg overflow-hidden">
-      <div className="relative">
-        <video
-          ref={videoRef}
-          className="w-full"
-          src={video.src}
-          poster="/placeholder.svg?height=400&width=600"
-          loop
-          muted={isMuted}
-        />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <button
-            className="bg-black bg-opacity-50 text-white rounded-full p-4 hover:bg-opacity-75 transition-opacity"
-            onClick={togglePlay}
-          >
-            {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
-          </button>
-        </div>
-        <button
-          className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-75 transition-opacity"
-          onClick={toggleMute}
-        >
-          {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-        </button>
-      </div>
-      <div className="p-4">
-        <h3 className="text-lg font-medium text-gray-900">{video.title}</h3>
-        <p className="text-sm text-gray-500">{video.author}</p>
-        <div className="mt-2 flex items-center text-sm text-gray-500">
-          <span>{video.views} views</span>
-          <span className="mx-2">•</span>
-          <span>{video.likes} likes</span>
-          <span className="mx-2">•</span>
-          <span>{video.comments} comments</span>
-        </div>
-      </div>
-    </div>
-  )
-}
+  const handleNewPost = async () => {
+    if (newPostContent.text.trim() || newPostContent.images.length > 0) {
+      try {
+        let content = newPostContent.text
+        let imageUrl = newPostContent.images.map(img => img.url)
+        console.log("this is image Url", imageUrl)
+        console.log("this is the post variables", userId, content, imageUrl)
 
-function RecognitionList() {
-  const recognitions: Recognition[] = [
-    { id: 1, name: 'Raaj Shekhar', date: '2023-06-15' },
-    { id: 2, name: 'Garvit Singh', date: '2023-05-01' },
-  ]
+        const newPost = await uploadPost({ userId, content, imageUrl })
+
+        setPosts(prevPosts => [newPost, ...prevPosts])
+        setNewPostContent({ text: '', images: [] })
+        localStorage.removeItem(DRAFT_STORAGE_KEY)
+        showNotification('Post created successfully')
+      } catch (error) {
+        console.error('Error creating post:', error)
+        showNotification('Failed to create post', 'error')
+      }
+    }
+  }
+
+  const handleRemoveImage = (index) => {
+    setNewPostContent(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }))
+  }
+
+  const handleLike = async (postId) => {
+    try {
+      if (!session?.user?.email) {
+        showNotification('Please log in to like posts', 'error')
+        return
+      }
+
+      const currentPost = posts.find(post => post.id === postId)
+      const isLiked = currentPost?.likes?.includes(session.user.email)
+
+      let updatedLikes
+      if (isLiked) {
+        await dislikePost(postId, session.user.email)
+        updatedLikes = currentPost.likes.filter(email => email !== session.user.email)
+        showNotification('Post disliked')
+      } else {
+        await likePost(postId, session.user.email)
+        updatedLikes = [...currentPost.likes, session.user.email]
+        showNotification(`Post liked `)
+      }
+
+      setPosts(prevPosts =>
+        prevPosts.map(post =>
+          post.id === postId ? { ...post, likes: updatedLikes } : post
+        )
+      )
+    } catch (error) {
+      console.error('Error toggling like on post:', error)
+      showNotification('Failed to update like status', 'error')
+    }
+  }
+
+  const handleOpenModal = (post) => {
+    setSelectedPost(post)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setSelectedPost(null)
+    setIsModalOpen(false)
+  }
+
+  const handleShare = async (e, postId) => {
+    e.stopPropagation(); // Prevent post modal from opening
+    const url = `http://localhost:3000/p/${postId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copied to clipboard', {
+        duration: 2000,
+        style: {
+          background: '#4CAF50',
+          color: '#fff',
+        },
+      });
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      toast.error('Failed to copy link', {
+        duration: 2000,
+        style: {
+          background: '#EF4444',
+          color: '#fff',
+        },
+      });
+    }
+  };
+
+  const handleAddComment = (postId, commentText) => {
+    // Handle adding a comment
+    console.log('Adding comment:', postId, commentText);
+  };
+
+  const handleAddReply = (commentId, replyText) => {
+    // Handle adding a reply
+    console.log('Adding reply:', commentId, replyText);
+  };
+
+  const RightSidebar = () => (
+    <Card className="bg-white shadow-lg sticky top-4">
+      <CardContent className="p-6">
+        <h2 className="text-xl font-bold mb-4 text-blue-700">Profile</h2>
+        <div className="flex items-center space-x-4 mb-4">
+          <Avatar className="w-16 h-16">
+            <AvatarImage src={user ? user.userdp : session?.user?.image} alt="Your Profile" />
+            <AvatarFallback>YP</AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="font-bold text-blue-700 cursor-pointer" onClick={()=>router.push('/profile')}>{user ? user?.name : null}</p>
+            <Button variant="link" className="text-blue-600 p-0 h-auto" onClick={()=>router.push('/settings/profile')}>Edit Profile</Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+  
+
+  if (isInitialLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-blue-50">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    )
+  }
+
   return (
-    <ul className="divide-y divide-gray-200">
-      {recognitions.map((recognition) => (
-        <li key={recognition.id} className="py-4">
-          <div className="flex space-x-3">
-            <img className=" rounded-full h-10 w-10 text-yellow-400" alt='profile' />
-            <div className="flex-1 space-y-1">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium">{recognition.name}</h3>
+    <div className="min-h-screen bg-blue-50">
+      <Toaster position="top-center" />
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {notification && (
+          <Alert variant={notification.type === 'error' ? 'destructive' : 'default'} className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{notification.type === 'error' ? 'Error' : 'Success'}</AlertTitle>
+            <AlertDescription>{notification.message}</AlertDescription>
+          </Alert>
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="hidden md:block">
+            <LeftSidebar  userEmail={Email ? Email : null} />
+          </div>
+         
+
+          <div className="md:col-span-2 space-y-4">
+            <SearchBar />
+            <Card className="bg-white shadow-lg">
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-2 mb-4">
+                  <Avatar>
+                    <AvatarImage src={user ? user.userdp : session?.user?.image} alt="Your Profile" />
+                    <AvatarFallback>
+                    {user?.name
+                      ? user.name
+                          .split(" ") // Split the name by spaces
+                          .map((part) => part.charAt(0).toUpperCase()) // Get the first character of each part
+                          .join("") // Join the characters
+                      : "You"}
+                  </AvatarFallback>
+                  </Avatar>
+                  <Textarea
+                    className="flex-grow"
+                    placeholder="What's on your mind?"
+                    value={newPostContent.text}
+                    onChange={(e) => setNewPostContent(prev => ({ ...prev, text: e.target.value }))}
+                  />
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="flex space-x-2">
+                    <Button variant="ghost" size="sm" className="text-blue-600 hover:bg-blue-100">
+                      <label htmlFor="image-upload" className="cursor-pointer">
+                        <ImageIcon className="w-4 h-4 mr-2" />
+                        Photo
+                      </label>
+                      <input
+                        id="image-upload"
+                        type="file"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        accept="image/*"
+                      />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-blue-600 hover:bg-blue-100">
+                      <Video className="w-4 h-4 mr-2" />
+                      Video
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-blue-600 hover:bg-blue-100">
+                      <Smile className="w-4 h-4 mr-2" />
+                      Feeling
+                    </Button>
+                  </div>
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleNewPost}>
+                    Post
+                  </Button>
+                </div>
+                {isUploading && (
+                  <div className="mt-2">
+                    <progress value={uploadProgress} max="100" className="w-full" />
+                    <p className="text-sm text-gray-500 mt-1">Uploading: {uploadProgress.toFixed(0)}%</p>
+                  </div>
+                )}
+                {newPostContent.images.length > 0 && (
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    {newPostContent.images.map((image, index) => (
+                      <div key={index} className="relative">
+                        <img src={image.url} alt={`Uploaded ${index + 1}`} className="w-full h-24 object-cover rounded" />
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-6 w-6"
+                          onClick={() => handleRemoveImage(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Posts list */}
+            <div>
+  {posts.map((post, index) => (
+    <React.Fragment key={post._id || index}>
+      <Card 
+        className="bg-white shadow-lg cursor-pointer my-5" 
+        onClick={() => handleOpenModal(post)}
+      >
+        <CardHeader>
+          <div className="flex items-center space-x-4">
+            <Avatar>
+              <AvatarImage 
+                src={post?.user?.userdp} 
+                alt={post.user?.name} 
+                onClick={() => router.push(`/userProfile/${post?.user?.id}`)} 
+              />
+              <AvatarFallback onClick={() => router.push(`/userProfile/${post?.user?.id}`)}>
+                {post.user?.name?.[0]}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <div onClick={() => router.push(`/userProfile/${post?.user?.id}`)}>
+                <CardTitle className="text-blue-700 hover:underline hover:cursor-pointer">
+                  {post?.user?.name}
+                </CardTitle>
               </div>
-              <p className="text-sm text-gray-500">{recognition.date}</p>
+              <p className="text-sm text-blue-500">
+                {new Date(post?.createdAt).toLocaleString()}
+              </p>
             </div>
           </div>
-        </li>
-      ))}
-    </ul>
-  )
-}
+        </CardHeader>
+        <CardContent>
+          <p className="text-blue-600 mb-4">{post.content}</p>
 
-function Profile() {
-  return (
-    <div className="flex items-center space-x-4">
-      <img className="h-12 w-12 rounded-full" src="/placeholder.svg?height=48&width=48" alt="Profile" />
-      <div>
-        <h3 className="text-lg font-medium">Jane Doe</h3>
-        <p className="text-sm text-gray-500">Software Engineer</p>
+          {/* Media Carousel */}
+          {(post.imageUrl?.length > 0 || post.videoUrl?.length > 0) && (
+            <Carousel className="w-full">
+              <CarouselContent>
+                {/* Images */}
+                {post.imageUrl?.map((url, idx) => (
+                  <CarouselItem key={`image-${idx}`}>
+                    <div className="relative aspect-video">
+                      <img
+                        src={url}
+                        alt={`Post content ${idx + 1}`}
+                        className="rounded-lg w-full h-full object-cover"
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+
+                {/* Videos */}
+                {post.videoUrl?.map((url, idx) => (
+                  <CarouselItem key={`video-${idx}`}>
+                    <div className="relative aspect-video">
+                      <video
+                        src={url}
+                        controls
+                        className="rounded-lg w-full h-full object-cover"
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+
+              {/* Only show navigation if there's more than one media item */}
+              {(post.imageUrl?.length + (post.videoUrl?.length || 0)) > 1 && (
+                <>
+                  <CarouselPrevious className="left-2" />
+                  <CarouselNext className="right-2" />
+                </>
+              )}
+            </Carousel>
+          )}
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`hover:text-blue-700 hover:bg-blue-100 ${
+              post.likes.includes(session?.user?.email) ? 'text-blue-600' : 'text-gray-600'
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleLike(post.id);
+            }}
+          >
+            <ThumbsUp className="w-4 h-4 mr-2" />
+            {post.likes.length}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+          >
+            <MessageSquare className="w-4 h-4 mr-2" />
+            {post.comments?.length || 0}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+            onClick={(e) => handleShare(e, post.id)}
+          >
+            <Share2 className="w-4 h-4 mr-2" />
+            Share
+          </Button>
+        </CardFooter>
+      </Card>
+
+      {/* Render the ModernUserCarousel after every 5 posts */}
+      {(index + 1) % 3 === 0 && (
+        <div className="md:hidden">
+          <ModernUserCarousel userEmail={Email ? Email : null} />
+        </div>
+      )}
+    </React.Fragment>
+  ))}
+</div>
+
+            {loading && <p className="text-center text-blue-600">Loading more posts...</p>}
+            {!hasMore && <p className="text-center text-blue-600">No more posts to load</p>}
+          </div>
+
+          <div className="hidden md:block">
+            <RightSidebar />
+          </div>
+        </div>
       </div>
+
+      {showScrollTop && (
+        <Button
+          className="fixed w-10 h-10 opacity-80 bottom-4 right-1/2 rounded-full p-2 bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+          onClick={scrollToTop}
+          size="icon"
+        >
+          <ChevronUp className="h-5 w-5" />
+        </Button>
+      )}
+
+      {isEditModalOpen && currentEditingImage && (
+        <ImageEditModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          imageUrl={currentEditingImage}
+          onSave={handleSaveEditedImage}
+        />
+      )}
+
+      {selectedPost && (
+        <Dialog open={isModalOpen} onOpenChange={handleCloseModal}>
+          <DialogContent className="sm:max-w-[90vw] h-[90vh] p-0 overflow-hidden">
+            <PostModal
+              isOpen={isModalOpen}
+              onClose={handleCloseModal}
+              post={selectedPost}
+              userId={userId}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }
+

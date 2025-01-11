@@ -1,10 +1,16 @@
+
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 
 import "./globals.css";
 import Header from "@/components/ui/sections/Header";
 import { Providers } from "./providers";
-// import { ThemeProvider } from "next-themes";
+import MobileFooter from "@/components/ui/MobileFooter";
+import MobileHeader from "@/components/ui/MobileHeader";
+import { Provider } from "react-redux";
+import { store } from "./libs/store/store";
+import StoreProvider from "./StoreProvider";
+import { SocketProvider } from "@/components/ui/sections/context/SocketContext";
 
 // Import local fonts
 const geistSans = localFont({
@@ -32,15 +38,30 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      ><Providers>
-        <div className="hidden md:block">
-        <Header /> 
-        </div>
-        {/* Header displayed on every page */}
-        {children} {/* Page-specific content */}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <Providers>
+          <StoreProvider>
+            <SocketProvider>
+          {/* Desktop Header - Visible only on medium and larger screens */}
 
+            <Header /> 
+
+          
+          {/* Mobile Header - Visible only on small screens */}
+          {/* <div className="block md:hidden">
+            <MobileHeader/>
+          </div> */}
+
+          {/* Page-specific content */}
+          {children}
+          </SocketProvider>
+
+
+          {/* Mobile Footer - Visible only on small screens */}
+          <div className="md:hidden">
+            <MobileFooter />
+          </div>
+          </StoreProvider>
         </Providers>
       </body>
     </html>

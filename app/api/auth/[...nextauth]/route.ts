@@ -1,11 +1,8 @@
 import NextAuth, { NextAuthOptions, User } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaClient } from "@prisma/client";
-import axios from "axios"
-
-
-const prisma = new PrismaClient();
+import db from "@/db";
+import axios from "axios";
 
 interface CustomUser extends User {
   id: string;
@@ -25,15 +22,22 @@ const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials) return null;
-        const { email, username } = credentials;
+        if (!credentials || !credentials.email || !credentials.username) {
+          throw new Error("Missing credentials");
+        }
 
-        // Return user object if found in DB or new user if created
-        return {
-          id: "1", // Use a real user ID from DB after lookup
-          name: username,
-          email: email,
-        };
+        // Attempt to find user in the database
+        try {
+          const user = {
+            id: "1", // Replace with actual user ID from DB lookup
+            name: credentials.username,
+            email: credentials.email,
+          };
+          return user;
+        } catch (error) {
+          console.error("Error during user authorization:", error);
+          throw new Error("User authorization failed");
+        }
       },
     }),
   ],
@@ -43,41 +47,87 @@ const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, profile }) {
-      // Check if the user exists in the database
-      const existingUser = await prisma.user.findUnique({
-        where: { email: user.email || "" },
-      });
+      try {
+        if (!user?.email) {
+          throw new Error("No email provided during sign-in");
+        } 
 
-      if (!existingUser && user.email) {
-        // If the user does not exist, create a new user in the database
-        await prisma.user.create({
-          data: {
-            email: user.email,
-            name: user.name || (profile as { name?: string })?.name || "", // Use name from profile if available
-            // image: user.image || (profile as { picture?: string })?.picture || "", // Use profile picture if available
-          },
+        // Check if the user exists in the database
+        const existingUser = await db.user.findUnique({
+          where: { email: user.email },
         });
-          await axios.post("http://localhost:3003/api/v1/create/User",{
-          email:user.email,
-          name:user.email
-        })
-      }
+        await axios.post("http://localhost:8080/api/v1/users/register", {
+          email: user.email,
+          username: user.name,
+          userdp:user?.image
+        });
+        await axios.post("http://localhost:3003/api/v1/create/User", {
+          email: user.email,
+          name: user.name,
+         
+          
+        });
 
-      // Allow the sign-in process to continue
-      return true;
+
+
+        if (!existingUser) {
+          // If the user does not exist, create a new user
+          await db.user.create({
+            data: {
+              email: user.email,
+              name: user.name || (profile as { name?: string })?.name || "",
+            },
+          });
+          await db.user.update({
+            where: { email: user.email },
+            data: { 
+              userdp: user.image,
+            },
+          });
+        } else {
+          // Update user profile picture (if exists) only if it's missing in DB
+          if (user.image && existingUser.userdp !== user.image) {
+            await db.user.update({
+              where: { email: user.email },
+              data: {
+                userdp: user.image,
+              },
+            });
+          }
+        }
+
+        return true; // Automatically sign in the user
+
+      } catch (error) {
+        console.error("Error during sign-in:", error);
+        return false; // Reject sign-in if an error occurs
+      }
     },
+
     async session({ session, token }) {
-      // Attach the user ID to the session object
-      if (session.user) {
-        (session.user as CustomUser).id = token.id as string;
+      try {
+        if (session?.user) {
+          // Ensure the user has an ID attached to the session
+          (session.user as CustomUser).id = token.id as string;
+        }
+        return session;
+      } catch (error) {
+        console.error("Error during session callback:", error);
+        throw new Error("Failed to set session data");
       }
-      return session;
     },
+
     async jwt({ token, user }) {
-      if (user) {
-        token.id = (user as CustomUser).id;
+      try {
+        if (user) {
+          // Ensure user ID is available in the token for session usage
+          token.id = (user as CustomUser).id;
+        }
+        return token;
+      } catch (error) {
+        console.error("Error during JWT callback:", error);
+        throw new Error("Failed to set JWT token data");
       }
-      return token;
     },
   },
 };

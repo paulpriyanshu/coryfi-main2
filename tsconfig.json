@@ -32,8 +32,9 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "out/types/**/*.ts"
-  ],
+    "out/types/**/*.ts",
+    "**/*.js","**/*.jsx"
+, "components/ui/sections/PersonalNetwork.jsx"  ],
   "exclude": [
     "node_modules"
   ]
