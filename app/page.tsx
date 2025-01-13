@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Search,
@@ -41,16 +41,14 @@ type ConnectionPath = {
   nodes: PathNode[];
 };
 
-export default function Component() {
+function Component() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterType>('results');
   const [sidebarWidth, setSidebarWidth] = useState(400);
   const isMobile = useIsMobile();
   const [receiverId, setReceiverId] = useState(null);
-  const {data:session,status}=useSession()
-  const [Email,setEmail]=useState("")
-
-
+  const { data: session, status } = useSession();
+  const [Email, setEmail] = useState("");
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -59,13 +57,15 @@ export default function Component() {
     nodes: data?.nodes || [],
     links: data?.links || [],
   };
+
+  // Set email when session is available
   useEffect(() => {
     if (session?.user?.email) {
       setEmail(session.user.email);
     }
   }, [session]);
 
-
+  // Handle query parameters and initial state
   useEffect(() => {
     const initialTab = searchParams.get('tab') as FilterType;
     const shouldExpand = searchParams.get('expand') === 'true';
@@ -73,7 +73,6 @@ export default function Component() {
     
     if (id) {
       console.log('ID from query:', id);
-      // You can use `id` here as needed
     }
 
     if (initialTab) {
@@ -86,73 +85,50 @@ export default function Component() {
     const newExpandState = !isExpanded;
     setIsExpanded(newExpandState);
     router.replace(`/?tab=${activeFilter}&expand=${newExpandState}`);
-    window.location.reload()
   };
 
   const handleTabChange = (value: FilterType) => {
     setActiveFilter(value);
     router.replace(`/?tab=${value}&expand=${isExpanded}`);
-    window.location.reload()
   };
 
   const handleResize = (event: any, { size }: { size: { width: number } }) => {
     setSidebarWidth(size.width);
   };
+
+  // Fetch user and chat data
   useEffect(() => {
     const id = searchParams.get('id'); // Extract the `id` parameter
-  
-    async function getUserAndCreateChat() {
-      if (id && Email) {
-        console.log("Receiver ID:", id);
-  
-        try {
-          // Fetch receiver user data
-          const receiverData = await fetchUserData(Number(id));
-          console.log("Receiver Data:", receiverData);
-  
-          // Fetch chat data for the receiver and the current user
-          const [receiverChatData, userChatData] = await Promise.all([
-            axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${receiverData.email}`),
-            axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${Email}`),
-          ]);
-  
-          console.log("Receiver Chat Data:", receiverChatData.data.data._id);
-          console.log("User Chat Data:", userChatData.data.data._id);
-  
-          // Check if chat already exists
-          const existingChat = await axios.get(
-            `https://chat.coryfi.com/api/v1/chat-app/chats/check/${receiverChatData?.data?.data?._id}/${userChatData?.data?.data?._id}`
-          );
-  
-          if (existingChat.data.exists) {
-            console.log("Chat already exists. No need to create.");
-          } else {
-            // Create a chat between the two users if it doesn't exist
-            const chat = await axios.post(
-              `https://chat.coryfi.com/api/v1/chat-app/chats/c/${receiverChatData?.data?.data?._id}/${userChatData?.data?.data?._id}`
-            );
-            console.log("Chat Created:", chat);
-          }
-  
-          setReceiverId(id); // Update the receiver ID state
-  
-          // Reload the page only once
-          if (!localStorage.getItem("chatReloaded")) {
-            localStorage.setItem("chatReloaded", "true");
-            window.location.reload();
-          }
-        } catch (error) {
-          console.error("Error creating chat:", error);
-        }
+
+    async function getUser() {
+      if (activeFilter === 'chats' && id && Email) {
+        console.log("receiver id ", id);
+        
+        // Fetch receiver user data
+        const receiverData = await fetchUserData(Number(id));
+        console.log("receiver", receiverData);
+
+        // Get receiver chat data
+        const receiverChatData = await axios.get(`http://localhost:8080/api/v1/users/getOneUser/${receiverData.email}`);
+        const userChatData = await axios.get(`http://localhost:8080/api/v1/users/getOneUser/${Email}`);
+
+        console.log("receiver chat data", receiverChatData.data.data._id);
+        console.log("user chat data", userChatData.data.data._id);
+
+        // Create a chat between the two users
+        const chat = await axios.post(`http://localhost:8080/api/v1/chat-app/chats/c/${receiverChatData?.data?.data?._id}/${userChatData?.data?.data?._id}`);
+        console.log("chat created", chat);
+
+        setReceiverId(id); // Update the receiver ID
       }
     }
-  
-    // Trigger the chat creation as soon as the page loads
+
     if (session?.user?.email) {
-      getUserAndCreateChat();
+      getUser();
     }
-  }, [Email, session, searchParams]);
+  }, [activeFilter, searchParams, Email]); 
   return (
+    <Suspense fallback={<div>Loading...</div>}>
     <div className="h-screen w-screen bg-background relative overflow-hidden">
       <div className="absolute inset-0">
         <PersonalNetwork data={structuredData} />
@@ -252,6 +228,16 @@ export default function Component() {
           </Button>
         )}
       </ResizableBox>
+
     </div>
+    </Suspense>
   );
+}
+export default function Page(){
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+    <Component />
+  </Suspense>
+
+  )
 }
