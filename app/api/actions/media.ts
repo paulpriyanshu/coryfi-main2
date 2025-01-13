@@ -249,6 +249,9 @@ export const fetchPosts = async (userId: any) => {
       id:true,
       content: true,
       imageUrl: true,
+      likes:true,
+      createdAt:true,
+      
       comments: {
         select: {
           id: true,
@@ -256,6 +259,14 @@ export const fetchPosts = async (userId: any) => {
           createdAt: true,
         },
       },
+      user:{
+        select:{
+          id:true,
+          userdp:true,
+          userDetails:true
+        }
+      }
+
     },
   });
 

@@ -25,22 +25,11 @@ import ImageEditModal from '@/components/ui/ImageEditModal'
 import { useRouter } from "next/navigation"
 import LeftSidebar from "@/components/ui/sections/LeftSideBar"
 import { likePost, dislikePost } from "../api/actions/media"
-import { PostModal } from "@/components/ui/sections/PostModal"
+import  PostModal  from "@/components/ui/sections/PostModal"
 import { Toaster, toast } from 'react-hot-toast'
 import ModernUserCarousel from "@/components/ui/sections/ModernUserCarousel"
 
 const DRAFT_STORAGE_KEY = 'postDraft'
-
-const users = [
-  { name: 'Emma Johnson', avatar: 'https://i.pravatar.cc/150?img=1' },
-  { name: 'Liam Wilson', avatar: 'https://i.pravatar.cc/150?img=2' },
-  { name: 'Olivia Davis', avatar: 'https://i.pravatar.cc/150?img=3' },
-  { name: 'Noah Martinez', avatar: 'https://i.pravatar.cc/150?img=4' },
-  { name: 'Ava Taylor', avatar: 'https://i.pravatar.cc/150?img=5' },
-  { name: 'Ethan Anderson', avatar: 'https://i.pravatar.cc/150?img=6' },
-  { name: 'Sophia Thomas', avatar: 'https://i.pravatar.cc/150?img=7' },
-  { name: 'Mason Jackson', avatar: 'https://i.pravatar.cc/150?img=8' },
-]
 
 export default function EnhancedInfiniteScrollNetwork() {
   const [posts, setPosts] = useState([])
@@ -266,6 +255,7 @@ export default function EnhancedInfiniteScrollNetwork() {
   }
 
   const handleOpenModal = (post) => {
+    console.log("this is post",post)
     setSelectedPost(post)
     setIsModalOpen(true)
   }
@@ -391,14 +381,7 @@ export default function EnhancedInfiniteScrollNetwork() {
                         accept="image/*"
                       />
                     </Button>
-                    <Button variant="ghost" size="sm" className="text-blue-600 hover:bg-blue-100">
-                      <Video className="w-4 h-4 mr-2" />
-                      Video
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-blue-600 hover:bg-blue-100">
-                      <Smile className="w-4 h-4 mr-2" />
-                      Feeling
-                    </Button>
+                 
                   </div>
                   <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleNewPost}>
                     Post
@@ -583,16 +566,13 @@ export default function EnhancedInfiniteScrollNetwork() {
       )}
 
       {selectedPost && (
-        <Dialog open={isModalOpen} onOpenChange={handleCloseModal}>
-          <DialogContent className="sm:max-w-[90vw] h-[90vh] p-0 overflow-hidden">
-            <PostModal
-              isOpen={isModalOpen}
-              onClose={handleCloseModal}
-              post={selectedPost}
-              userId={userId}
-            />
-          </DialogContent>
-        </Dialog>
+
+          <PostModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        post={selectedPost}
+        userId={userId}
+      />
       )}
     </div>
   )

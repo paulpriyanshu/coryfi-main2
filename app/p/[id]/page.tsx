@@ -1,118 +1,188 @@
-"use client"
+'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import { useSession } from 'next-auth/react'
-import { MediaCarousel } from '@/components/ui/sections/MediaCarousel'
-import { PostHeader } from '@/components/ui/sections/PostHeader'
-import { CommentSection } from '@/components/ui/sections/CommentSection'
-import { PostFooter } from '@/components/ui/sections/PostFooter'
-import { fetchComments, handleAddComment, handleReplyToComment } from '@/components/ui/sections/utils'
-import { fetchOnlyPost, fetchUserId, likePost, dislikePost, getLikesCount } from '@/app/api/actions/media'
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Card } from '@/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { ThumbsUp } from 'lucide-react'
-import { Card, CardContent } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import toast, { Toaster } from 'react-hot-toast'
+import { Input } from "@/components/ui/Input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { MessageCircle, ThumbsUp, Share } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
+import { likePost, dislikePost, fetchOnlyPost, fetchUserId } from '@/app/api/actions/media'
+import { toast, Toaster } from 'react-hot-toast'
+import { useMediaQuery } from '@/components/ui/sections/hooks/use-media-query'
+import { useParams } from 'next/navigation'
+import { fetchComments, handleAddComment, handleReplyToComment } from '@/components/ui/sections/utils'
+import MobilePostModal from '@/components/ui/sections/mobile-post-modal'
 
-export default function PostPage() {
-  const params = useParams()
-  const id = Number(params.id)
+function ReplyInput({ postId, parentId, onAddReply, onCancel }) {
+  const [newReply, setNewReply] = useState('')
 
-  const { data: session } = useSession()
+  const handleReplySubmit = async () => {
+    if (newReply.trim()) {
+      await onAddReply(postId, parentId, newReply.trim())
+      setNewReply('')
+      onCancel()
+    }
+  }
+
+  return (
+    <div className="mt-2 flex items-center space-x-2">
+      <Input
+        type="text"
+        placeholder="Write a reply..."
+        value={newReply}
+        onChange={(e) => setNewReply(e.target.value)}
+        className="flex-grow"
+      />
+      <Button onClick={handleReplySubmit} size="sm" variant="ghost">
+        Post
+      </Button>
+      <Button onClick={onCancel} size="sm" variant="ghost">
+        Cancel
+      </Button>
+    </div>
+  )
+}
+
+function CommentItem({ comment, postId, onAddReply }) {
+  const [isReplying, setIsReplying] = useState(false)
+  const [showReplies, setShowReplies] = useState(false)
+  const hasReplies = comment.replies && comment.replies.length > 0
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-start gap-2">
+        <Avatar className="w-6 h-6">
+          <AvatarImage src={comment?.user?.userdp} alt={comment?.user?.name} />
+          <AvatarFallback>{comment?.user?.name?.[0]}</AvatarFallback>
+        </Avatar>
+        <div className="flex-grow min-w-0">
+          <span className="text-sm font-semibold">{comment?.user?.name}</span>
+          <span className="text-sm ml-2">{comment.content}</span>
+          <div className="flex flex-wrap items-center gap-2 mt-1">
+            <button
+              className="text-xs text-gray-500 hover:text-gray-700"
+              onClick={() => setIsReplying(!isReplying)}
+            >
+              Reply
+            </button>
+            <span className="text-xs text-gray-500">
+              {new Date(comment.createdAt).toLocaleString()}
+            </span>
+            {hasReplies && (
+              <button
+                className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                onClick={() => setShowReplies(!showReplies)}
+              >
+                {comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {isReplying && (
+        <ReplyInput 
+          postId={postId} 
+          parentId={comment.id} 
+          onAddReply={onAddReply}
+          onCancel={() => setIsReplying(false)}
+        />
+      )}
+
+      {hasReplies && showReplies && (
+        <div className="ml-8 space-y-4">
+          {comment.replies.map((reply) => (
+            <CommentItem 
+              key={reply.id} 
+              comment={reply} 
+              postId={postId} 
+              onAddReply={onAddReply}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function Page({ isOpen = true, onClose }) {
+  const { data: session, status } = useSession()
   const [post, setPost] = useState(null)
   const [localComments, setLocalComments] = useState([])
-  const [userId, setUserId] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [likesCount, setLikesCount] = useState(0)
+  const [newComment, setNewComment] = useState('')
   const [isLiked, setIsLiked] = useState(false)
-  const [isLikeLoading, setIsLikeLoading] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
+  const [userEmail, setUserEmail] = useState("")
+  const [isSessionReady, setIsSessionReady] = useState(false)
+  const [userId, setUserId] = useState(null)
+  const [likesCount, setLikesCount] = useState(0)
+  const params = useParams()
+  const id = params.id
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (session?.user?.email) {
-        const user = await fetchUserId(session.user.email)
-        setUserId(user.id)
+    if (status === "authenticated" && session?.user?.email) {
+      setUserEmail(String(session.user.email))
+      setIsSessionReady(true)
+    }
+  }, [session, status])
+
+  useEffect(() => {
+    if (isSessionReady) {
+      const fetchPostData = async () => {
+        const userData = await fetchUserId(userEmail)
+        const postData = await fetchOnlyPost(Number(id))
+        setUserId(userData?.id)
+        setPost(postData)
+        setIsLiked(postData?.likes?.includes(userEmail))
+        setLikesCount(postData?.likes?.length || 0)
+      }
+      fetchPostData()
+    }
+  }, [isSessionReady, userEmail, id])
+
+  useEffect(() => {
+    const loadComments = async () => {
+      if (isOpen && post?.id) {
+        const comments = await fetchComments(post.id)
+        setLocalComments(comments)
       }
     }
+    loadComments()
+  }, [isOpen, post?.id])
 
-    const loadPostAndComments = async () => {
-      if (id) {
-        setIsLoading(true)
-        try {
-          const [fetchedPost, comments, likes] = await Promise.all([
-            fetchOnlyPost(id),
-            fetchComments(id),
-            getLikesCount(id)
-          ])
-          setPost(fetchedPost)
-          setLocalComments(comments)
-          setLikesCount(likes)
-          setIsLiked(fetchedPost.likes?.includes(session?.user?.email))
-        } catch (error) {
-          console.error("Error fetching post data:", error)
-          toast.error("Failed to load post data")
-        } finally {
-          setIsLoading(false)
-        }
+  const handleLikeToggle = async () => {
+    if (!userEmail) return
+    try {
+      if (isLiked) {
+        await dislikePost(post?.id, userEmail)
+        setIsLiked(false)
+        setLikesCount(prev => prev - 1)
+      } else {
+        await likePost(post?.id, userEmail)
+        setIsLiked(true)
+        setLikesCount(prev => prev + 1)
       }
+    } catch (error) {
+      console.error("Error toggling like:", error)
     }
+  }
 
-    fetchUserData()
-    loadPostAndComments()
-  }, [id, session])
-
-  const handleAddNewComment = async (postId, content) => {
-    if (!userId) return
-    const newComment = await handleAddComment(postId, userId, content)
-    if (newComment) {
-      setLocalComments(prevComments => [newComment, ...prevComments])
-      toast.success("Comment added successfully")
+  const handleAddNewComment = async () => {
+    if (!newComment.trim() || !userId) return
+    const comment = await handleAddComment(post?.id, userId, newComment)
+    if (comment) {
+      setLocalComments(prev => [...prev, comment])
+      setNewComment('')
     }
   }
 
   const handleAddNewReply = async (postId, parentId, content) => {
-    if (!userId) return
     const newReply = await handleReplyToComment(postId, userId, content, parentId)
     if (newReply) {
-      setLocalComments(prevComments => updateCommentsWithNewReply(prevComments, parentId, newReply))
-      toast.success("Reply added successfully")
-    }
-  }
-
-  const handleLikeToggle = async () => {
-    if (!session) {
-      toast.error("Please sign in to like posts")
-      return
-    }
-
-    if (!session?.user?.email || isLikeLoading) return
-
-    setIsLikeLoading(true)
-    try {
-      if (isLiked) {
-        await dislikePost(id, session.user.email)
-        setLikesCount(prev => prev - 1)
-        setIsLiked(false)
-        toast.success("Post unliked")
-      } else {
-        await likePost(id, session.user.email)
-        setLikesCount(prev => prev + 1)
-        setIsLiked(true)
-        toast.success("Post liked")
-      }
-    } catch (error) {
-      console.error("Error toggling like:", error)
-      toast.error("Failed to update like status")
-    } finally {
-      setIsLikeLoading(false)
+      setLocalComments(prev => updateCommentsWithNewReply(prev, parentId, newReply))
     }
   }
 
@@ -123,7 +193,7 @@ export default function PostPage() {
           ...comment,
           replies: [...(comment.replies || []), newReply]
         }
-      } else if (comment.replies && comment.replies.length > 0) {
+      } else if (comment.replies?.length > 0) {
         return {
           ...comment,
           replies: updateCommentsWithNewReply(comment.replies, parentId, newReply)
@@ -133,109 +203,158 @@ export default function PostPage() {
     })
   }
 
-  
-  if (isLoading) return (
-    <div className="flex justify-center items-center min-h-screen">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
-  )
-  
-  if (!post) return (
-    <div className="flex justify-center items-center min-h-screen">
-      <Card className="p-4">
-        <p className="text-muted-foreground">Post not found</p>
-      </Card>
-    </div>
-  )
+  const handleShare = async (e, postId) => {
+    e.stopPropagation()
+    const url = `https://connect.coryfi.com/p/${postId}`
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success('Link copied to clipboard', {
+        duration: 3000,
+        position: 'top-center',
+      })
+    } catch (error) {
+      console.error('Failed to copy:', error)
+      toast.error('Failed to copy link', {
+        duration: 3000,
+        position: 'top-center',
+      })
+    }
+  }
+
+  const isMobile = useMediaQuery("(max-width: 640px)")
 
   return (
-    <>
-      <Toaster 
-        position="top-center"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: '#333',
-            color: '#fff',
-          },
-        }}
-      />
-      <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-8">
-        <Card className="max-w-4xl mx-auto overflow-hidden bg-background">
-          <CardContent className="p-0">
-            <div className="flex flex-col lg:flex-row min-h-screen lg:h-[80vh]">
-              {/* Media Section */}
-              <div className="w-full lg:w-1/2 h-[40vh] lg:h-full bg-muted">
-                <MediaCarousel post={post} />
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <Toaster />
+      {isMobile ? (
+        <MobilePostModal
+          post={post}
+          userId={userId}
+          isOpen={isOpen}
+          onClose={onClose}
+          localComments={localComments}
+          newComment={newComment}
+          setNewComment={setNewComment}
+          handleAddNewComment={handleAddNewComment}
+          handleAddNewReply={handleAddNewReply}
+          isLiked={isLiked}
+          handleLikeToggle={handleLikeToggle}
+          isSaved={isSaved}
+          setIsSaved={setIsSaved}
+          likesCount={likesCount}
+          handleShare={handleShare}
+        />
+      ) : (
+        <Card className="w-full max-w-4xl h-[800px]">
+          <div className="flex flex-col md:flex-row w-full h-full">
+            {post?.imageUrl?.length > 0 && (
+              <div className="md:w-1/2 bg-black flex items-center justify-center">
+                <Carousel className="w-full">
+                  <CarouselContent>
+                    {post.imageUrl.map((url, index) => (
+                      <CarouselItem key={index}>
+                        <div className="flex items-center justify-center h-full">
+                          <img
+                            src={url}
+                            alt={`Post image ${index + 1}`}
+                            className="max-h-[80vh] max-w-full object-contain"
+                          />
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  {post.imageUrl.length > 1 && (
+                    <>
+                      <CarouselPrevious className="absolute left-2" />
+                      <CarouselNext className="absolute right-2" />
+                    </>
+                  )}
+                </Carousel>
+              </div>
+            )}
+            <div className={`flex flex-col h-full overflow-hidden ${post?.imageUrl?.length > 0 ? 'md:w-1/2' : 'w-full'}`}>
+              <div className="p-4 border-b">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Avatar className="w-8 h-8">
+                      <AvatarImage src={post?.user?.userdp} alt={post?.user?.name} />
+                      <AvatarFallback>{post?.user?.name?.[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold">{post?.user?.name}</span>
+                      <span className="text-xs text-gray-500">
+                        {new Date(post?.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                {post?.content && (
+                  <p className="mt-2 px-4 text-sm">
+                    {post.content}
+                  </p>
+                )}
               </div>
 
-              {/* Content Section */}
-              <div className="w-full lg:w-1/2 flex flex-col h-auto lg:h-full">
-                {/* Header Area */}
-                <div className="flex-none p-3 sm:p-6">
-                  <PostHeader post={post} />
-                  <div className="flex items-center gap-2 mt-3">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div>
-                            <Button
-                              variant={isLiked ? "default" : "outline"}
-                              size="sm"
-                              onClick={handleLikeToggle}
-                              disabled={!session || isLikeLoading}
-                              className="flex items-center gap-2"
-                            >
-                              <ThumbsUp 
-                                className={`w-4 h-4 transition-all duration-200 ${
-                                  isLiked ? "fill-current scale-110" : "scale-100"
-                                }`} 
-                              />
-                              <span className="tabular-nums">{likesCount}</span>
-                            </Button>
-                          </div>
-                        </TooltipTrigger>
-                        {!session && (
-                          <TooltipContent>
-                            <p>Sign in to like posts</p>
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  <p className="mt-3 text-sm sm:text-base text-muted-foreground">{post.content}</p>
-                </div>
-
-                <Separator />
-
-                {/* Comments Area */}
-                <div className="flex-grow flex flex-col min-h-0 p-3 sm:p-6">
-                  <h2 className="text-base sm:text-lg font-semibold mb-3">Comments</h2>
-                  <ScrollArea className="flex-grow min-h-[200px] sm:min-h-[200px] -mx-2 px-2">
-                    <div className="space-y-3 pr-2 sm:pr-4">
-                      <CommentSection 
-                        post={{...post, comments: localComments}} 
-                        userId={userId} 
-                        onAddReply={handleAddNewReply}
-                      />
-                    </div>
-                  </ScrollArea>
-
-                  {/* Comment Input */}
-                  <div className="flex-none mt-2 mb-10">
-                    <Separator className="mb-5" />
-                    <PostFooter 
-                      post={{...post, comments: localComments}} 
-                      userId={userId} 
-                      onAddComment={handleAddNewComment}
+              <ScrollArea className="flex-1 p-4 h-[calc(100%-200px)]">
+                <div className="space-y-4">
+                  {localComments.map((comment) => (
+                    <CommentItem 
+                      key={comment.id} 
+                      comment={comment} 
+                      postId={post?.id} 
+                      onAddReply={handleAddNewReply}
                     />
+                  ))}
+                </div>
+              </ScrollArea>
+
+              <div className="border-t p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={handleLikeToggle}
+                    >
+                      <ThumbsUp className={`w-6 h-6 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <MessageCircle className="w-6 h-6" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={(e) => handleShare(e, post?.id)}>
+                      <Share className="w-6 h-6" />
+                    </Button>
                   </div>
                 </div>
+                <p className="text-sm font-semibold">{likesCount} likes</p>
+
+                {userId ? (
+                  <div className="flex items-center gap-2">
+                    <Input 
+                      placeholder="Add a comment..." 
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddNewComment()}
+                    />
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={handleAddNewComment}
+                    >
+                      Post
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 text-center">
+                    Please sign in to comment
+                  </p>
+                )}
               </div>
             </div>
-          </CardContent>
+          </div>
         </Card>
-      </div>
-    </>
+      )}
+    </div>
   )
 }
+

@@ -12,7 +12,7 @@ import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { RatingModal } from '@/components/ui/sections/RatingModal'
-import { PostModal } from '@/components/ui/sections/PostModal'
+import PostModal  from '@/components/ui/sections/PostModal'
 import toast, { Toaster } from 'react-hot-toast'
 import { connect_users, check_connection } from "@/app/api/actions/network"
 import { fetchPosts, fetchUserData } from '@/app/api/actions/media'
@@ -114,6 +114,9 @@ export default function EnhancedUserProfilePage() {
       console.error("Error connecting users:", error)
     }
   }
+  const goToChat = (id) => {
+    router.push(`/?tab=chats&expand=true&id=${id}`) // Replace with your actual route
+  }
 
   const handleFindPath = () => {
     router.push('/')
@@ -205,6 +208,7 @@ export default function EnhancedUserProfilePage() {
               <Button 
                 variant="outline"
                 className="transition-all duration-300 ease-in-out transform hover:scale-105"
+                onClick={()=>goToChat(userId)}
               >
                 <MessageCircle className="mr-2 h-4 w-4" />
                 Message
@@ -213,121 +217,39 @@ export default function EnhancedUserProfilePage() {
           </div>
         </CardHeader>
         <CardContent className="pt-6">
-          <Tabs defaultValue="about" className="w-full">
-            <TabsList>
-              <TabsTrigger value="about">About</TabsTrigger>
-              <TabsTrigger value="experience">Experience</TabsTrigger>
-              <TabsTrigger value="education">Education</TabsTrigger>
-              <TabsTrigger value="posts">Posts</TabsTrigger>
-            </TabsList>
-            <TabsContent value="about">
-              {user.bio && (
-                <Card>
-                  <CardContent className="pt-6">
-                    <h3 className="text-lg font-semibold mb-2">Bio</h3>
-                    <p>{user.bio}</p>
-                  </CardContent>
-                </Card>
-              )}
-              {user.website && (
-                <Card className="mt-4">
-                  <CardContent className="pt-6">
-                    <h3 className="text-lg font-semibold mb-2">Website</h3>
-                    <a href={user.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline flex items-center">
-                      <LinkIcon className="mr-2 h-4 w-4" />
-                      {user.website}
-                    </a>
-                  </CardContent>
-                </Card>
-              )}
-              {user.skills && user.skills.length > 0 && (
-                <Card className="mt-4">
-                  <CardContent className="pt-6">
-                    <h3 className="text-lg font-semibold mb-2">Skills</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {user.skills.map((skill, index) => (
-                        <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-            <TabsContent value="experience">
-              {user.experience && user.experience.length > 0 ? (
-                user.experience.map((exp, index) => (
-                  <Card key={index} className="mb-4">
-                    <CardContent className="pt-6">
-                      <div className="flex items-start">
-                        <Briefcase className="mr-4 h-5 w-5 text-blue-500" />
+          <div className="mt-6">
+            <h2 className="text-2xl font-bold mb-4">Posts</h2>
+            {posts && posts.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {posts.map((post, index) => (
+                  <Card key={index} className="overflow-hidden cursor-pointer" onClick={() => handlePostClick(post)}>
+                    <CardContent className="p-4">
+                      {post?.imageUrl && post.imageUrl.length > 0 && (
+                        <div className="mb-4">
+                          <img
+                            src={post.imageUrl[0]} 
+                            alt="Post image" 
+                            width={300}
+                            height={200}
+                            className="w-full h-48 object-cover rounded-md"
+                          />
+                        </div>
+                      )}
+                      {post?.content && <p className="mb-4 line-clamp-3">{post.content}</p>}
+                      <div className="flex justify-between items-center text-sm text-muted-foreground">
                         <div>
-                          <h3 className="text-lg font-semibold">{exp.title}</h3>
-                          <p className="text-muted-foreground">{exp.company}</p>
-                          <p className="text-sm text-muted-foreground">{exp.duration}</p>
+                          <span className="mr-4">{post.likes.length} likes</span>
+                          <span>{post.comments?.length || 0} comments</span>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
-                ))
-              ) : (
-                <p>No experience information available.</p>
-              )}
-            </TabsContent>
-            <TabsContent value="education">
-              {user.education && user.education.length > 0 ? (
-                user.education.map((edu, index) => (
-                  <Card key={index} className="mb-4">
-                    <CardContent className="pt-6">
-                      <div className="flex items-start">
-                        <GraduationCap className="mr-4 h-5 w-5 text-blue-500" />
-                        <div>
-                          <h3 className="text-lg font-semibold">{edu.school}</h3>
-                          <p className="text-muted-foreground">{edu.degree}</p>
-                          <p className="text-sm text-muted-foreground">{edu.year}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <p>No education information available.</p>
-              )}
-            </TabsContent>
-            <TabsContent value="posts">
-              {posts && posts.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {posts.map((post, index) => (
-                    <Card key={index} className="overflow-hidden cursor-pointer" onClick={() => handlePostClick(post)}>
-                      <CardContent className="p-4">
-                        {post?.imageUrl && post.imageUrl.length > 0 && (
-                          <div className="mb-4">
-                            <img
-                              src={post.imageUrl[0]} 
-                              alt="Post image" 
-                              width={300}
-                              height={200}
-                              className="w-full h-48 object-cover rounded-md"
-                            />
-                          </div>
-                        )}
-                        {post?.content && <p className="mb-4 line-clamp-3">{post.content}</p>}
-                        <div className="flex justify-between items-center text-sm text-muted-foreground">
-                          <div>
-                            <span className="mr-4">{post.likes} likes</span>
-                            <span>{post.comments?.length || 0} comments</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <p>No posts available.</p>
-              )}
-            </TabsContent>
-          </Tabs>
+                ))}
+              </div>
+            ) : (
+              <p>No posts available.</p>
+            )}
+          </div>
         </CardContent>
       </Card>
 

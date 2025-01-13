@@ -5,15 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 
-interface PostFooterProps {
-  post: {
-    id: number
-  }
-  userId: number | null
-  onAddComment: (postId: number, content: string) => Promise<void>
-}
 
-export function PostFooter({ post, userId, onAddComment }: PostFooterProps) {
+
+
+export default function PostFooter({ post, userId, onAddComment }) {
   const [comment, setComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -42,23 +37,23 @@ export function PostFooter({ post, userId, onAddComment }: PostFooterProps) {
   }
 
   return (
-    <div className="space-y-2">
-      <Textarea
-        placeholder="Add a comment..."
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        className="min-h-[80px] resize-none"
-      />
-      <div className="flex justify-center w-full">
-        <Button
-          onClick={handleSubmit}
-          disabled={!comment.trim() || isSubmitting}
-           className='w-full m-4'
-        >
-          {isSubmitting ? 'Posting...' : 'Post'}
-        </Button>
-      </div>
+    <div className="h-full px-4 py-3 flex flex-col">
+    <Textarea
+      placeholder="Add a comment..."
+      value={comment}
+      onChange={(e) => setComment(e.target.value)}
+      className="min-h-[60px] max-h-[60px] resize-none mb-2"
+    />
+    <div className="flex justify-end mt-auto">
+      <Button
+        onClick={handleSubmit}
+        disabled={!comment.trim() || isSubmitting}
+        className="px-6"
+      >
+        {isSubmitting ? 'Posting...' : 'Post'}
+      </Button>
     </div>
+  </div>
   )
 }
 

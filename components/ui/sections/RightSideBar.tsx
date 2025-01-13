@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { BookmarkIcon, MoonIcon, Settings, LogOut, Menu } from "lucide-react"
+import { MoonIcon, Settings, LogOut, Menu } from "lucide-react"
 import Image from "next/image"
 import { signOut } from 'next-auth/react'
 
@@ -84,10 +84,6 @@ export default function RightSideBar() {
         
         <div className="p-4 border-t absolute bottom-0 w-full bg-background">
           <nav className="space-y-2">
-            <Button variant="ghost" className="w-full justify-start">
-              <BookmarkIcon className="mr-2 h-4 w-4" />
-              Saved
-            </Button>
             <Button variant="ghost" className="w-full justify-start">
               <MoonIcon className="mr-2 h-4 w-4" />
               Mode

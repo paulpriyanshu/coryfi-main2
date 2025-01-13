@@ -1,58 +1,163 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { Search, Users, Clock, ChevronLeft, ChevronRight, ArrowUp, Menu, MessageCircleIcon as ChatBubbleIcon } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import PersonalNetwork from '@/components/ui/sections/PersonalNetwork'
-import { useAppSelector } from './libs/store/hooks'
-import { selectResponseData } from './libs/features/pathdata/pathSlice'
-import ResultsList from '@/components/ui/sections/ResultsList'
-import CollabContent from '@/components/ui/sections/CollabContent'
-import RecentsContent from '@/components/ui/sections/RecentsContent'
-import Chat from '@/components/ui/sections/Chat'
-import { ResizableBox } from 'react-resizable'
-import { useIsMobile } from './hooks/use-mobile'
-import 'react-resizable/css/styles.css'
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import {
+  Search,
+  Users,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  MessageCircleIcon as ChatBubbleIcon,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import PersonalNetwork from '@/components/ui/sections/PersonalNetwork';
+import { useAppSelector } from './libs/store/hooks';
+import { selectResponseData } from './libs/features/pathdata/pathSlice';
+import ResultsList from '@/components/ui/sections/ResultsList';
+import CollabContent from '@/components/ui/sections/CollabContent';
+import RecentsContent from '@/components/ui/sections/RecentsContent';
+import Chat from '@/components/ui/sections/Chat';
+import { ResizableBox } from 'react-resizable';
+import { useIsMobile } from './hooks/use-mobile';
+import 'react-resizable/css/styles.css';
+import { fetchUserData } from './api/actions/media';
+import axios from 'axios';
+import { useSession } from 'next-auth/react';
 
-type FilterType = 'results' | 'collab' | 'recents' | 'chats'
+type FilterType = 'results' | 'collab' | 'recents' | 'chats';
 
-type PathNode = { 
-  id: string
-  name: string
-  avatar: string
-}
+type PathNode = {
+  id: string;
+  name: string;
+  avatar: string;
+};
 
 type ConnectionPath = {
-  id: string
-  nodes: PathNode[]
-}
+  id: string;
+  nodes: PathNode[];
+};
 
 export default function Component() {
-  const [isExpanded, setIsExpanded] = useState(true)
-  const [activeFilter, setActiveFilter] = useState<FilterType>('results')
-  const [sidebarWidth, setSidebarWidth] = useState(400)
-  const isMobile = useIsMobile()
-  const data = useAppSelector(selectResponseData)
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [activeFilter, setActiveFilter] = useState<FilterType>('results');
+  const [sidebarWidth, setSidebarWidth] = useState(400);
+  const isMobile = useIsMobile();
+  const [receiverId, setReceiverId] = useState(null);
+  const {data:session,status}=useSession()
+  const [Email,setEmail]=useState("")
+
+
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const data = useAppSelector(selectResponseData);
   const structuredData = {
     nodes: data?.nodes || [],
     links: data?.links || [],
-  }
+  };
+  useEffect(() => {
+    if (session?.user?.email) {
+      setEmail(session.user.email);
+    }
+  }, [session]);
 
-  const toggleSidebar = () => setIsExpanded(!isExpanded)
+
+  useEffect(() => {
+    const initialTab = searchParams.get('tab') as FilterType;
+    const shouldExpand = searchParams.get('expand') === 'true';
+    const id = searchParams.get('id'); // Extract the `id` parameter
+    
+    if (id) {
+      console.log('ID from query:', id);
+      // You can use `id` here as needed
+    }
+
+    if (initialTab) {
+      setActiveFilter(initialTab);
+    }
+    setIsExpanded(shouldExpand);
+  }, [searchParams]);
+
+  const toggleSidebar = () => {
+    const newExpandState = !isExpanded;
+    setIsExpanded(newExpandState);
+    router.replace(`/?tab=${activeFilter}&expand=${newExpandState}`);
+    window.location.reload()
+  };
+
+  const handleTabChange = (value: FilterType) => {
+    setActiveFilter(value);
+    router.replace(`/?tab=${value}&expand=${isExpanded}`);
+    window.location.reload()
+  };
 
   const handleResize = (event: any, { size }: { size: { width: number } }) => {
-    setSidebarWidth(size.width)
-  }
-
+    setSidebarWidth(size.width);
+  };
+  useEffect(() => {
+    const id = searchParams.get('id'); // Extract the `id` parameter
+  
+    async function getUserAndCreateChat() {
+      if (id && Email) {
+        console.log("Receiver ID:", id);
+  
+        try {
+          // Fetch receiver user data
+          const receiverData = await fetchUserData(Number(id));
+          console.log("Receiver Data:", receiverData);
+  
+          // Fetch chat data for the receiver and the current user
+          const [receiverChatData, userChatData] = await Promise.all([
+            axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${receiverData.email}`),
+            axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${Email}`),
+          ]);
+  
+          console.log("Receiver Chat Data:", receiverChatData.data.data._id);
+          console.log("User Chat Data:", userChatData.data.data._id);
+  
+          // Check if chat already exists
+          const existingChat = await axios.get(
+            `https://chat.coryfi.com/api/v1/chat-app/chats/check/${receiverChatData?.data?.data?._id}/${userChatData?.data?.data?._id}`
+          );
+  
+          if (existingChat.data.exists) {
+            console.log("Chat already exists. No need to create.");
+          } else {
+            // Create a chat between the two users if it doesn't exist
+            const chat = await axios.post(
+              `https://chat.coryfi.com/api/v1/chat-app/chats/c/${receiverChatData?.data?.data?._id}/${userChatData?.data?.data?._id}`
+            );
+            console.log("Chat Created:", chat);
+          }
+  
+          setReceiverId(id); // Update the receiver ID state
+  
+          // Reload the page only once
+          if (!localStorage.getItem("chatReloaded")) {
+            localStorage.setItem("chatReloaded", "true");
+            window.location.reload();
+          }
+        } catch (error) {
+          console.error("Error creating chat:", error);
+        }
+      }
+    }
+  
+    // Trigger the chat creation as soon as the page loads
+    if (session?.user?.email) {
+      getUserAndCreateChat();
+    }
+  }, [Email, session, searchParams]);
   return (
     <div className="h-screen w-screen bg-background relative overflow-hidden">
       <div className="absolute inset-0">
         <PersonalNetwork data={structuredData} />
       </div>
 
-      {/* Mobile Menu Button */}
       {!isExpanded && (
         <Button
           variant="ghost"
@@ -65,19 +170,20 @@ export default function Component() {
       )}
 
       <ResizableBox
-        width={isMobile ? (isExpanded ? window.innerWidth : 0) : (isExpanded ? sidebarWidth : 64)}
+        width={isMobile ? (isExpanded ? window.innerWidth : 0) : isExpanded ? sidebarWidth : 64}
         height={Infinity}
         minConstraints={[isMobile ? 300 : 64, Infinity]}
         maxConstraints={[isMobile ? window.innerWidth : 600, Infinity]}
         onResize={handleResize}
         resizeHandles={isMobile ? [] : ['e']}
-        className={`absolute left-0 top-0 h-full bg-background/95 backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex
-          ${isMobile ? 'w-full' : ''}`}
+        className={`absolute left-0 top-0 h-full bg-background/95 backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex ${
+          isMobile ? 'w-full' : ''
+        }`}
       >
-        <Tabs 
-          value={activeFilter} 
-          onValueChange={(value) => setActiveFilter(value as FilterType)} 
-          orientation="vertical" 
+        <Tabs
+          value={activeFilter}
+          onValueChange={(value) => handleTabChange(value as FilterType)}
+          orientation="vertical"
           className="flex h-full w-full"
         >
           <TabsList className="h-full w-16 flex flex-col items-center py-4 space-y-4 bg-muted/50">
@@ -135,7 +241,6 @@ export default function Component() {
           )}
         </Tabs>
 
-        {/* Desktop resize handle button */}
         {!isMobile && (
           <Button
             variant="ghost"
@@ -148,6 +253,5 @@ export default function Component() {
         )}
       </ResizableBox>
     </div>
-  )
+  );
 }
-
