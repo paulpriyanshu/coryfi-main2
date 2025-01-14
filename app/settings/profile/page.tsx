@@ -283,7 +283,7 @@ export default function ProfilePage() {
           </div>
           
           <div className="space-y-8">
-          <Button 
+             <Button 
             className="w-full mt-8 bg-gradient-to-r from-black to-purple-500 hover:from-black hover:to-purple-600 text-white"
             onClick={handleSubmit}
             disabled={isLoading}
@@ -334,14 +334,14 @@ export default function ProfilePage() {
                   <p className="mt-2 text-gray-600 dark:text-gray-400">{field.value || 'Not set'}</p>
                 )}
                 {key !== 'email' && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2"
-                    onClick={() => toggleEdit(key)}
-                  >
-                   
-                  </Button>
+                <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2"
+                onClick={() => toggleEdit(key)}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
                 )}
               </div>
             ))}

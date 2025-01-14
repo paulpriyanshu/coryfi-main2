@@ -97,27 +97,27 @@ export default function Page() {
           <div className="mt-12 flex justify-between items-end">
             <div>
               <CardTitle className="text-3xl font-bold">{user.name}</CardTitle>
-              {user.userDetails.content && (
+              {user?.userDetails?.content && (
                 <p className="text-xl text-muted-foreground">
-                  {user.userDetails.content}
+                  {user?.userDetails?.content}
                 </p>
               )}
-              {user.userDetails.bio && (
+              {user?.userDetails?.bio && (
                 <p className="text-sm text-muted-foreground mt-2">
-                  {user.userDetails.bio}
+                  {user?.userDetails?.bio}
                 </p>
               )}
               <div className="flex items-center text-muted-foreground mt-2">
-                {user.userDetails.city && (
+                {user?.userDetails?.city && (
                   <div className="flex items-center mr-4">
                     <MapPin className="h-4 w-4 mr-1" />
-                    <span>{user.userDetails.city}</span>
+                    <span>{user?.userDetails?.city}</span>
                   </div>
                 )}
-                {user.connections !== undefined && (
+                {user?.connections !== undefined && (
                   <div className="flex items-center">
                     <UserPlus className="h-4 w-4 mr-1" />
-                    <span>{user.connections} connections</span>
+                    <span>{user?.connections} connections</span>
                   </div>
                 )}
               </div>

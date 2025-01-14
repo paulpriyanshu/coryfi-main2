@@ -119,7 +119,7 @@ export default function ConnectionRequestsDropdown() {
 
         <DropdownMenuContent className="w-96 p-2 shadow-lg rounded-xl border border-gray-200">
           <DropdownMenuLabel className="text-lg font-semibold px-4 py-2">
-            Connection Requests
+            Notifications
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="my-1" />
           {showTooltip && (
@@ -131,7 +131,7 @@ export default function ConnectionRequestsDropdown() {
           {/* Show message if no requests */}
           {requests.length === 0 ? (
             <DropdownMenuItem disabled className="text-center py-8 text-gray-500">
-              No new requests
+              No new notifications
             </DropdownMenuItem>
           ) : (
             // List of connection requests

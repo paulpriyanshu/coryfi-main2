@@ -42,7 +42,7 @@ export default function CollaborativeEvaluationModal({ isOpen, onClose, path }) 
       setEvaluationId(data?.evaluationId)
       console.log("Starting collaborative evaluation for path:", path)
       
-      toast.success('Path has started!', {
+      toast.success('Path has started! Go to chat section', {
         icon: '🚀',
         style: {
           borderRadius: '10px',

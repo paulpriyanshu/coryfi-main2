@@ -202,7 +202,7 @@ export default function EnhancedUserProfilePage() {
                 disabled={connectionStatus === 'Connecting' || isConnected || pathData?.path?.length === 0 || isCheckingConnection} // Updated disabled condition
               >
                 <img src='/icon.png' className="mr-2 h-6 w-6" />
-                Find Path
+                <span className='hidden md:block'>Find Path</span>
               </Button>
               <Button 
                 className={`transition-all duration-300 ease-in-out transform hover:scale-105
@@ -215,13 +215,13 @@ export default function EnhancedUserProfilePage() {
                 <UserPlus className="h-5 w-5" />
               </Button>
               <Button 
-                variant="outline"
-                className="transition-all duration-300 ease-in-out transform hover:scale-105"
-                onClick={()=>goToChat(userId)}
-              >
-                <MessageCircle className="mr-2 h-4 w-4" />
-                Message
-              </Button>
+                  variant="outline"
+                  className="transition-all duration-300 ease-in-out transform hover:scale-105"
+                  onClick={() => goToChat(userId)}
+                >
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  <span className="hidden md:block"> Message </span>
+                </Button>
             </div>
           </div>
         </CardHeader>

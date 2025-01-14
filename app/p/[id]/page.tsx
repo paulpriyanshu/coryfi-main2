@@ -130,7 +130,7 @@ export default function Page({ isOpen = true, onClose }) {
   }, [session, status])
 
   useEffect(() => {
-    if (isSessionReady) {
+
       const fetchPostData = async () => {
         const userData = await fetchUserId(userEmail)
         const postData = await fetchOnlyPost(Number(id))
@@ -141,8 +141,8 @@ export default function Page({ isOpen = true, onClose }) {
         setLikesCount(postData?.likes?.length || 0)
       }
       fetchPostData()
-    }
-  }, [isSessionReady, userEmail, id])
+    
+  }, [userEmail, id])
 
   useEffect(() => {
     const loadComments = async () => {
