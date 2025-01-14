@@ -1,5 +1,5 @@
 'use client'
-import heic2any from 'heic2any'
+
 import React, { useEffect, useRef, useState, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { MessageSquare, ThumbsUp, Share2, ChevronUp, Mail, ImageIcon, Smile, Video, AlertCircle, X, ChevronLeft, ChevronRight, Send } from 'lucide-react'
@@ -126,32 +126,53 @@ export default function EnhancedInfiniteScrollNetwork() {
     getImages()
   }, [])
 
+  const [isClient, setIsClient] = useState(false) // Track if it's client-side
+
   useEffect(() => {
+    setIsClient(true) // Set to true after the component mounts (client-side)
+
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 300)
     }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+
+    if (isClient) {
+      window.addEventListener('scroll', handleScroll)
+      return () => window.removeEventListener('scroll', handleScroll)
+    }
+  }, [isClient]) // Ensure effect runs only after component mounts
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (isClient) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }
+
+  if (!isClient) return null // Prevent rendering on the server
+
 
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type })
     setTimeout(() => setNotification(null), 5000)
   }
 
-
+  const loadHeic2Any = async () => {
+    const module = await import('heic2any')
+    return module.default
+  }
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0]
     if (file) {
       if (file.type === 'image/heic') {
         try {
-          // Convert HEIC to JPEG using heic2any
-          const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg' })
-  
+          // Dynamically load heic2any
+          const heic2any = await loadHeic2Any()
+          
+          // Convert HEIC to JPEG
+          const convertedBlob = await heic2any({
+            blob: file,
+            toType: 'image/jpeg'
+          })
+    
           // Create a Data URL for the converted file
           const reader = new FileReader()
           reader.onload = (event) => {
