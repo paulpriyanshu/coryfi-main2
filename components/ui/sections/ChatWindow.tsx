@@ -255,7 +255,7 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
                             href={attachment.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-500 underline text-xs block"
+                            className="text-black underline text-xs block"
                           >
                             View Attachment
                           </a>

@@ -153,7 +153,7 @@ export default function ImageEditor({ isOpen, onClose, image, onSave }: ImageEdi
                         />
                         <button
                             onClick={handleSave}
-                            className="w-full bg-blue-500 text-white py-2 rounded-md mt-4 hover:bg-blue-600 transition-colors"
+                            className="w-full bg-black text-white py-2 rounded-md mt-4 hover:bg-slate-500 transition-colors"
                         >
                             Save Edited Image
                         </button>

@@ -162,7 +162,7 @@ export default function ConnectionRequestsDropdown() {
                   <div className="flex flex-col items-end space-y-2">
                     <Badge 
                       variant="secondary" 
-                      className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 cursor-help"
+                      className="text-xs px-2 py-1 rounded-full bg-black text-black cursor-help"
                       onMouseEnter={() => setShowTooltip(true)}
                       onMouseLeave={() => setShowTooltip(false)}
                     >

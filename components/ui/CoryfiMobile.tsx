@@ -173,7 +173,7 @@ const ShrinkingHeader = () => {
 
 
   return (
-    <div className="flex flex-col h-screen bg-blue-50 overflow-hidden">
+    <div className="flex flex-col h-screen bg-black overflow-hidden">
       {/* <motion.header
         ref={headerRef}
         style={{ 
@@ -240,7 +240,7 @@ function NavButton({ icon, label, isActive, onClick }) {
       onClick={onClick}
       className={cn(
         "relative w-12 h-12 rounded-full transition-colors flex items-center justify-center",
-        isActive ? "text-blue-600 bg-blue-100" : "text-gray-600"
+        isActive ? "text-black bg-black" : "text-gray-600"
       )}
     >
       {icon}
@@ -248,7 +248,7 @@ function NavButton({ icon, label, isActive, onClick }) {
       {isActive && (
         <motion.div
           layoutId="activeIndicator"
-          className="absolute bottom-0 left-1/2 w-1.5 h-1.5 bg-blue-600 rounded-full"
+          className="absolute bottom-0 left-1/2 w-1.5 h-1.5 bg-black rounded-full"
           initial={false}
           transition={{ type: "spring", stiffness: 500, damping: 30 }}
           style={{ x: '-50%' }}
@@ -264,7 +264,7 @@ function CreateButton({ onClick }) {
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full p-3 shadow-lg"
+      className="bg-gradient-to-r from-black to-cyan-600 text-white rounded-full p-3 shadow-lg"
     >
       <PlusSquare className="h-6 w-6" />
       <span className="sr-only">Create</span>
@@ -308,17 +308,17 @@ function CreateModal({ isOpen, onClose, onCreatePost, onCreateThought, users }) 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] bg-blue-50">
+      <DialogContent className="sm:max-w-[425px] bg-black">
         <DialogHeader>
-          <DialogTitle className="text-blue-800">Create New Content</DialogTitle>
-          <DialogDescription className="text-blue-600">Choose to create a post or share a thought.</DialogDescription>
+          <DialogTitle className="text-black">Create New Content</DialogTitle>
+          <DialogDescription className="text-black">Choose to create a post or share a thought.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <Textarea
             placeholder="What's on your mind?"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="col-span-3 min-h-[100px] bg-white border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+            className="col-span-3 min-h-[100px] bg-white border-black focus:border-black focus:ring-black"
           />
           {image && (
             <div className="relative">
@@ -334,7 +334,7 @@ function CreateModal({ isOpen, onClose, onCreatePost, onCreateThought, users }) 
             </div>
           )}
           <div className="flex flex-col sm:flex-row justify-between gap-2">
-            <Button variant="outline" onClick={() => document.getElementById('image-upload').click()} className="w-full sm:w-auto bg-white text-blue-600 border-blue-300 hover:bg-blue-50">
+            <Button variant="outline" onClick={() => document.getElementById('image-upload').click()} className="w-full sm:w-auto bg-white text-black border-black hover:bg-slate-500">
               <ImageIcon className="mr-2 h-4 w-4" /> Add Image
             </Button>
             <input
@@ -345,8 +345,8 @@ function CreateModal({ isOpen, onClose, onCreatePost, onCreateThought, users }) 
               className="hidden"
             />
             <div className="flex gap-2 w-full sm:w-auto">
-              <Button onClick={() => handleSubmit('thought')} className="flex-1 sm:flex-initial bg-blue-600 hover:bg-blue-700 text-white">Share Thought</Button>
-              <Button onClick={() => handleSubmit('post')} className="flex-1 sm:flex-initial bg-blue-600 hover:bg-blue-700 text-white">Create Post</Button>
+              <Button onClick={() => handleSubmit('thought')} className="flex-1 sm:flex-initial bg-black hover:bg-slate-500 text-white">Share Thought</Button>
+              <Button onClick={() => handleSubmit('post')} className="flex-1 sm:flex-initial bg-black hover:bg-slate-500 text-white">Create Post</Button>
             </div>
           </div>
         </div>
@@ -385,31 +385,31 @@ function PostCard({ item, users, onLike, onComment }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="bg-white border-blue-100">
+      <Card className="bg-white border-black">
         <CardContent className="p-4">
           <div className="flex items-center mb-2">
             <Avatar className="h-8 w-8 mr-2">
               <AvatarImage src={user.avatar} />
               <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
             </Avatar>
-            <span className="font-semibold text-blue-800">{user.username}</span>
+            <span className="font-semibold text-black">{user.username}</span>
           </div>
           {item.image && (
             <img src={item.image} alt="Post" className="w-full h-48 object-cover rounded-lg mb-2" />
           )}
-          <p className="text-sm text-blue-900">{item.content}</p>
+          <p className="text-sm text-black">{item.content}</p>
         </CardContent>
-        <CardFooter className="flex flex-col items-start text-sm text-blue-600">
+        <CardFooter className="flex flex-col items-start text-sm text-black">
           <div className="flex items-center space-x-2  w-full mb-2">
-            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800 hover:bg-blue-50" onClick={() => onLike(item.id)}>
+            <Button variant="ghost" size="sm" className="text-black hover:text-black hover:bg-slate-500" onClick={() => onLike(item.id)}>
               <Heart className="h-4 w-4 mr-1" />
               {item.likes}
             </Button>
-            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800 hover:bg-blue-50">
+            <Button variant="ghost" size="sm" className="text-black hover:text-black hover:bg-slate-500">
               <MessageCircle className="h-4 w-4 mr-1" />
               {item.comments.length}
             </Button>
-            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 ml-auto">
+            <Button variant="ghost" size="sm" className="text-black hover:text-black hover:bg-slate-500 ml-auto">
               <Share2 className="h-4 w-4" />
             </Button>
           </div>
@@ -458,7 +458,7 @@ function SearchPage({ users, searchQuery, setSearchQuery }) {
         placeholder="Search Coryfi"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        className="bg-white border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+        className="bg-white border-black focus:border-black focus:ring-black"
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {filteredUsers.map((user) => (
@@ -468,15 +468,15 @@ function SearchPage({ users, searchQuery, setSearchQuery }) {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <Card className="bg-white border-blue-100">
+            <Card className="bg-white border-black">
               <CardContent className="p-4 flex items-center space-x-4">
                 <Avatar className="h-16 w-16">
                   <AvatarImage src={user.avatar} />
                   <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="font-semibold text-blue-800">{user.name}</h3>
-                  <p className="text-sm text-blue-600">@{user.username}</p>
+                  <h3 className="font-semibold text-black">{user.name}</h3>
+                  <p className="text-sm text-black">@{user.username}</p>
                 </div>
               </CardContent>
             </Card>
@@ -490,7 +490,7 @@ function SearchPage({ users, searchQuery, setSearchQuery }) {
 function FlashPage() {
   return (
     <div className="p-4 space-y-4">
-      <h2 className="text-xl font-bold text-blue-800">Flash Events</h2>
+      <h2 className="text-xl font-bold text-black">Flash Events</h2>
       {[1, 2, 3].map((event) => (
         <motion.div
           key={event}
@@ -498,15 +498,15 @@ function FlashPage() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3, delay: event * 0.1 }}
         >
-          <Card className="bg-white border-blue-100">
+          <Card className="bg-white border-black">
             <CardContent className="p-4 flex items-center space-x-4">
-              <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full p-3">
+              <div className="bg-gradient-to-r from-black to-cyan-600 text-white rounded-full p-3">
                 <Zap className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="font-semibold text-blue-800">Flash Event {event}</h3>
-                <p className="text-sm text-blue-600">Quick event description...</p>
-                <div className="flex items-center space-x-2 mt-1 text-xs text-blue-500">
+                <h3 className="font-semibold text-black">Flash Event {event}</h3>
+                <p className="text-sm text-black">Quick event description...</p>
+                <div className="flex items-center space-x-2 mt-1 text-xs text-black">
                   <Calendar className="h-4 w-4" />
                   <span>Date</span>
                   <Clock className="h-4 w-4 ml-2" />
@@ -539,15 +539,15 @@ function ProfilePage({ posts, thoughts, users }) {
           <AvatarFallback>{currentUser.username[0].toUpperCase()}</AvatarFallback>
         </Avatar>
         <div>
-          <h2 className="text-xl font-bold text-blue-800">{currentUser.name}</h2>
-          <p className="text-sm text-blue-600">@{currentUser.username}</p>
+          <h2 className="text-xl font-bold text-black">{currentUser.name}</h2>
+          <p className="text-sm text-black">@{currentUser.username}</p>
         </div>
       </motion.div>
       <Tabs defaultValue="posts" className="bg-white rounded-lg p-2">
-        <TabsList className="grid w-full grid-cols-3 bg-blue-100">
-          <TabsTrigger value="posts" className="data-[state=active]:bg-white data-[state=active]:text-blue-800">Posts</TabsTrigger>
-          <TabsTrigger value="thoughts" className="data-[state=active]:bg-white data-[state=active]:text-blue-800">Thoughts</TabsTrigger>
-          <TabsTrigger value="saved" className="data-[state=active]:bg-white data-[state=active]:text-blue-800">Saved</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 bg-black">
+          <TabsTrigger value="posts" className="data-[state=active]:bg-white data-[state=active]:text-black">Posts</TabsTrigger>
+          <TabsTrigger value="thoughts" className="data-[state=active]:bg-white data-[state=active]:text-black">Thoughts</TabsTrigger>
+          <TabsTrigger value="saved" className="data-[state=active]:bg-white data-[state=active]:text-black">Saved</TabsTrigger>
         </TabsList>
         <TabsContent value="posts">
           <div className="grid grid-cols-3 gap-1">
@@ -557,7 +557,7 @@ function ProfilePage({ posts, thoughts, users }) {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
-                className="aspect-square bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg overflow-hidden"
+                className="aspect-square bg-gradient-to-br from-black to-cyan-100 rounded-lg overflow-hidden"
               >
                 {post.image && <img src={post.image} alt="Post" className="w-full h-full object-cover" />}
               </motion.div>
@@ -573,8 +573,8 @@ function ProfilePage({ posts, thoughts, users }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card className="bg-white border-blue-100">
-                  <CardContent className="p-2 text-sm text-blue-800">{thought.content}</CardContent>
+                <Card className="bg-white border-black">
+                  <CardContent className="p-2 text-sm text-black">{thought.content}</CardContent>
                 </Card>
               </motion.div>
             ))}
@@ -588,7 +588,7 @@ function ProfilePage({ posts, thoughts, users }) {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
-                className="aspect-square bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg"
+                className="aspect-square bg-gradient-to-br from-black to-cyan-100 rounded-lg"
               ></motion.div>
             ))}
           </div>

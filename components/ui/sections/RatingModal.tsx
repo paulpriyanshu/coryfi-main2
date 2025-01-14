@@ -43,7 +43,7 @@ export function RatingModal({ isOpen, onClose, onSubmit }: RatingModalProps) {
                 onMouseLeave={() => setHoveredRating(null)}
                 className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-medium text-sm
                   transition-all duration-300 ease-in-out transform hover:scale-110
-                  ${(rating === value || hoveredRating === value) ? 'ring-2 ring-offset-2 ring-blue-400 scale-110' : ''}
+                  ${(rating === value || hoveredRating === value) ? 'ring-2 ring-offset-2 ring-black scale-110' : ''}
                   ${`bg-gradient-to-br ${getGradient(value)}`}`}
               >
                 {value}
@@ -63,7 +63,7 @@ export function RatingModal({ isOpen, onClose, onSubmit }: RatingModalProps) {
           <Button 
             onClick={handleSubmit} 
             disabled={rating === null}
-            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-2 px-6 rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-gradient-to-r from-black to-indigo-600 hover:from-black hover:to-indigo-700 text-white font-semibold py-2 px-6 rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Submit
           </Button>

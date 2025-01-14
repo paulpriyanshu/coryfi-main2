@@ -284,7 +284,7 @@ const cards = [
           Led Zeppelin, a legendary British rock band, is renowned for their
           innovative sound and profound impact on the music industry. Formed in
           London in 1968, they have become a cultural icon in the rock music
-          world. <br /> <br /> Their songs often reflect a blend of blues, hard
+          world. <br /> <br /> Their songs often reflect a blend of blacks, hard
           rock, and folk music, capturing the essence of the 1970s rock era.
           With a career spanning over a decade, Led Zeppelin has released
           numerous hit albums and singles that have garnered them a massive fan

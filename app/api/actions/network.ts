@@ -269,115 +269,111 @@ export const intermediaryUserList=async(list:any)=>{
   return list;
 }
 export const createConnectionRequest = async (
-    requesterEmail: string,
-    recipientEmail: string,
-    intermediaries: { email: string }[] // Array of intermediary users (email-based)
-  ) => {
-    try {
-      console.log(`Requester: ${requesterEmail}, Recipient: ${recipientEmail}`);
-      
-      // Input validation
-      if (!requesterEmail || !recipientEmail || intermediaries.length === 0) {
-        throw new Error("Requester, recipient, and intermediaries are required.");
-      }
-  
-      if (typeof requesterEmail !== "string" || typeof recipientEmail !== "string") {
-        throw new Error("Requester and recipient emails must be strings.");
-      }
-  
-      // Fetch requester and recipient from the database
-      const [requester, recipient] = await Promise.all([
-        db.user.findUnique({
-          where: { email: requesterEmail },
-        }),
-        db.user.findUnique({
-          where: { email: recipientEmail },
-        }),
-      ]);
-  
-      if (!requester) {
-        throw new Error(`Requester with email ${requesterEmail} not found.`);
-      }
-      if (!recipient) {
-        throw new Error(`Recipient with email ${recipientEmail} not found.`);
-      }
-  
-      // Fetch intermediary users from the database
-      const intermediaryEmails = intermediaries.map((intermediary) => intermediary.email);
-          console.log("Intermediary emails:", intermediaryEmails);
+  requesterEmail: string,
+  recipientEmail: string,
+  intermediaries: { email: string }[] // Array of intermediary users (email-based)
+) => {
+  try {
+    console.log(`Requester: ${requesterEmail}, Recipient: ${recipientEmail}`);
 
-          const UnorderedIntermediaryUsers = await db.user.findMany({
-            where: {
-              email: { in: intermediaryEmails },
-            },
-          });
-          console.log("Intermediary users (unordered):", UnorderedIntermediaryUsers);
-
-          // Reorder `UnorderedIntermediaryUsers` to match the sequence of `intermediaryEmails`
-          const intermediaryUsers = intermediaryEmails.map((email) =>
-            UnorderedIntermediaryUsers.find((user) => user.email === email)
-          );
-
-          console.log("Intermediary users (ordered):", intermediaryUsers);
-
-  
-      if (UnorderedIntermediaryUsers.length !== intermediaries.length) {
-        throw new Error("One or more intermediaries not found.");
-      }
-  
-      console.log(`Requester ID: ${requester.id}, Recipient ID: ${recipient.id}`);
-  
-      // Create the Evaluation record
-      const evaluation = await db.evaluation.create({
-        data: {
-          requesterId: requester.id,
-          recipientId: recipient.id,
-          status: "ONGOING",
-        },
-      });
-  
-      console.log("Evaluation created:", evaluation);
-  
-      // Create an entry in the Connection table
-      const connection = await db.evaluationApprovals.create({
-        data: {
-          evaluationIds: [evaluation.id], // Initialize the array with the evaluation ID
-          requesterId: requester.id,
-          recipientId: recipient.id,
-          status: "PENDING", // Initial status
-        },
-      });
-      console.log("Connection created:", connection);
-  
-      // Create Path records for each intermediary
-      console.log("Creating paths...");
-      console.log("Intermediatery data",intermediaryUsers)
-      const pathsData = intermediaryUsers.map((intermediary, index) => ({
-        evaluationId: evaluation.id,
-        intermediaryId: intermediary.id,
-        order: index + 1,
-        new_order: index === 0 ? 1 : -1, // Initialize `new_order` for the first intermediary
-        approved: "FALSE",
-      }));
-      console.log("paths data",pathsData)
-  
-      const paths = await db.path.createMany({
-        data: pathsData,
-      });
-  
-      console.log("Paths created:", paths);
-  
-      return {
-        success: true,
-        message: "Connection request created successfully.",
-        evaluationId: evaluation.id,
-      };
-    } catch (error) {
-      console.error("Error creating connection request:", error);
-      return { success: false, error: error.message };
+    // Input validation
+    if (!requesterEmail || !recipientEmail || intermediaries.length === 0) {
+      throw new Error("Requester, recipient, and intermediaries are required.");
     }
-  };
-// Install axios if not already: npm install axios
+
+    if (typeof requesterEmail !== "string" || typeof recipientEmail !== "string") {
+      throw new Error("Requester and recipient emails must be strings.");
+    }
+
+    // Fetch requester, recipient, and intermediary users concurrently
+    const intermediaryEmails = intermediaries.map((intermediary) => intermediary.email);
+    console.log("Intermediary emails:", intermediaryEmails);
+
+    const [requester, recipient, intermediaryUsers] = await Promise.all([
+      db.user.findUnique({ where: { email: requesterEmail } }),
+      db.user.findUnique({ where: { email: recipientEmail } }),
+      db.user.findMany({
+        where: { email: { in: intermediaryEmails } },
+      }),
+    ]);
+
+    if (!requester) {
+      throw new Error(`Requester with email ${requesterEmail} not found.`);
+    }
+    if (!recipient) {
+      throw new Error(`Recipient with email ${recipientEmail} not found.`);
+    }
+
+    if (intermediaryUsers.length !== intermediaries.length) {
+      throw new Error("One or more intermediaries not found.");
+    }
+
+    console.log(`Requester ID: ${requester.id}, Recipient ID: ${recipient.id}`);
+
+    // Create the Evaluation record
+    const evaluation = await db.evaluation.create({
+      data: {
+        requesterId: requester.id,
+        recipientId: recipient.id,
+        status: "ONGOING",
+      },
+    });
+
+    console.log("Evaluation created:", evaluation);
+
+    // Create an entry in the Connection table
+    const connection = await db.evaluationApprovals.create({
+      data: {
+        evaluationIds: [evaluation.id],
+        requesterId: requester.id,
+        recipientId: recipient.id,
+        status: "PENDING",
+        createdAt: new Date(),
+      },
+    });
+
+    console.log("Connection created:", connection);
+
+    // Create Path records for each intermediary
+    console.log("Creating paths...");
+    const pathsData = intermediaryUsers.map((intermediary, index) => ({
+      evaluationId: evaluation.id,
+      intermediaryId: intermediary.id,
+      order: index + 1,
+      new_order: index === 0 ? 1 : -1, // Initialize `new_order` for the first intermediary
+      approved: "FALSE",
+    }));
+
+    // Create paths in bulk
+    const paths = await db.path.createMany({
+      data: pathsData,
+    });
+    console.log("Paths created:", paths);
+
+    // Parallelize chat creation for intermediary users and requester
+    const [id1Response, id2Response] = await Promise.all([
+      axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${intermediaryUsers[0].email}`),
+      axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${requesterEmail}`),
+    ]);
+    console.log("These are the IDs", id1Response.data.data._id, id2Response.data.data._id);
+
+    try {
+      const chatResponse = await createUserChat(id2Response.data.data._id, id1Response.data.data._id);
+      console.log("Chat response:", chatResponse.data.data);
+    } catch (error) {
+      console.error("Error creating chat:", error);
+    }
+
+    return {
+      success: true,
+      message: "Connection request created successfully.",
+      evaluationId: evaluation.id,
+    };
+  } catch (error) {
+    console.error("Error creating connection request:", error);
+    return { success: false, error: error.message };
+  }
+};
 export const handleRejection = async (
   evaluationId: number,
   rejectingUserEmail: string

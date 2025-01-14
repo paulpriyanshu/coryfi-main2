@@ -41,14 +41,14 @@ export default function MobileHeader() {
           <TabsContent value="dms">
             <ScrollArea className="h-[calc(100vh-200px)]">
               {['John Doe', 'Jane Smith', 'Alice Johnson', 'Bob Williams'].map(name => (
-                <div key={name} className="flex items-center space-x-2 mb-4 p-2 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer">
+                <div key={name} className="flex items-center space-x-2 mb-4 p-2 hover:bg-slate-500 rounded-lg transition-colors cursor-pointer">
                   <Avatar>
                     <AvatarImage src="/placeholder.svg?height=40&width=40" alt={name} />
                     <AvatarFallback>{name[0]}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium text-blue-700">{name}</p>
-                    <p className="text-sm text-blue-500">Hey, how are you?</p>
+                    <p className="font-medium text-black">{name}</p>
+                    <p className="text-sm text-black">Hey, how are you?</p>
                   </div>
                 </div>
               ))}
@@ -57,11 +57,11 @@ export default function MobileHeader() {
           <TabsContent value="mails">
             <ScrollArea className="h-[calc(100vh-200px)]">
               {['New project proposal', 'Meeting minutes', 'Weekly report', 'Client feedback'].map(title => (
-                <div key={title} className="flex items-center space-x-2 mb-4 p-2 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer">
-                  <Mail className="w-5 h-5 text-blue-600" />
+                <div key={title} className="flex items-center space-x-2 mb-4 p-2 hover:bg-slate-500 rounded-lg transition-colors cursor-pointer">
+                  <Mail className="w-5 h-5 text-black" />
                   <div>
-                    <p className="font-medium text-blue-700">{title}</p>
-                    <p className="text-sm text-blue-500">From: Alice Johnson</p>
+                    <p className="font-medium text-black">{title}</p>
+                    <p className="text-sm text-black">From: Alice Johnson</p>
                   </div>
                 </div>
               ))}
@@ -70,15 +70,15 @@ export default function MobileHeader() {
           <TabsContent value="reaches">
             <ScrollArea className="h-[calc(100vh-200px)]">
               {['Emma Thompson', 'Michael Brown', 'Garvit Singh', 'Sophia Lee'].map(name => (
-                <div key={name} className="flex items-center justify-between mb-4 p-2 hover:bg-blue-50 rounded-lg transition-colors">
+                <div key={name} className="flex items-center justify-between mb-4 p-2 hover:bg-slate-500 rounded-lg transition-colors">
                   <div className="flex items-center space-x-2">
                     <Avatar>
                       <AvatarImage src="/placeholder.svg?height=40&width=40" alt={name} />
                       <AvatarFallback>{name[0]}</AvatarFallback>
                     </Avatar>
-                    <p className="font-medium text-blue-700">{name}</p>
+                    <p className="font-medium text-black">{name}</p>
                   </div>
-                  <Button size="sm" variant="outline" className="text-blue-600 border-blue-600 hover:bg-blue-100">Connect</Button>
+                  <Button size="sm" variant="outline" className="text-black border-black hover:bg-slate-500">Connect</Button>
                 </div>
               ))}
             </ScrollArea>
@@ -106,7 +106,7 @@ export default function MobileHeader() {
                 </div>
               </SheetContent>
             </Sheet>
-            <a href="#" className="text-2xl font-bold text-blue-600">
+            <a href="#" className="text-2xl font-bold text-black">
               CoryFi
             </a>
           </div>
@@ -117,21 +117,21 @@ export default function MobileHeader() {
               <Input
                 type="search"
                 placeholder="Search..."
-                className="pl-8 w-[300px] bg-muted focus-visible:ring-blue-500"
+                className="pl-8 w-[300px] bg-muted focus-visible:ring-black"
               />
             </form>
           </div>
 
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" className="hidden md:inline-flex text-blue-600 hover:text-blue-700 hover:bg-blue-100">
+            <Button variant="ghost" size="icon" className="hidden md:inline-flex text-black hover:text-black hover:bg-slate-500">
               <Plus className="h-5 w-5" />
               <span className="sr-only">Create post</span>
             </Button>
-            <Button variant="ghost" size="icon" className="hidden md:inline-flex text-blue-600 hover:text-blue-700 hover:bg-blue-100">
+            <Button variant="ghost" size="icon" className="hidden md:inline-flex text-black hover:text-black hover:bg-slate-500">
               <MessageSquare className="h-5 w-5" />
               <span className="sr-only">Messages</span>
             </Button>
-            <Button variant="ghost" size="icon" className="text-blue-600 hover:text-blue-700 hover:bg-blue-100">
+            <Button variant="ghost" size="icon" className="text-black hover:text-black hover:bg-slate-500">
               <Bell className="h-5 w-5" />
               <span className="sr-only">Notifications</span>
             </Button>

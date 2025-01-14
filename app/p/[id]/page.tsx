@@ -136,6 +136,7 @@ export default function Page({ isOpen = true, onClose }) {
         const postData = await fetchOnlyPost(Number(id))
         setUserId(userData?.id)
         setPost(postData)
+        console.log(postData)
         setIsLiked(postData?.likes?.includes(userEmail))
         setLikesCount(postData?.likes?.length || 0)
       }
@@ -226,25 +227,7 @@ export default function Page({ isOpen = true, onClose }) {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <Toaster />
-      {isMobile ? (
-        <MobilePostModal
-          post={post}
-          userId={userId}
-          isOpen={isOpen}
-          onClose={onClose}
-          localComments={localComments}
-          newComment={newComment}
-          setNewComment={setNewComment}
-          handleAddNewComment={handleAddNewComment}
-          handleAddNewReply={handleAddNewReply}
-          isLiked={isLiked}
-          handleLikeToggle={handleLikeToggle}
-          isSaved={isSaved}
-          setIsSaved={setIsSaved}
-          likesCount={likesCount}
-          handleShare={handleShare}
-        />
-      ) : (
+      
         <Card className="w-full max-w-4xl h-[800px]">
           <div className="flex flex-col md:flex-row w-full h-full">
             {post?.imageUrl?.length > 0 && (
@@ -353,7 +336,7 @@ export default function Page({ isOpen = true, onClose }) {
             </div>
           </div>
         </Card>
-      )}
+      
     </div>
   )
 }

@@ -38,6 +38,7 @@ export default function Page() {
           console.log("userPosts", userPosts)
           const userDetails = await fetchUserData(id);
           setUser(userDetails);
+          console.log("uyseDEtials",userDetails)
           setPosts(userPosts.posts);
         } else {
           throw new Error("User session not found");
@@ -77,13 +78,13 @@ export default function Page() {
   return (
     <div className="container mx-auto p-4 space-y-6">
       <Toaster position="top-center" reverseOrder={false} />
-      <Link href="/" className="flex items-center text-blue-500 hover:underline mb-4">
+      <Link href="/" className="flex items-center text-black hover:underline mb-4">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to Network
       </Link>
 
       <Card className="w-full overflow-hidden">
-        <div className="relative h-48 bg-gradient-to-r from-blue-400 to-blue-600">
+        <div className="relative h-48 bg-gradient-to-r from-blue-300 to-blue-800">
           {user.banner && (
             <Image src={user.banner} alt="Profile banner" layout="fill" objectFit="cover" />
           )}
@@ -96,16 +97,21 @@ export default function Page() {
           <div className="mt-12 flex justify-between items-end">
             <div>
               <CardTitle className="text-3xl font-bold">{user.name}</CardTitle>
-              {user.currentPosition && user.company && (
+              {user.userDetails.content && (
                 <p className="text-xl text-muted-foreground">
-                  {user.currentPosition} at {user.company}
+                  {user.userDetails.content}
+                </p>
+              )}
+              {user.userDetails.bio && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  {user.userDetails.bio}
                 </p>
               )}
               <div className="flex items-center text-muted-foreground mt-2">
-                {user.location && (
+                {user.userDetails.city && (
                   <div className="flex items-center mr-4">
                     <MapPin className="h-4 w-4 mr-1" />
-                    <span>{user.location}</span>
+                    <span>{user.userDetails.city}</span>
                   </div>
                 )}
                 {user.connections !== undefined && (

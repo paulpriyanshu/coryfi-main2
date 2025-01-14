@@ -250,7 +250,7 @@ export default function ProfilePage() {
               onMouseLeave={() => setIsHovered(false)}
               onClick={() => fileInputRef.current?.click()}
             >
-              <div className="w-48 h-48 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 p-1">
+              <div className="w-48 h-48 rounded-full bg-gradient-to-r from-black to-purple-500 p-1">
                 <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 overflow-hidden">
                   <img 
                     src={editedImage || profileImageUrl}
@@ -283,6 +283,13 @@ export default function ProfilePage() {
           </div>
           
           <div className="space-y-8">
+          <Button 
+            className="w-full mt-8 bg-gradient-to-r from-black to-purple-500 hover:from-black hover:to-purple-600 text-white"
+            onClick={handleSubmit}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Saving...' : 'Save All Changes'}
+          </Button>
             {Object.entries(fields).map(([key, field]) => (
               <div key={key} className="relative bg-gray-50 dark:bg-gray-700 p-4 rounded-lg transition-all duration-300 hover:shadow-md">
                 <div className="flex items-center mb-2">
@@ -333,20 +340,14 @@ export default function ProfilePage() {
                     className="absolute top-2 right-2"
                     onClick={() => toggleEdit(key)}
                   >
-                    {field.isEditing ? <Save className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+                   
                   </Button>
                 )}
               </div>
             ))}
           </div>
           
-          <Button 
-            className="w-full mt-8 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
-            onClick={handleSubmit}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Saving...' : 'Save All Changes'}
-          </Button>
+         
         </CardContent>
       </Card>
     </div>

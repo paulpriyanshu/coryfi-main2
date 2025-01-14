@@ -47,7 +47,7 @@ model EvaluationApprovals {
   evaluationWorked  Int?
   createdAt         DateTime      @default(now())
 
-  @@unique([requesterId, recipientId])
+  @@unique([requesterId, recipientId,createdAt])
 }
 
 model Evaluation {
@@ -75,7 +75,7 @@ model Path {
 
   @@unique([evaluationId, intermediaryId])
 }
-
+ 
 model Connection {
   id                Int           @id @default(autoincrement())
   requesterId       Int

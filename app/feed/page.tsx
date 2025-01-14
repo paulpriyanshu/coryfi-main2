@@ -1,5 +1,5 @@
 'use client'
-
+import heic2any from 'heic2any'
 import React, { useEffect, useRef, useState, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { MessageSquare, ThumbsUp, Share2, ChevronUp, Mail, ImageIcon, Smile, Video, AlertCircle, X, ChevronLeft, ChevronRight, Send } from 'lucide-react'
@@ -93,11 +93,11 @@ export default function EnhancedInfiniteScrollNetwork() {
         try {
           const data = await fetchUserId(session?.user?.email)
           setUser(data)
-          console.log("User ID fetched:", data)
+          // console.log("User ID fetched:", data)
 
           setUserId(data.id)
         } catch (error) {
-          console.log("Error while fetching user ID:", error)
+          // console.log("Error while fetching user ID:", error)
         }
       }
 
@@ -115,7 +115,7 @@ export default function EnhancedInfiniteScrollNetwork() {
       setIsInitialLoading(true)
       try {
         const images = await fetchImages()
-        console.log("these are images", images)
+        // console.log("these are images", images)
         setPosts(images)
       } catch (error) {
         console.error("Error fetching images:", error)
@@ -143,17 +143,38 @@ export default function EnhancedInfiniteScrollNetwork() {
     setTimeout(() => setNotification(null), 5000)
   }
 
-  const handleImageUpload = (e) => {
+
+  const handleImageUpload = async (e) => {
     const file = e.target.files?.[0]
     if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setCurrentEditingImage(event.target.result as string)
-          setIsEditModalOpen(true)
+      if (file.type === 'image/heic') {
+        try {
+          // Convert HEIC to JPEG using heic2any
+          const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg' })
+  
+          // Create a Data URL for the converted file
+          const reader = new FileReader()
+          reader.onload = (event) => {
+            if (event.target?.result) {
+              setCurrentEditingImage(event.target.result as string)
+              setIsEditModalOpen(true)
+            }
+          }
+          reader.readAsDataURL(convertedBlob as Blob)
+        } catch (error) {
+          console.error('Error converting HEIC image:', error)
         }
+      } else {
+        // Handle other image formats
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          if (event.target?.result) {
+            setCurrentEditingImage(event.target.result as string)
+            setIsEditModalOpen(true)
+          }
+        }
+        reader.readAsDataURL(file)
       }
-      reader.readAsDataURL(file)
     }
   }
 
@@ -168,6 +189,7 @@ export default function EnhancedInfiniteScrollNetwork() {
 
       const uploadUrlResponse = await axios.get(`https://media.coryfi.com/api/imageUpload/${file.name}`)
       const { url, filename } = uploadUrlResponse.data
+      console.log("image uploaded",filename,url)
 
       await axios.put(url, file, {
         headers: { 'Content-Type': file.type },
@@ -199,8 +221,8 @@ export default function EnhancedInfiniteScrollNetwork() {
       try {
         let content = newPostContent.text
         let imageUrl = newPostContent.images.map(img => img.url)
-        console.log("this is image Url", imageUrl)
-        console.log("this is the post variables", userId, content, imageUrl)
+        // console.log("this is image Url", imageUrl)
+        // console.log("this is the post variables", userId, content, imageUrl)
 
         const newPost = await uploadPost({ userId, content, imageUrl })
 
@@ -225,7 +247,7 @@ export default function EnhancedInfiniteScrollNetwork() {
   const handleLike = async (postId) => {
     try {
       if (!session?.user?.email) {
-        showNotification('Please log in to like posts', 'error')
+        // showNotification('Please log in to like posts', 'error')
         return
       }
 
@@ -255,7 +277,7 @@ export default function EnhancedInfiniteScrollNetwork() {
   }
 
   const handleOpenModal = (post) => {
-    console.log("this is post",post)
+    // console.log("this is post",post)
     setSelectedPost(post)
     setIsModalOpen(true)
   }
@@ -291,26 +313,26 @@ export default function EnhancedInfiniteScrollNetwork() {
 
   const handleAddComment = (postId, commentText) => {
     // Handle adding a comment
-    console.log('Adding comment:', postId, commentText);
+    // console.log('Adding comment:', postId, commentText);
   };
 
   const handleAddReply = (commentId, replyText) => {
     // Handle adding a reply
-    console.log('Adding reply:', commentId, replyText);
+    // console.log('Adding reply:', commentId, replyText);
   };
 
   const RightSidebar = () => (
     <Card className="bg-white shadow-lg sticky top-4">
       <CardContent className="p-6">
-        <h2 className="text-xl font-bold mb-4 text-blue-700">Profile</h2>
+        <h2 className="text-xl font-bold mb-4 text-black">Profile</h2>
         <div className="flex items-center space-x-4 mb-4">
           <Avatar className="w-16 h-16">
             <AvatarImage src={user ? user.userdp : session?.user?.image} alt="Your Profile" />
             <AvatarFallback>YP</AvatarFallback>
           </Avatar>
           <div>
-            <p className="font-bold text-blue-700 cursor-pointer" onClick={()=>router.push('/profile')}>{user ? user?.name : null}</p>
-            <Button variant="link" className="text-blue-600 p-0 h-auto" onClick={()=>router.push('/settings/profile')}>Edit Profile</Button>
+            <p className="font-bold text-black cursor-pointer" onClick={()=>router.push('/profile')}>{user ? user?.name : null}</p>
+            <Button variant="link" className="text-black p-0 h-auto" onClick={()=>router.push('/settings/profile')}>Edit Profile</Button>
           </div>
         </div>
       </CardContent>
@@ -320,14 +342,14 @@ export default function EnhancedInfiniteScrollNetwork() {
 
   if (isInitialLoading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-blue-50">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex justify-center items-center h-screen bg-slate-100">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-black"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-blue-50">
+    <div className="min-h-screen bg-slate-100">
       <Toaster position="top-center" />
       <div className="max-w-7xl mx-auto px-4 py-8">
         {notification && (
@@ -368,22 +390,22 @@ export default function EnhancedInfiniteScrollNetwork() {
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex space-x-2">
-                    <Button variant="ghost" size="sm" className="text-blue-600 hover:bg-blue-100">
+                    <Button variant="ghost" size="sm" className="text-black hover:bg-slate-500">
                       <label htmlFor="image-upload" className="cursor-pointer">
                         <ImageIcon className="w-4 h-4 mr-2" />
                         Photo
                       </label>
                       <input
-                        id="image-upload"
-                        type="file"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                        accept="image/*"
-                      />
+                            id="image-upload"
+                            type="file"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            accept="image/*,image/heic"
+                          />
                     </Button>
                  
                   </div>
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleNewPost}>
+                  <Button className="bg-black hover:bg-slate-500 text-white" onClick={handleNewPost}>
                     Post
                   </Button>
                 </div>
@@ -396,7 +418,7 @@ export default function EnhancedInfiniteScrollNetwork() {
                 {newPostContent.images.length > 0 && (
                   <div className="mt-4 grid grid-cols-3 gap-2">
                     {newPostContent.images.map((image, index) => (
-                      <div key={index} className="relative">
+                      <div key={Math.random()} className="relative">
                         <img src={image.url} alt={`Uploaded ${index + 1}`} className="w-full h-24 object-cover rounded" />
                         <Button
                           variant="destructive"
@@ -435,18 +457,18 @@ export default function EnhancedInfiniteScrollNetwork() {
             </Avatar>
             <div>
               <div onClick={() => router.push(`/userProfile/${post?.user?.id}`)}>
-                <CardTitle className="text-blue-700 hover:underline hover:cursor-pointer">
+                <CardTitle className="text-black hover:underline hover:cursor-pointer">
                   {post?.user?.name}
                 </CardTitle>
               </div>
-              <p className="text-sm text-blue-500">
+              <p className="text-sm text-black">
                 {new Date(post?.createdAt).toLocaleString()}
               </p>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-blue-600 mb-4">{post.content}</p>
+          <p className="text-black mb-4">{post.content}</p>
 
           {/* Media Carousel */}
           {(post.imageUrl?.length > 0 || post.videoUrl?.length > 0) && (
@@ -495,8 +517,8 @@ export default function EnhancedInfiniteScrollNetwork() {
           <Button
             variant="ghost"
             size="sm"
-            className={`hover:text-blue-700 hover:bg-blue-100 ${
-              post.likes.includes(session?.user?.email) ? 'text-blue-600' : 'text-gray-600'
+            className={`hover:text-black hover:bg-slate-500 ${
+              post.likes.includes(session?.user?.email) ? 'text-black' : 'text-gray-600'
             }`}
             onClick={(e) => {
               e.stopPropagation();
@@ -509,7 +531,7 @@ export default function EnhancedInfiniteScrollNetwork() {
           <Button
             variant="ghost"
             size="sm"
-            className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+            className="text-black hover:text-black hover:bg-slate-500"
           >
             <MessageSquare className="w-4 h-4 mr-2" />
             {post.comments?.length || 0}
@@ -517,7 +539,7 @@ export default function EnhancedInfiniteScrollNetwork() {
           <Button
             variant="ghost"
             size="sm"
-            className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+            className="text-black hover:text-black hover:bg-slate-500"
             onClick={(e) => handleShare(e, post.id)}
           >
             <Share2 className="w-4 h-4 mr-2" />
@@ -536,8 +558,8 @@ export default function EnhancedInfiniteScrollNetwork() {
   ))}
 </div>
 
-            {loading && <p className="text-center text-blue-600">Loading more posts...</p>}
-            {!hasMore && <p className="text-center text-blue-600">No more posts to load</p>}
+            {loading && <p className="text-center text-black">Loading more posts...</p>}
+            {!hasMore && <p className="text-center text-black">No more posts to load</p>}
           </div>
 
           <div className="hidden md:block">
@@ -548,7 +570,7 @@ export default function EnhancedInfiniteScrollNetwork() {
 
       {showScrollTop && (
         <Button
-          className="fixed w-10 h-10 opacity-80 bottom-4 right-1/2 rounded-full p-2 bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+          className="fixed w-10 h-10 opacity-80 bottom-4 right-1/2 rounded-full p-2 bg-black hover:bg-slate-500 text-white shadow-lg"
           onClick={scrollToTop}
           size="icon"
         >

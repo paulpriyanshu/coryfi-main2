@@ -3,9 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ArrowRight } from 'lucide-react'
-import { createConnection } from 'net'
-import { createConnectionRequest,handleRejection, intermediaryUserList } from '@/app/api/actions/network'
+import { createConnectionRequest, intermediaryUserList } from '@/app/api/actions/network'
 import { useSession } from 'next-auth/react'
+import toast, { Toaster } from 'react-hot-toast'
 
 type PathNode = {
   id: number
@@ -28,52 +28,76 @@ interface CollaborativeEvaluationModalProps {
   path: ConnectionPath
 }
 
-export default function CollaborativeEvaluationModal({ isOpen, onClose, path }: CollaborativeEvaluationModalProps) {
-  const [evaluationId,setEvaluationId]=useState(null)
-  const {data:session,status}=useSession()
-  const handleConfirm = async() => {
-    // TODO: Implement collaborative evaluation logic
+export default function CollaborativeEvaluationModal({ isOpen, onClose, path }) {
+  const [evaluationId, setEvaluationId] = useState(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const { data: session, status } = useSession()
 
-    const data=await createConnectionRequest(path.nodes[0].email,path.nodes[1].email,path.nodes.slice(3,path.nodes.length))
-    console.log("this is create connection data",data)
-    await intermediaryUserList(path.nodes.slice(3,path.nodes.length))
-    setEvaluationId(data.evaluationId)
-    console.log("Starting collaborative evaluation for path:", path)
-    onClose()
+  const handleConfirm = async () => {
+    setIsProcessing(true)
+    try {
+      const data = await createConnectionRequest(path.nodes[0].email, path.nodes[1].email, path.nodes.slice(3, path.nodes.length))
+      console.log("this is create connection data", data)
+      await intermediaryUserList(path.nodes.slice(3, path.nodes.length))
+      setEvaluationId(data?.evaluationId)
+      console.log("Starting collaborative evaluation for path:", path)
+      
+      toast.success('Path has started!', {
+        icon: '🚀',
+        style: {
+          borderRadius: '10px',
+          background: '#333',
+          color: '#fff',
+        },
+      })
+
+      onClose()
+    } catch (error) {
+      console.error("Error starting collaborative evaluation:", error)
+      toast.error('Failed to start collaborative evaluation. Please try again.')
+    } finally {
+      setIsProcessing(false)
+    }
   }
  
-  const updatedPath=path.nodes.slice(2)
+  const updatedPath = path.nodes.slice(2)
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Start Collaborative Evaluation</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to start a collaborative evaluation with the following path?
-          </DialogDescription>
-        </DialogHeader>
-        <div className="py-4">
-          <div className="flex items-center justify-between">
-            {updatedPath.map((node, index) => (
-              <div key={node.id} className="flex flex-col items-center">
-                <Avatar className="w-12 h-12 mb-2">
-                  <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${node.name}`} alt={node.name} />
-                  <AvatarFallback>{node.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <span className="text-xs text-center">{node.name}</span>
-                {index < path.nodes.length - 1 && (
-                  <ArrowRight className="w-4 h-4 text-muted-foreground mx-2" />
-                )}
-              </div>
-            ))}
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Start Path</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to start with the following path?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="flex items-center justify-between">
+              {updatedPath.map((node, index) => (
+                <div key={node.id} className="flex flex-col items-center">
+                  <Avatar className="w-12 h-12 mb-2">
+                    <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${node.name}`} alt={node.name} />
+                    <AvatarFallback>{node.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <span className="text-xs text-center">{node.name}</span>
+                  {index < updatedPath.length - 1 && (
+                    <ArrowRight className="w-4 h-4 text-muted-foreground mx-2" />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleConfirm}>Confirm</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose} disabled={isProcessing}>Cancel</Button>
+            <Button onClick={handleConfirm} disabled={isProcessing}>
+              {isProcessing ? 'Starting...' : 'Confirm'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Toaster position="top-right" />
+    </>
   )
 }
 

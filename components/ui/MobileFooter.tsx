@@ -47,7 +47,7 @@ export function MobileFooter() {
                 }}
                 className={cn(
                     "relative w-12 h-12 rounded-full transition-colors flex items-center justify-center",
-                    isActive ? "text-blue-600 bg-blue-100" : "text-gray-600"
+                    isActive ? "text-white bg-slate-800" : "text-gray-600"
                 )}
             >
                 {icon}
@@ -55,7 +55,7 @@ export function MobileFooter() {
                 {isActive && (
                     <motion.div
                         layoutId="activeIndicator"
-                        className="absolute bottom-0 left-1/2 w-1.5 h-1.5 bg-blue-600 rounded-full"
+                        className="absolute bottom-0 left-1/2 w-1.5 h-1.5 bg-black rounded-full"
                         initial={false}
                         transition={{ type: "spring", stiffness: 500, damping: 30 }}
                         style={{ x: '-50%' }}
@@ -71,7 +71,7 @@ export function MobileFooter() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={onClick}
-                className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full p-3 shadow-lg"
+                className="bg-gradient-to-r from-black to-cyan-600 text-white rounded-full p-3 shadow-lg"
             >
                 <PlusSquare className="h-6 w-6" />
                 <span className="sr-only">Create</span>

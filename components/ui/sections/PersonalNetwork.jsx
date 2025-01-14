@@ -380,7 +380,7 @@ export default function PersonalNetwork({ data: propData }) {
   }
 
   if (status !== "authenticated") {
-    return <div>Please log in to view your personal network.</div>
+    return <div className=" flex justify-center items-center w-full h-full">Please log in to view your personal network.</div>
   }
 
   if (error) {

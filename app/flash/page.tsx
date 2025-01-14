@@ -38,10 +38,7 @@ const events: Event[] = [
   { id: 3, title: "Art Exhibition", description: "Immerse yourself in a world of creativity at our Contemporary Art Exhibition. Showcasing works from both established and emerging artists, this exhibition pushes the boundaries of traditional art forms. Experience thought-provoking installations, vibrant paintings, and innovative sculptures that challenge perceptions and inspire imagination.", image: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YXJ0JTIwZXhoaWJpdGlvbnxlbnwwfHwwfHx8MA%3D%3D", detailImage: "https://images.unsplash.com/photo-1531685250784-7569952593d2?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8YXJ0JTIwZXhoaWJpdGlvbnxlbnwwfHwwfHx8MA%3D%3D", date: "2024-05-10", location: "Metropolitan Gallery", attendees: 500, size: 'small', orientation: 'square', isLive: true, videoPreview: "https://static.videezy.com/system/resources/previews/000/042/502/original/stockvideo_02636.mp4" },
   { id: 4, title: "Food & Wine Tasting", description: "Embark on a culinary journey at our exclusive Food & Wine Tasting event. Savor exquisite cuisines expertly paired with fine wines from renowned vineyards across the globe. Our expert sommeliers and chefs will guide you through a gastronomic experience that delights the senses and expands your palate. Discover new flavors and culinary traditions!", image: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8Zm9vZCUyMGFuZCUyMHdpbmV8ZW58MHx8MHx8fDA%3D", detailImage: "https://images.unsplash.com/photo-1515779122185-2390ccdf060b?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8Zm9vZCUyMGFuZCUyMHdpbmV8ZW58MHx8MHx8fDA%3D", date: "2024-06-30", location: "Gourmet Plaza", attendees: 300, size: 'medium', orientation: 'portrait', isLive: false },
   { id: 5, title: "City Marathon", description: "Lace up your running shoes for the annual City Marathon! Whether you're a seasoned runner or a first-timer, this event offers a chance to challenge yourself and experience the city from a unique perspective. The route takes you through iconic landmarks and cheering crowds, culminating in a triumphant finish line celebration. Join thousands of runners in this test of endurance and community spirit!", image: "https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bWFyYXRob258ZW58MHx8MHx8fDA%3D", detailImage: "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8bWFyYXRob258ZW58MHx8MHx8fDA%3D", date: "2024-04-05", location: "City Center", attendees: 10000, size: 'large', orientation: 'landscape', isLive: true, videoPreview: "https://static.videezy.com/system/resources/previews/000/038/604/original/Street_Marathon.mp4" },
-  { id: 6, title: "Book Fair", description: "Calling all bookworms and literature enthusiasts! Our annual Book Fair is back, bigger and better than ever. Browse through thousands of titles, attend author meet-and-greets, and participate in engaging panel discussions. From fiction to non-fiction, children's books to academic texts, there's a world of words waiting to be discovered. Don't miss this celebration of literature and learning!", image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Ym9vayUyMGZhaXJ8ZW58MHx8MHx8fDA%3D", detailImage: "https://images.unsplash.com/photo-1526243741027-444d633d7365?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Ym9va3N8ZW58MHx8MHx8fDA%3D", date: "2024-08-18", location: "Central Library", attendees: 1500, size: 'small', orientation: 'square', isLive: false },
-  { id: 7, title: "Fashion Week", description: "Experience the glamour and innovation of the fashion world at our annual Fashion Week. Witness cutting-edge designs from both established and emerging designers on the runway. From haute couture to ready-to-wear collections, this event showcases the latest trends and pushes the boundaries of style. Join fashion enthusiasts, industry professionals, and celebrities for a week of unforgettable shows and events.", image: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8ZmFzaGlvbiUyMHNob3d8ZW58MHx8MHx8fDA%3D", detailImage: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fGZhc2hpb24lMjBzaG93fGVufDB8fDB8fHww", date: "2024-10-01", location: "Fashion Avenue", attendees: 3000, size: 'medium', orientation: 'portrait', isLive: true, videoPreview: "https://static.videezy.com/system/resources/previews/000/042/547/original/stockvideo_02681.mp4" },
-  { id: 8, title: "Science Fair", description: "Explore the wonders of science at our interactive Science Fair. From robotics to environmental studies, witness groundbreaking projects and experiments from young scientists. Engage with hands-on demonstrations, attend enlightening lectures, and be inspired by the next generation of innovators. This event is perfect for curious minds of all ages!", image: "https://images.unsplash.com/photo-1576319155264-99536e0be1ee?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c2NpZW5jZSUyMGZhaXJ8ZW58MHx8MHx8fDA%3D", detailImage: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8c2NpZW5jZSUyMGZhaXJ8ZW58MHx8MHx8fDA%3D", date: "2024-11-15", location: "Science Center", attendees: 2500, size: 'small', orientation: 'landscape', isLive: false },
-  { id: 9, title: "Film Festival", description: "Celebrate the art of cinema at our International Film Festival. Featuring a diverse selection of films from around the world, including premieres, retrospectives, and Q&A sessions with filmmakers. Immerse yourself in compelling narratives, groundbreaking documentaries, and innovative short films. This festival is a must-attend event for film enthusiasts and industry professionals alike.", image: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZmlsbSUyMGZlc3RpdmFsfGVufDB8fDB8fHww", detailImage: "https://images.unsplash.com/photo-1485095329183-d0797cdc5676?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8ZmlsbSUyMGZlc3RpdmFsfGVufDB8fDB8fHww", date:  "2024-12-05", location: "Grand Cinema", attendees: 5000, size: 'large', orientation: 'portrait',   isLive: true, videoPreview:  "https://static.videezy.com/system/resources/previews/000/042/622/original/stockvideo_02756.mp4" },
+
 ]
 
 const users: User[] = [
@@ -106,7 +103,8 @@ export default function Component() {
   }
 
   return (
-    <div className="bg-gray-100 min-h-screen flex">
+    <div className="relative min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('/path-to-your-background.jpg')" }}>
+    <div className="bg-gray-100 min-h-screen flex relative">
       {/* Left Sidebar */}
       <motion.aside
         initial={{ opacity: 0, x: -50 }}
@@ -258,7 +256,7 @@ export default function Component() {
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="absolute right-2 top-2 text-white hover:bg-black/20" 
+                    className="absolute right-2 top-2 text-white hover:bg-slate-500/20" 
                     onClick={() => setSelectedEvent(null)}
                   >
                     <X className="h-6 w-6" />
@@ -295,5 +293,14 @@ export default function Component() {
         )}
       </AnimatePresence>
     </div>
+    <div className="absolute inset-0 bg-white bg-opacity-80 backdrop-blur-md flex items-center justify-center  h-full w-full">
+    <h1
+  className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-800 to-slate-600 text-transparent bg-clip-text transition duration-500 ease-in-out transform hover:scale-110"
+>
+  Coming Soon
+</h1>
+      </div>
+    </div>
   )
 }
+

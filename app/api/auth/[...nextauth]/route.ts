@@ -9,7 +9,7 @@ interface CustomUser extends User {
 }
 
 const authOptions: NextAuthOptions = {
-  debug:true,
+  debug: true,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -51,7 +51,7 @@ const authOptions: NextAuthOptions = {
       try {
         if (!user?.email) {
           throw new Error("No email provided during sign-in");
-        } 
+        }
 
         // Check if the user exists in the database
         const existingUser = await db.user.findUnique({
@@ -60,16 +60,12 @@ const authOptions: NextAuthOptions = {
         await axios.post("https://chat.coryfi.com/api/v1/users/register", {
           email: user.email,
           username: user.name,
-          userdp:user?.image
+          userdp: user?.image,
         });
         await axios.post("https://neo.coryfi.com/api/v1/create/User", {
           email: user.email,
           name: user.name,
-         
-          
         });
-
-
 
         if (!existingUser) {
           // If the user does not exist, create a new user
@@ -81,7 +77,7 @@ const authOptions: NextAuthOptions = {
           });
           await db.user.update({
             where: { email: user.email },
-            data: { 
+            data: {
               userdp: user.image,
             },
           });
@@ -129,6 +125,12 @@ const authOptions: NextAuthOptions = {
         console.error("Error during JWT callback:", error);
         throw new Error("Failed to set JWT token data");
       }
+    },
+
+    // Redirect user to home page after successful sign-in
+    async redirect({ url, baseUrl }) {
+      // Here we are ensuring the user is redirected to the home page
+      return baseUrl; // Redirects to the home page, you can change this to any URL
     },
   },
 };

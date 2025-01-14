@@ -76,9 +76,9 @@ export default function EnhancedRadar({ users, radius, onUserClick }: EnhancedRa
   }
 
   return (
-    <Card className="col-span-1 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50 backdrop-blur-sm">
+    <Card className="col-span-1 shadow-lg bg-gradient-to-br from-black to-indigo-50 backdrop-blur-sm">
       <CardHeader>
-        <CardTitle className="text-xl text-blue-600 flex items-center gap-2">
+        <CardTitle className="text-xl text-black flex items-center gap-2">
           <Compass className="w-6 h-6" />
           Coryfi Users Nearby
         </CardTitle>
@@ -94,7 +94,7 @@ export default function EnhancedRadar({ users, radius, onUserClick }: EnhancedRa
         >
           <div
             ref={radarRef}
-            className="absolute rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 origin-center"
+            className="absolute rounded-full bg-gradient-to-br from-black to-indigo-100 origin-center"
             style={{
               width: `${100 * zoom}%`,
               height: `${100 * zoom}%`,
@@ -105,14 +105,14 @@ export default function EnhancedRadar({ users, radius, onUserClick }: EnhancedRa
           >
             {/* Radar circles */}
             {/* <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-3/4 h-3/4 rounded-full border border-blue-300/50"></div>
-              <div className="w-1/2 h-1/2 rounded-full border border-blue-300/50"></div>
-              <div className="w-1/4 h-1/4 rounded-full border border-blue-300/50"></div>
+              <div className="w-3/4 h-3/4 rounded-full border border-black/50"></div>
+              <div className="w-1/2 h-1/2 rounded-full border border-black/50"></div>
+              <div className="w-1/4 h-1/4 rounded-full border border-black/50"></div>
             </div> */}
 
             {/* Expanding ring effect */}
             <div
-              className="absolute rounded-full border-2 border-blue-400/50"
+              className="absolute rounded-full border-2 border-black/50"
               style={{
                 width: `${ringSize}%`,
                 height: `${ringSize}%`,
@@ -124,13 +124,13 @@ export default function EnhancedRadar({ users, radius, onUserClick }: EnhancedRa
 
             {/* Center point */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-4 h-4 bg-blue-500 rounded-full animate-ping"></div>
-              <div className="w-3 h-3 bg-blue-600 rounded-full absolute"></div>
+              <div className="w-4 h-4 bg-black rounded-full animate-ping"></div>
+              <div className="w-3 h-3 bg-black rounded-full absolute"></div>
             </div>
 
             {/* Radius display */}
             <div className="absolute inset-x-0 bottom-4 flex justify-center">
-              <span className="text-sm font-medium text-blue-800 bg-white/80 px-2 py-1 rounded-full shadow-sm">
+              <span className="text-sm font-medium text-black bg-white/80 px-2 py-1 rounded-full shadow-sm">
                 Radius: {radius}ft
               </span>
             </div>
@@ -152,7 +152,7 @@ export default function EnhancedRadar({ users, radius, onUserClick }: EnhancedRa
                   <AvatarImage src={user.avatar} alt={user.name} />
                   <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <div className="absolute inset-0 rounded-full animate-ping bg-blue-400 opacity-75"></div>
+                <div className="absolute inset-0 rounded-full animate-ping bg-black opacity-75"></div>
               </Button>
             ))}
           </div>

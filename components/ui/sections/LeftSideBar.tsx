@@ -64,18 +64,18 @@ const handleFindPath = async (email: string) => {
         <div>
           <ScrollArea className="h-[calc(100vh-200px)]">
             {people?.map(people => (
-              <div key={people?.name} className="flex items-center justify-between mb-4 p-2 hover:bg-blue-50 rounded-lg transition-colors">
+              <div key={people?.name} className="flex items-center justify-between mb-4 p-2 hover:bg-slate-500 rounded-lg transition-colors">
                 <div className="flex items-center space-x-2">
                   <Avatar>
                     <AvatarImage src={people?.userdp} alt={people?.name} />
                     <AvatarFallback>{people?.name[0]}</AvatarFallback>
                   </Avatar>
-                  <p className="font-medium text-sm text-blue-700">{people?.name}</p>
+                  <p className="font-medium text-sm text-black">{people?.name}</p>
                 </div>
                 <Button
                         size="sm"
                         variant="outline"
-                        className="text-blue-600 border-blue-600 hover:bg-blue-100"
+                        className="text-black border-black hover:bg-slate-500"
                         onClick={() => {
                             handleFindPath(people.email);
                             handleUserRoute(people.id);

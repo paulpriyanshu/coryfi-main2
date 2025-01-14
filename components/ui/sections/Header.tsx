@@ -37,7 +37,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, href, isActive, tooltip }) => {
     <Link
       href={href}
       className={`relative inline-flex items-center justify-center w-12 h-12 rounded-full ${
-        isActive ? "text-blue-600 bg-blue-100" : "text-gray-500 hover:text-blue-700 hover:bg-blue-50"
+        isActive ? "text-white bg-slate-800" : "text-gray-500 hover:text-black hover:bg-slate-300"
       } transition-all duration-200 ease-in-out`}
     >
       {icon}
@@ -45,7 +45,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, href, isActive, tooltip }) => {
       {isActive && (
         <motion.span
           layoutId="activeIndicator"
-          className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"
+          className="absolute bottom-0 left-0 w-full h-0.5 bg-black"
           initial={false}
           transition={{ type: "spring", stiffness: 500, damping: 30 }}
         />
@@ -104,8 +104,7 @@ export default function Component() {
     { icon: <Home className="h-5 w-5" />, href: "/feed", tooltip: "Home" },
     { icon: <Compass className="h-5 w-5" />, href: "/explore", tooltip: "Explore" },
     { icon: <Network className="h-5 w-5" />, href: "/", tooltip: "Network" },
-    { icon: <Zap className="h-5 w-5" />, href: "/flash", tooltip: "Flash" },
-    { icon: <Users className="h-5 w-5" />, href: "/nearby", tooltip: "Nearby" },
+    { icon: <Zap className="h-5 w-5" />, href: "/flash", tooltip: "Flash" }
   ]
 
   return (
@@ -134,7 +133,7 @@ export default function Component() {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
-                        <Link href={item.href} className="flex items-center text-2xl font-bold space-x-2 text-blue-600 hover:text-blue-800">
+                        <Link href={item.href} className="flex items-center text-2xl font-bold space-x-2 text-black hover:text-black">
                           {item.icon}
                           <span>{item.tooltip}</span>
                         </Link>
@@ -253,7 +252,7 @@ export default function Component() {
             ) : (
               <Button 
                 onClick={handleClick}
-                className="bg-blue-600 text-white font-bold hover:bg-blue-500"
+                className="bg-slate-800 text-white font-bold hover:bg-slate-600"
               >
                 Signup
               </Button>

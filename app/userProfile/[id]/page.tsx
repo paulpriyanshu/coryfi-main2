@@ -16,6 +16,9 @@ import PostModal  from '@/components/ui/sections/PostModal'
 import toast, { Toaster } from 'react-hot-toast'
 import { connect_users, check_connection } from "@/app/api/actions/network"
 import { fetchPosts, fetchUserData } from '@/app/api/actions/media'
+import { useDispatch } from 'react-redux'
+import { selectResponseData } from '@/app/libs/features/pathdata/pathSlice'
+import { useAppSelector } from '@/app/libs/store/hooks'
 
 export default function EnhancedUserProfilePage() {
   const params = useParams()
@@ -29,8 +32,12 @@ export default function EnhancedUserProfilePage() {
   const [connectionStatus, setConnectionStatus] = useState<'Connect' | 'Connected' | 'Connecting'>('Connect')
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false)
   const [selectedPost, setSelectedPost] = useState(null)
+  const [isCheckingConnection, setIsCheckingConnection] = useState(true) // Added state variable
+
   const router = useRouter()
 
+  
+  const pathData = useAppSelector(selectResponseData);
   useEffect(() => {
     const fetchUserPosts = async () => {
       try {
@@ -49,6 +56,7 @@ export default function EnhancedUserProfilePage() {
   useEffect(() => {
     const fetchUserProfile = async () => {
       setIsLoading(true)
+      setIsCheckingConnection(true) // Set checking connection flag
       try {
         const id = Number(userId)
         const userData = await fetchUserData(id)
@@ -64,6 +72,7 @@ export default function EnhancedUserProfilePage() {
         toast.error('Failed to load user profile')
       } finally {
         setIsLoading(false)
+        setIsCheckingConnection(false) // Clear checking connection flag
       }
     }
 
@@ -97,7 +106,7 @@ export default function EnhancedUserProfilePage() {
         success: (data) => {
           setConnectionStatus('Connected')
           setIsConnected(true)
-          return `You've successfully connected with ${user.name}!`
+          return `Request sent to  ${user.name}!`
         },
         error: (err) => {
           setConnectionStatus('Connect')
@@ -119,7 +128,7 @@ export default function EnhancedUserProfilePage() {
   }
 
   const handleFindPath = () => {
-    router.push('/')
+    router.push('/?tab=results&expand=true')
     toast.success('Redirecting to Find Path...')
   }
 
@@ -147,13 +156,13 @@ export default function EnhancedUserProfilePage() {
   return (
     <div className="container mx-auto p-4 space-y-6">
       <Toaster position="top-center" reverseOrder={false} />
-      <Link href="/network" className="flex items-center text-blue-500 hover:underline mb-4">
+      <Link href="/network" className="flex items-center text-black hover:underline mb-4">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to Network
       </Link>
 
       <Card className="w-full overflow-hidden">
-        <div className="relative h-48 bg-gradient-to-r from-blue-400 to-blue-600">
+        <div className="relative h-48 bg-gradient-to-r from-blue-300 to-black-800">
           {user.banner && (
             <Image src={user.banner} alt="Profile banner" layout="fill" objectFit="cover" />
           )}
@@ -188,9 +197,9 @@ export default function EnhancedUserProfilePage() {
             </div>
             <div className="flex space-x-2">
               <Button 
-                className="bg-white hover:bg-blue-100 text-black transition-all duration-300 ease-in-out transform hover:scale-105"
+                className="bg-white hover:bg-slate-500 text-black transition-all duration-300 ease-in-out transform hover:scale-105"
                 onClick={handleFindPath}
-                disabled={connectionStatus === 'Connecting' || isConnected}
+                disabled={connectionStatus === 'Connecting' || isConnected || pathData?.path?.length === 0 || isCheckingConnection} // Updated disabled condition
               >
                 <img src='/icon.png' className="mr-2 h-6 w-6" />
                 Find Path
@@ -199,9 +208,9 @@ export default function EnhancedUserProfilePage() {
                 className={`transition-all duration-300 ease-in-out transform hover:scale-105
                   ${isConnected 
                     ? 'bg-green-500 hover:bg-green-600' 
-                    : 'bg-white hover:bg-blue-600 text-black hover:text-white'}`}
+                    : 'bg-white hover:bg-slate-500 text-black hover:text-white'}`}
                 onClick={handleConnectClick}
-                disabled={connectionStatus === 'Connecting' || isConnected}
+                disabled={connectionStatus === 'Connecting' || isConnected || isCheckingConnection} // Updated disabled condition
               >
                 <UserPlus className="h-5 w-5" />
               </Button>

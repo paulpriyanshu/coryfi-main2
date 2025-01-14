@@ -91,15 +91,16 @@ export default function ExplorePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-blue-900 p-4 sm:p-6 lg:p-8">
+    <div className="relative min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('/path-to-your-background.jpg')" }}>
+    <div className="min-h-screen bg-white text-black p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex justify-end items-center">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-black" />
             <Input
               type="search"
               placeholder="Search titles"
-              className="pl-10 bg-white border-blue-200 text-blue-900 placeholder-blue-300 focus:ring-blue-500 focus:border-blue-500 w-64"
+              className="pl-10 bg-white border-black text-black placeholder-black focus:ring-black focus:border-black w-64"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -126,8 +127,8 @@ export default function ExplorePage() {
                 onClick={() => setSelectedCategory(category)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
                   selectedCategory === category
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50 scale-105'
-                    : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                    ? 'bg-black text-white shadow-lg shadow-black/50 scale-105'
+                    : 'bg-black text-black hover:bg-slate-500'
                 }`}
               >
                 {category}
@@ -160,23 +161,23 @@ export default function ExplorePage() {
                   className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
                 />
               </AspectRatio>
-              <div className="absolute inset-0 bg-gradient-to-t from-blue-900 via-blue-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                 <h3 className="text-2xl font-bold mb-2 text-white">{video.title}</h3>
                 <div className="flex items-center space-x-2 mb-2">
-                  <Badge variant="secondary" className="bg-blue-600 text-white">
+                  <Badge variant="secondary" className="bg-black text-white">
                     {video.rating}
                   </Badge>
-                  <span className="text-sm text-blue-100">{video.releaseYear}</span>
-                  <span className="text-sm text-blue-100">{video.duration}</span>
+                  <span className="text-sm text-black">{video.releaseYear}</span>
+                  <span className="text-sm text-black">{video.duration}</span>
                 </div>
-                <p className="text-sm text-blue-100 line-clamp-2">{video.description}</p>
+                <p className="text-sm text-black line-clamp-2">{video.description}</p>
                 <div className="flex items-center mt-4 space-x-4">
-                  <Button variant="default" className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Button variant="default" className="bg-black hover:bg-slate-500 text-white">
                     <Play className="w-4 h-4 mr-2" />
                     Play
                   </Button>
-                  <Button variant="secondary" className="bg-blue-200 text-blue-800 hover:bg-blue-300">
+                  <Button variant="secondary" className="bg-black text-black hover:bg-slate-500">
                     <Info className="w-4 h-4 mr-2" />
                     More Info
                   </Button>
@@ -187,7 +188,7 @@ export default function ExplorePage() {
         </div>
 
         <div>
-          <h2 className="text-2xl font-bold mb-6 text-blue-600">Flash</h2>
+          <h2 className="text-2xl font-bold mb-6 text-black">Flash</h2>
           <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {shortVideos.map((video) => (
               <motion.div
@@ -204,12 +205,12 @@ export default function ExplorePage() {
                     className="object-cover w-full h-full transition-transform duration-300 hover:scale-110"
                   />
                 </AspectRatio>
-                <div className="absolute inset-0 bg-gradient-to-t from-blue-900 via-blue-900/60 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
                 <div className="absolute bottom-0 left-0 right-0 p-2 transform translate-y-full hover:translate-y-0 transition-transform duration-300">
                   <h3 className="text-sm font-bold mb-1 truncate text-white">{video.title}</h3>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-blue-100">{video.duration}</span>
-                    <Badge variant="secondary" className="text-xs bg-blue-600 text-white">
+                    <span className="text-xs text-black">{video.duration}</span>
+                    <Badge variant="secondary" className="text-xs bg-black text-white">
                       {video.category}
                     </Badge>
                   </div>
@@ -221,8 +222,8 @@ export default function ExplorePage() {
 
         <div>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-blue-600">Continue Watching</h2>
-            <Button variant="ghost" className="text-blue-600 hover:text-blue-700">
+            <h2 className="text-2xl font-bold text-black">Continue Watching</h2>
+            <Button variant="ghost" className="text-black hover:text-black">
               See All <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -241,19 +242,19 @@ export default function ExplorePage() {
                     alt={video.title}
                     className="object-cover w-full h-full"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-blue-900 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4">
                     <h3 className="text-lg font-semibold truncate text-white">{video.title}</h3>
                     <div className="flex items-center justify-between mt-2">
-                      <Badge variant="secondary" className="bg-blue-600 text-white">
+                      <Badge variant="secondary" className="bg-black text-white">
                         {video.rating}
                       </Badge>
-                      <span className="text-sm text-blue-100">{video.duration}</span>
+                      <span className="text-sm text-black">{video.duration}</span>
                     </div>
                   </div>
                 </AspectRatio>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-200">
-                  <div className="h-full bg-blue-600" style={{ width: '30%' }}></div>
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-black">
+                  <div className="h-full bg-black" style={{ width: '30%' }}></div>
                 </div>
               </motion.div>
             ))}
@@ -262,13 +263,13 @@ export default function ExplorePage() {
       </div>
 
       <Dialog open={!!selectedVideo} onOpenChange={() => setSelectedVideo(null)}>
-        <DialogContent className="sm:max-w-[900px] bg-white text-blue-900">
+        <DialogContent className="sm:max-w-[900px] bg-white text-black">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-blue-600">{selectedVideo?.title}</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-black">{selectedVideo?.title}</DialogTitle>
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-4 top-4 rounded-full text-blue-600"
+              className="absolute right-4 top-4 rounded-full text-black"
               onClick={() => setSelectedVideo(null)}
             >
               <X className="h-4 w-4" />
@@ -307,34 +308,34 @@ export default function ExplorePage() {
             <div>
               <div className="mt-4 flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <Button variant="default" className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Button variant="default" className="bg-black hover:bg-slate-500 text-white">
                     <Play className="w-4 h-4 mr-2" />
                     Play
                   </Button>
-                  <div className="flex items-center space-x-2 text-blue-600">
+                  <div className="flex items-center space-x-2 text-black">
                     <ThumbsUp className="w-5 h-5" />
                     <span>{selectedVideo?.likes.toLocaleString()}</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-blue-600">
+                  <div className="flex items-center space-x-2 text-black">
                     <MessageCircle className="w-5 h-5" />
                     <span>{selectedVideo?.comments.toLocaleString()}</span>
                   </div>
                 </div>
-                <Button variant="ghost" className="text-blue-600">
+                <Button variant="ghost" className="text-black">
                   <Share2 className="w-5 h-5" />
                 </Button>
               </div>
-              <DialogDescription className="mt-4 text-blue-800">
+              <DialogDescription className="mt-4 text-black">
                 {selectedVideo?.description}
               </DialogDescription>
               {!isFlashVideo && (
                 <>
-                  <h4 className="text-lg font-semibold mb-4 mt-6 text-blue-600">Suggested Videos</h4>
+                  <h4 className="text-lg font-semibold mb-4 mt-6 text-black">Suggested Videos</h4>
                   <div className="space-y-4 max-h-[300px] overflow-y-auto pr-4" style={{ scrollbarWidth: 'thin' }}>
                     {videos.filter(v => v.id !== selectedVideo?.id).slice(0, 5).map((video) => (
                       <div
                         key={video.id}
-                        className="flex items-start space-x-4 p-2 hover:bg-blue-50 rounded-lg cursor-pointer"
+                        className="flex items-start space-x-4 p-2 hover:bg-slate-500 rounded-lg cursor-pointer"
                         onClick={() => handleVideoClick(video, false)}
                       >
                         <img
@@ -343,8 +344,8 @@ export default function ExplorePage() {
                           className="w-24 h-16 object-cover rounded"
                         />
                         <div>
-                          <h5 className="font-semibold text-blue-800">{video.title}</h5>
-                          <p className="text-sm text-blue-600">{video.duration}</p>
+                          <h5 className="font-semibold text-black">{video.title}</h5>
+                          <p className="text-sm text-black">{video.duration}</p>
                         </div>
                       </div>
                     ))}
@@ -355,6 +356,15 @@ export default function ExplorePage() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+    <div className="absolute inset-0 bg-white bg-opacity-80 backdrop-blur-md flex items-center justify-center  h-full w-full">
+    <h1
+    className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-800 to-slate-600 text-transparent bg-clip-text transition duration-500 ease-in-out transform hover:scale-110 
+    absolute top-24 sm:top-4/5 sm:transform sm:-translate-y-5/4"
+  >
+  Coming Soon
+</h1>
+      </div>
     </div>
   )
 }

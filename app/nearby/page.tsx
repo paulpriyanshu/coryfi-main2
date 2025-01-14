@@ -82,17 +82,17 @@ export default function NearbyUsersPage() {
 
   return (
     <div className="container mx-auto p-4 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-center text-blue-600">Nearby Coryfi Users</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center text-black">Nearby Coryfi Users</h1>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Sidebar - Selected User Preview */}
         <Card className="col-span-1 shadow-lg bg-white/80 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-xl text-blue-600">Selected User</CardTitle>
+            <CardTitle className="text-xl text-black">Selected User</CardTitle>
           </CardHeader>
           <CardContent>
             {selectedUser ? (
               <div className="flex flex-col items-center">
-                <Avatar className="w-32 h-32 mb-4 ring-4 ring-blue-200">
+                <Avatar className="w-32 h-32 mb-4 ring-4 ring-black">
                   <AvatarImage src={selectedUser.avatar} alt={selectedUser.name} />
                   <AvatarFallback>{selectedUser.name.charAt(0)}</AvatarFallback>
                 </Avatar>
@@ -100,7 +100,7 @@ export default function NearbyUsersPage() {
                 <p className="text-gray-600 mb-2">Distance: {selectedUser.distance}m</p>
                 <p className="text-sm text-gray-500 text-center mb-4">{selectedUser.bio}</p>
                 <div className="flex items-center mb-4">
-                  <Users className="w-4 h-4 mr-2 text-blue-500" />
+                  <Users className="w-4 h-4 mr-2 text-black" />
                   <span className="text-sm text-gray-600">Network: {selectedUser.network}</span>
                 </div>
                 <div className="flex flex-wrap justify-center gap-2 mb-4">
@@ -125,7 +125,7 @@ export default function NearbyUsersPage() {
         {/* Right Sidebar - Search and User List */}
         <Card className="col-span-1 shadow-lg bg-white/80 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-xl text-blue-600">Users in Radar</CardTitle>
+            <CardTitle className="text-xl text-black">Users in Radar</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="relative mb-4">
@@ -162,7 +162,7 @@ export default function NearbyUsersPage() {
                 <Button
                   key={user.id}
                   variant="outline"
-                  className="w-full justify-start hover:bg-blue-50 transition-colors duration-200"
+                  className="w-full justify-start hover:bg-slate-500 transition-colors duration-200"
                   onClick={() => handleUserClick(user)}
                 >
                   <Avatar className="w-8 h-8 mr-2">
