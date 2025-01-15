@@ -86,7 +86,8 @@ function Component() {
       return;
     }
     setActiveFilter(value);
-    router.replace(`/?tab=${value}&expand=${isExpanded}`);
+    setIsExpanded(true);
+    router.replace(`/?tab=${value}&expand=true`);
   };
 
   const handleResize = (event: any, { size }: { size: { width: number } }) => {

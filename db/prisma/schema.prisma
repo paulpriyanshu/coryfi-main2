@@ -22,6 +22,7 @@ model User {
   evaluationApprovalsReceived EvaluationApprovals[] @relation("EvaluationApprovalsRecipient")
   comments                 Comment[]
   userDetails              UserDetails?
+  createdAt                DateTime?                @default(now()) 
 }
 
 model UserDetails {
