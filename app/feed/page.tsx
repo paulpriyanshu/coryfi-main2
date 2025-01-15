@@ -210,7 +210,7 @@ export default function EnhancedInfiniteScrollNetwork() {
 
       const uploadUrlResponse = await axios.get(`https://media.coryfi.com/api/imageUpload/${file.name}`)
       const { url, filename } = uploadUrlResponse.data
-      console.log("image uploaded",filename,url)
+      // console.log("image uploaded",filename,url)
 
       await axios.put(url, file, {
         headers: { 'Content-Type': file.type },

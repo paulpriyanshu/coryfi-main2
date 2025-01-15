@@ -41,7 +41,7 @@ export default function PersonalNetwork({ data: propData }) {
           setUserId(id)
           const userDetails = await fetchUserData(id);
           setUserDp(userDetails.userdp)
-          console.log("data",propData)
+          // console.log("data",propData)
         } else {
           throw new Error("User session not found");
         }
@@ -50,7 +50,7 @@ export default function PersonalNetwork({ data: propData }) {
         setError("Failed to load user data. Please try again later.");
       } finally {
         setIsLoading(false);
-        console.log("user dp",userdp)
+        // console.log("user dp",userdp)
       }
     };
 
@@ -201,7 +201,7 @@ export default function PersonalNetwork({ data: propData }) {
         })
         const data = await response.json()
         dispatch(setResponseData(data))
-        console.log("Path data:", data)
+        // console.log("Path data:", data)
       } catch (error) {
         console.error('Error finding path:', error)
       }
@@ -357,16 +357,16 @@ export default function PersonalNetwork({ data: propData }) {
   }, [])
 
   const handleConnect = useCallback(() => {
-    console.log("Connecting with", selectedPerson?.name)
+    // console.log("Connecting with", selectedPerson?.name)
   }, [selectedPerson])
 
   const handleMessage = useCallback(() => {
-    console.log("Messaging", selectedPerson?.name)
+    // console.log("Messaging", selectedPerson?.name)
   }, [selectedPerson])
 
   const handleViewFullProfile = useCallback(() => {
     if (selectedPerson) {
-      console.log(selectedPerson.id)
+      // console.log(selectedPerson.id)
       router.push(`/userProfile/${selectedPerson.id}`)
     }
   }, [selectedPerson, router])

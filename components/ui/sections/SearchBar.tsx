@@ -83,7 +83,7 @@ export default function SearchBar() {
 
   const handleSearch = (term: string) => {
     
-    console.log(`Searching for: ${term}`)
+    // console.log(`Searching for: ${term}`)
     setSearchTerm(term)
     setShowSuggestions(false)
     // router.push('/')
@@ -99,9 +99,9 @@ export default function SearchBar() {
           pathIndex:0
         })
         setPath(response.data.path)
-        console.log("this is the prop data",response.data)
+        // console.log("this is the prop data",response.data)
         dispatch(setResponseData(response.data))
-        console.log("this is connect data",response.data)
+        // console.log("this is connect data",response.data)
       } catch (error) {
         console.error('Error finding path:', error)
       }
@@ -109,13 +109,13 @@ export default function SearchBar() {
   }
 const handleUserRoute=async(email:string)=>{
   const user=await fetchUserId(email)
-  console.log("this is the userdata",user.id)
+  // console.log("this is the userdata",user.id)
   router.push(`/userProfile/${user.id}`)
 
 
 }
   useEffect(() => {
-    console.log("this is path", path)
+    // console.log("this is path", path)
   }, [path])
 
   const handleClearSearch = () => {

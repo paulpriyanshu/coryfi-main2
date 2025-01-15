@@ -72,7 +72,7 @@ export default function Component() {
 
   const handleLogout = async() => {
     // Implement logout logic here
-    console.log("Logging out...")
+    // console.log("Logging out...")
     await signOut()
   }
 
@@ -92,7 +92,7 @@ export default function Component() {
     if(session?.user?.email){
       const getuserDp=async()=>{
         const user=await fetchUserId(session?.user?.email)
-        console.log("logged in user",user)
+        // console.log("logged in user",user)
         setUserDp(user?.userdp)
 
       }

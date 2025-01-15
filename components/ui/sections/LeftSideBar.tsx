@@ -29,9 +29,9 @@ const handleFindPath = async (email: string) => {
               pathIndex:0
             })
             setPath(response.data.path)
-            console.log("this is the prop data",response.data)
+            // console.log("this is the prop data",response.data)
             dispatch(setResponseData(response.data))
-            console.log("this is connect data",response.data)
+            // console.log("this is connect data",response.data)
           } catch (error) {
             console.error('Error finding path:', error)
           }
@@ -44,13 +44,13 @@ const handleFindPath = async (email: string) => {
       }
    
    useEffect(()=>{
-    console.log("prop people",people)
-    console.log("prop email",userEmail)
+    // console.log("prop people",people)
+    // console.log("prop email",userEmail)
     const fetchUnconnectedUsers=async()=>{
 
        if (userEmail) {
          const data=await getUnconnectedUsers(userEmail)
-         console.log("unconnected people",data)
+        //  console.log("unconnected people",data)
          setPeople(data)
        } 
     }

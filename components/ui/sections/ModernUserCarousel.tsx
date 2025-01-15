@@ -40,12 +40,12 @@ const ModernUserCarousel= ({userEmail}) => {
 
    useEffect(()=>{
 
-      console.log("prop email",userEmail)
+      // console.log("prop email",userEmail)
       const fetchUnconnectedUsers=async()=>{
   
          if (userEmail) {
            const data=await getUnconnectedUsers(userEmail)
-           console.log("unconnected people",data)
+          //  console.log("unconnected people",data)
            setUsers(data)
          } 
       }

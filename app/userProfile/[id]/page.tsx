@@ -43,7 +43,7 @@ export default function EnhancedUserProfilePage() {
       try {
         const id = Number(userId)
         const userPosts = await fetchPosts(id)
-        console.log("this is posts", userPosts.posts)
+        // console.log("this is posts", userPosts.posts)
         setPosts(userPosts.posts)
       } catch (error) {
         console.error("Error fetching posts:", error)
@@ -96,7 +96,7 @@ export default function EnhancedUserProfilePage() {
     }
 
     setConnectionStatus('Connecting')
-    console.log("emails",session.user.email,user.email,rating)
+    // console.log("emails",session.user.email,user.email,rating)
     const connectPromise = connect_users(session.user.email, user.email,rating)
     
     toast.promise(
@@ -137,7 +137,7 @@ export default function EnhancedUserProfilePage() {
       ...post,
       comments: post.comments || [],
     }
-    console.log("enhanced",enhancedPost)
+    // console.log("enhanced",enhancedPost)
     setSelectedPost(enhancedPost)
   }
 
@@ -169,7 +169,7 @@ export default function EnhancedUserProfilePage() {
         </div>
         <CardHeader className="relative pb-0">
           <Avatar className="w-24 h-24 absolute -top-12 ring-4 ring-background">
-            <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${user.name}`} alt={user.name} />
+            <AvatarImage src={`${user.userdp}`} alt={user.name} />
             <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
           </Avatar>
           <div className="mt-12 flex justify-between items-end">

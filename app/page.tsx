@@ -65,7 +65,7 @@ function Component() {
     const id = searchParams.get('id'); // Extract the `id` parameter
     
     if (id) {
-      console.log('ID from query:', id);
+      // console.log('ID from query:', id);
     }
 
     if (initialTab) {
@@ -99,22 +99,22 @@ function Component() {
 
     async function getUser() {
       if (activeFilter === 'chats' && id && Email) {
-        console.log("receiver id ", id);
+        // console.log("receiver id ", id);
         
         // Fetch receiver user data
         const receiverData = await fetchUserData(Number(id));
-        console.log("receiver", receiverData);
+        // console.log("receiver", receiverData);
 
         // Get receiver chat data
         const receiverChatData = await axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${receiverData.email}`);
         const userChatData = await axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${Email}`);
 
-        console.log("receiver chat data", receiverChatData.data.data._id);
-        console.log("user chat data", userChatData.data.data._id);
+        // console.log("receiver chat data", receiverChatData.data.data._id);
+        // console.log("user chat data", userChatData.data.data._id);
 
         // Create a chat between the two users
         const chat = await axios.post(`https://chat.coryfi.com/api/v1/chat-app/chats/c/${receiverChatData?.data?.data?._id}/${userChatData?.data?.data?._id}`);
-        console.log("chat created", chat);
+        // console.log("chat created", chat);
 
         setReceiverId(id); // Update the receiver ID
       }

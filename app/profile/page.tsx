@@ -35,10 +35,10 @@ export default function Page() {
           const id = Number(userData.id);
           setUserId(id)
           const userPosts = await fetchPosts(id);
-          console.log("userPosts", userPosts)
+          // console.log("userPosts", userPosts)
           const userDetails = await fetchUserData(id);
           setUser(userDetails);
-          console.log("uyseDEtials",userDetails)
+          // console.log("uyseDEtials",userDetails)
           setPosts(userPosts.posts);
         } else {
           throw new Error("User session not found");
