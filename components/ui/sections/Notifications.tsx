@@ -123,7 +123,7 @@ export default function ConnectionRequestsDropdown() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="my-1" />
           {showTooltip && (
-        <div className="absolute left-2 top-2 transform -translate-x-10 z-100 bg-gray-800 text-white p-2 rounded shadow-lg max-w-screen-2xl text-sm">
+        <div className="absolute left-2 top-2 transform -translate-x-10 z-100 bg-slate-800 text-white p-2 rounded shadow-lg max-w-screen-2xl text-sm">
           This number represents the quality of the bond you share with each other on a scale of 1-10
         </div>
       )}
@@ -162,7 +162,7 @@ export default function ConnectionRequestsDropdown() {
                   <div className="flex flex-col items-end space-y-2">
                     <Badge 
                       variant="secondary" 
-                      className="text-xs px-2 py-1 rounded-full bg-black text-black cursor-help"
+                      className="text-xs px-2 py-1 rounded-full bg-white text-black cursor-help"
                       onMouseEnter={() => setShowTooltip(true)}
                       onMouseLeave={() => setShowTooltip(false)}
                     >
