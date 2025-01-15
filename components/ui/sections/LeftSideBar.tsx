@@ -87,6 +87,13 @@ const handleFindPath = async (email: string) => {
             ))}
           </ScrollArea>
         </div>
+        <div className="flex justify-center" onClick={()=>router.push('/users')}>
+        <Button>
+          Show More
+        </Button>
+
+        </div>
+      
       </Tabs>
     </CardContent>
   </Card>
