@@ -276,8 +276,8 @@ export default function MobilePostModal({
               </div>
             </ScrollArea>
           </div>
-          <div className="p-4 border-t flex justify-center">
-            <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
+          <div className="p-4 border-t flex justify-center" onClick={onClose}>
+            <Button variant="ghost" size="icon"  className="rounded-full">
               <ChevronDown className="w-10 h-10" />
             </Button>
           </div>
