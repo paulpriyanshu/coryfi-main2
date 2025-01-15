@@ -153,34 +153,53 @@ export default function MobilePostModal({
   const sheetRef = useRef(null)
 
   useEffect(() => {
-    const handleTouchStart = (e) => {
-      const touch = e.touches[0]
-      const startY = touch.clientY
-      
-      const handleTouchMove = (e) => {
-        const touch = e.touches[0]
-        const currentY = touch.clientY
-        
-        if (currentY - startY > 100) {
-          onClose()
-          document.removeEventListener('touchmove', handleTouchMove)
+    let startY = 0;
+    let currentY = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      startY = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      currentY = e.touches[0].clientY;
+      const deltaY = currentY - startY;
+
+      if (deltaY > 50) {
+        e.preventDefault();
+        const opacity = Math.max(0, 1 - deltaY / 200);
+        if (sheetRef.current) {
+          sheetRef.current.style.transform = `translateY(${deltaY}px)`;
+          sheetRef.current.style.opacity = opacity.toString();
         }
       }
-      
-      document.addEventListener('touchmove', handleTouchMove)
-    }
+    };
 
-    const sheetElement = sheetRef.current
+    const handleTouchEnd = () => {
+      if (currentY - startY > 100) {
+        onClose();
+      } else {
+        if (sheetRef.current) {
+          sheetRef.current.style.transform = '';
+          sheetRef.current.style.opacity = '1';
+        }
+      }
+    };
+
+    const sheetElement = sheetRef.current;
     if (sheetElement) {
-      sheetElement.addEventListener('touchstart', handleTouchStart)
+      sheetElement.addEventListener('touchstart', handleTouchStart);
+      sheetElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+      sheetElement.addEventListener('touchend', handleTouchEnd);
     }
 
     return () => {
       if (sheetElement) {
-        sheetElement.removeEventListener('touchstart', handleTouchStart)
+        sheetElement.removeEventListener('touchstart', handleTouchStart);
+        sheetElement.removeEventListener('touchmove', handleTouchMove);
+        sheetElement.removeEventListener('touchend', handleTouchEnd);
       }
-    }
-  }, [onClose])
+    };
+  }, [onClose]);
 
   return (
     <>
@@ -208,7 +227,7 @@ export default function MobilePostModal({
                     <CarouselItem key={index}>
                       <div className="flex items-center justify-center h-full">
                         <img
-                          src={url}
+                          src={url || "/placeholder.svg"}
                           alt={`Post image ${index + 1}`}
                           className="max-h-[50vh] max-w-full object-contain"
                         />
