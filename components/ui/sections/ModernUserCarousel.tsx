@@ -76,6 +76,13 @@ const ModernUserCarousel= ({userEmail}) => {
                     >
                       View Profile
                     </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full mt-4"
+                      onClick={() => router.push(`/users`)}
+                    >
+                      Show More
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

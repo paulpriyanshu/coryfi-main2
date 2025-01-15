@@ -364,8 +364,8 @@ export default function EnhancedInfiniteScrollNetwork() {
   if (isInitialLoading) {
     return (
       <div className="flex justify-center items-center h-screen bg-slate-100">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-black"></div>
-      </div>
+      <div className="animate-spin rounded-full h-16 w-16 sm:h-10 sm:w-10 border-t-2 border-b-2 border-black"></div>
+    </div>
     )
   }
 
@@ -458,6 +458,11 @@ export default function EnhancedInfiniteScrollNetwork() {
 
             {/* Posts list */}
             <div>
+            {(
+        <div className="md:hidden">
+          <ModernUserCarousel userEmail={Email ? Email : null} />
+        </div>
+      )}
   {posts.map((post, index) => (
     <React.Fragment key={post._id || index}>
       <Card 
