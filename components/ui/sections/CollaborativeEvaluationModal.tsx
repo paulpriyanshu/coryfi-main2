@@ -6,6 +6,7 @@ import { ArrowRight } from 'lucide-react'
 import { createConnectionRequest, intermediaryUserList } from '@/app/api/actions/network'
 import { useSession } from 'next-auth/react'
 import toast, { Toaster } from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
 
 type PathNode = {
   id: number
@@ -32,6 +33,7 @@ export default function CollaborativeEvaluationModal({ isOpen, onClose, path }) 
   const [evaluationId, setEvaluationId] = useState(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const { data: session, status } = useSession()
+  const router=useRouter()
 
   const handleConfirm = async () => {
     setIsProcessing(true)
@@ -52,6 +54,8 @@ export default function CollaborativeEvaluationModal({ isOpen, onClose, path }) 
       })
 
       onClose()
+     router.push(`/?tab=chats&expand=true`)
+      
     } catch (error) {
       console.error("Error starting collaborative evaluation:", error)
       toast.error('Failed to start collaborative evaluation. Please try again.')

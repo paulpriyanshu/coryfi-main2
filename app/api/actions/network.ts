@@ -275,7 +275,7 @@ export const createConnectionRequest = async (
 ) => {
   try {
     console.log(`Requester: ${requesterEmail}, Recipient: ${recipientEmail}`);
-
+    
     // Input validation
     if (!requesterEmail || !recipientEmail || intermediaries.length === 0) {
       throw new Error("Requester, recipient, and intermediaries are required.");
@@ -285,30 +285,41 @@ export const createConnectionRequest = async (
       throw new Error("Requester and recipient emails must be strings.");
     }
 
-    // Fetch requester, recipient, and intermediary users concurrently
+    // Prepare intermediary emails
     const intermediaryEmails = intermediaries.map((intermediary) => intermediary.email);
-    console.log("Intermediary emails:", intermediaryEmails);
 
-    const [requester, recipient, intermediaryUsers] = await Promise.all([
-      db.user.findUnique({ where: { email: requesterEmail } }),
-      db.user.findUnique({ where: { email: recipientEmail } }),
+    // Batch database calls for requester, recipient, and intermediaries
+    const [users, unorderedIntermediaryUsers] = await Promise.all([
+      db.user.findMany({
+        where: { email: { in: [requesterEmail, recipientEmail] } },
+      }),
       db.user.findMany({
         where: { email: { in: intermediaryEmails } },
       }),
     ]);
 
-    if (!requester) {
-      throw new Error(`Requester with email ${requesterEmail} not found.`);
-    }
-    if (!recipient) {
-      throw new Error(`Recipient with email ${recipientEmail} not found.`);
-    }
+    // Extract requester and recipient from users
+    const requester = users.find((user) => user.email === requesterEmail);
+    const recipient = users.find((user) => user.email === recipientEmail);
 
-    if (intermediaryUsers.length !== intermediaries.length) {
+    if (!requester) throw new Error(`Requester with email ${requesterEmail} not found.`);
+    if (!recipient) throw new Error(`Recipient with email ${recipientEmail} not found.`);
+    if (unorderedIntermediaryUsers.length !== intermediaries.length) {
       throw new Error("One or more intermediaries not found.");
     }
 
-    console.log(`Requester ID: ${requester.id}, Recipient ID: ${recipient.id}`);
+    console.log("Requester, Recipient, and Intermediary users fetched successfully.");
+
+    // Reorder intermediary users using Map for efficiency
+    const intermediaryMap = new Map(
+      unorderedIntermediaryUsers.map((user) => [user.email, user])
+    );
+    const orderedIntermediaryUsers = intermediaryEmails.map((email) => intermediaryMap.get(email));
+    if (orderedIntermediaryUsers.includes(undefined)) {
+      throw new Error("Failed to reorder intermediary users.");
+    }
+
+    console.log("Intermediary users reordered successfully.");
 
     // Create the Evaluation record
     const evaluation = await db.evaluation.create({
@@ -321,7 +332,7 @@ export const createConnectionRequest = async (
 
     console.log("Evaluation created:", evaluation);
 
-    // Create an entry in the Connection table
+    // Create the Connection entry
     const connection = await db.evaluationApprovals.create({
       data: {
         evaluationIds: [evaluation.id],
@@ -334,32 +345,31 @@ export const createConnectionRequest = async (
 
     console.log("Connection created:", connection);
 
-    // Create Path records for each intermediary
-    console.log("Creating paths...");
-    const pathsData = intermediaryUsers.map((intermediary, index) => ({
+    // Create Path records for intermediaries
+    const pathsData = orderedIntermediaryUsers.map((intermediary, index) => ({
       evaluationId: evaluation.id,
       intermediaryId: intermediary.id,
       order: index + 1,
-      new_order: index === 0 ? 1 : -1, // Initialize `new_order` for the first intermediary
+      new_order: index === 0 ? 1 : -1, // Initialize `new_order`
       approved: "FALSE",
     }));
 
-    // Create paths in bulk
-    const paths = await db.path.createMany({
-      data: pathsData,
-    });
-    console.log("Paths created:", paths);
+    await db.path.createMany({ data: pathsData });
 
-    // Parallelize chat creation for intermediary users and requester
-    const [id1Response, id2Response] = await Promise.all([
-      axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${intermediaryUsers[0].email}`),
+    console.log("Paths created successfully:", pathsData);
+
+    // Fetch IDs for chat creation
+    const [id1, id2] = await Promise.all([
+      axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${orderedIntermediaryUsers[0].email}`),
       axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${requesterEmail}`),
     ]);
-    console.log("These are the IDs", id1Response.data.data._id, id2Response.data.data._id);
 
+    console.log("Fetched user IDs:", id1.data.data._id, id2.data.data._id);
+
+    // Create chat
     try {
-      const chatResponse = await createUserChat(id2Response.data.data._id, id1Response.data.data._id);
-      console.log("Chat response:", chatResponse.data.data);
+      const chatResponse = await createUserChat(id2.data.data._id, id1.data.data._id);
+      console.log("Chat created successfully:", chatResponse.data.data);
     } catch (error) {
       console.error("Error creating chat:", error);
     }
