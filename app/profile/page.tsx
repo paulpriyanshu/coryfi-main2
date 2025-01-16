@@ -91,7 +91,7 @@ export default function Page() {
         </div>
         <CardHeader className="relative pb-0">
           <Avatar className="w-24 h-24 absolute -top-12 ring-4 ring-background">
-            <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${user.name}`} alt={user.name} />
+            <AvatarImage src={user.userdp ||`https://api.dicebear.com/6.x/initials/svg?seed=${user.name}`} alt={user.name} />
             <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
           </Avatar>
           <div className="mt-12 flex justify-between items-end">
