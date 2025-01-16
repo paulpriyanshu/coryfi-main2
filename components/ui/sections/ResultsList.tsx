@@ -168,8 +168,8 @@ function ResultCard({ index, path }: { index: number; path: ConnectionPath }) {
 function ConnectionPathCard({ path }: { path }) {
   const nodesToShow = path.nodes.length > 5 ? [...path.nodes.slice(2,5), '...', path.nodes[path.nodes.length - 1]] : path.nodes;
   const hasEllipsis = path.nodes.length > 5;
-  console.log("nodes before show",path?.nodes)
-  console.log("nodes to show",nodesToShow)
+  // console.log("nodes before show",path?.nodes)
+  // console.log("nodes to show",nodesToShow)
   return (
     <TooltipProvider>
       <div className="relative py-6">

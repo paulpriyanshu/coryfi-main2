@@ -242,6 +242,45 @@ export const fetchUserInfo=async(email?:string,id?:number)=>{
   
 }
 
+export const fetchUserConnections = async (email: string) => {
+  try {
+    // Step 1: Find the user by email
+    const user = await db.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const userId = user.id;
+
+    // Step 2: Find connections where the user is either requester or recipient
+    const connections = await db.connection.findMany({
+      where: {
+        AND: [
+          {
+            OR: [
+              { requesterId: userId },
+              { recipientId: userId },
+            ],
+          },
+          { status: "APPROVED" }, // Ensure the connection status is "APPROVED"
+        ],
+      },
+      include: {
+        requester: true, // Include details about the requester
+        recipient: true, // Include details about the recipient
+      },
+    });
+
+    return connections;
+  } catch (error) {
+    console.error("Error fetching user connections:", error);
+    throw new Error("Failed to fetch user connections");
+  }
+};
+
   export const uploadPost = async ({ userId, content, imageUrl, videoUrl }: { 
     userId: number;
     content?: string | null;

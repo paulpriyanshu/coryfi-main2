@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { UserPlus, MessageCircle, User, RefreshCw } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/app/libs/store/hooks'
 import { selectResponseData, setResponseData } from '@/app/libs/features/pathdata/pathSlice'
-import { fetchPosts, fetchUserData, fetchUserId } from "@/app/api/actions/media"
+import { fetchPosts, fetchUserConnections, fetchUserData, fetchUserId } from "@/app/api/actions/media"
 
 export default function PersonalNetwork({ data: propData }) {
   const { data: session, status } = useSession()
@@ -28,35 +28,37 @@ export default function PersonalNetwork({ data: propData }) {
   const pathData = useAppSelector(selectResponseData)
 
   const [userId, setUserId] = useState(null)
+  const [userConnections,setUserConnections]=useState([])
 
+  const email = session?.user?.email;
   useEffect(() => {
+    if (!email) return;
+  
     const fetchUserPosts = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        if (session?.user?.email) {
-          const userData = await fetchUserId(session.user.email);
+        const userconnections = await fetchUserConnections(email);
+        
+        // const id = Number(userData.id);
+        // setUserId(id);
+        // const userDetails = await fetchUserData(id);
+        // setUserDp(userDetails.userdp);
+        console.log("userconnections", userconnections);
+        // console.log("propData",propData)
+        setUserConnections(userconnections)
 
-          const id = Number(userData.id);
-          setUserId(id)
-          const userDetails = await fetchUserData(id);
-          setUserDp(userDetails.userdp)
-          // console.log("data",propData)
-        } else {
-          throw new Error("User session not found");
-        }
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Failed to load user data. Please try again later.");
       } finally {
         setIsLoading(false);
-        // console.log("user dp",userdp)
+        console.log("user dp", userdp);
       }
     };
-
+  
     fetchUserPosts();
-  }, [session]);
-
+  }, [email]);
   const processData = useCallback((inputData) => {
     const uniqueNodes = inputData.nodes.reduce((acc, node) => {
       const nodeId = typeof node.id === 'number' ? node.id : parseInt(node.id)
@@ -143,6 +145,7 @@ export default function PersonalNetwork({ data: propData }) {
     if (propData && propData.nodes && propData.nodes.length > 0) {
       try {
         processedData = processData(propData)
+        console.log("processed",processData)
       } catch (error) {
         setError("Error processing provided data")
         console.error("Error processing provided data:", error)
@@ -209,129 +212,178 @@ export default function PersonalNetwork({ data: propData }) {
   }, [session, dispatch])
 
   useEffect(() => {
-    if (!svgRef.current || !graphData) return
-
-    const width = svgRef.current.clientWidth
-    const height = svgRef.current.clientHeight
-
+    if (!svgRef.current || !graphData) {
+      console.log("Missing required data:", { svg: !!svgRef.current, data: !!graphData });
+      return;
+    }
+  
+    // Set explicit dimensions
+    const container = svgRef.current.parentElement;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+  
+    console.log("SVG dimensions:", { width, height });
+  
     const svg = d3.select(svgRef.current)
-      .attr("viewBox", [0, 0, width, height])
-
-    svg.selectAll("*").remove()
-
-    const g = svg.append("g")
-
+      .attr("width", width)
+      .attr("height", height)
+      .attr("viewBox", [0, 0, width, height]);
+  
+    svg.selectAll("*").remove();
+  
+    const g = svg.append("g");
+  
     const zoom = d3.zoom()
       .scaleExtent([0.1, 4])
       .on("zoom", (event) => {
-        g.attr("transform", event.transform.toString())
-      })
-
-    svg.call(zoom)
-
-    const userNode = visibleNodes[0]
-
+        g.attr("transform", event.transform);
+      });
+  
+    svg.call(zoom);
+  
+    const userNode = visibleNodes[0];
+    console.log("User node:", userNode);
+  
     const simulation = d3.forceSimulation(visibleNodes)
       .force("link", d3.forceLink(visibleLinks).id(d => d.id).distance(100))
       .force("charge", d3.forceManyBody().strength(-500))
       .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collision", d3.forceCollide().radius(40))
-
-    const link = g.append("g")
-      .attr("stroke", "#999")
-      .attr("stroke-opacity", 0.6)
-      .selectAll("line")
-      .data(visibleLinks)
-      .join("line")
-      .attr("stroke-width", d => Math.sqrt(d.value))
-
-    const node = g.append("g")
-      .attr("stroke", "#fff")
-      .attr("stroke-width", 1.5)
-      .selectAll("circle")
+      .force("collision", d3.forceCollide().radius(40));
+  
+    // Create definitions for image clipping
+    const defs = g.append("defs");
+  
+    // Create a clipPath for each node
+    defs.selectAll(".clip")
       .data(visibleNodes)
-      .join("circle")
-      .attr("r", 30)
-      .attr("fill", d => d === userNode ? "#3b82f6" : "#d1dbe6")
-      .call(drag(simulation))
-      .on("click", (event, d) => handleNodeClick(d))
-
-    node.append("title")
-      .text(d => d.name)
-
-    const label = g.append("g")
-      .attr("class", "labels")
-      .selectAll("text")
-      .data(visibleNodes)
-      .join("text")
-      .attr("text-anchor", "middle")
-      .attr("dy", 40)
-      .text(d => d.name)
-      .attr("fill", d => d === userNode ? "#1d4ed8" : "#64748b")
-
-    // Add user profile picture
-    g.append("defs")
-      .selectAll("clipPath")
-      .data(visibleNodes)
-      .join("clipPath")
+      .enter()
+      .append("clipPath")
       .attr("id", d => `clip-${d.id}`)
       .append("circle")
-      .attr("r", 30)
-
-    g.append("g")
-      .selectAll("image")
+      .attr("r", 30);
+  
+    // Define the node group
+    const nodeGroup = g.append("g")
+      .attr("class", "nodes")
+      .selectAll("g")
       .data(visibleNodes)
-      .join("image")
-      .attr("xlink:href", d => d === userNode ? userdp : `https://api.dicebear.com/6.x/initials/svg?seed=${d.name}`)
+      .enter()
+      .append("g")
+      .call(drag(simulation))
+      .on("click", (event, d) => handleNodeClick(d));
+  
+    // Add background circles
+    nodeGroup.append("circle")
+    .attr("r", 30) // Node radius
+    .attr("fill", d => d === userNode ? "#3b82f6" : "#d1dbe6") // Node fill color
+    .attr("stroke", "#64748b") // Border color (black)
+    .attr("stroke-width", 0.7); // 
+  
+    // Add images
+    nodeGroup.append("image")
       .attr("x", -30)
       .attr("y", -30)
       .attr("width", 60)
       .attr("height", 60)
       .attr("clip-path", d => `url(#clip-${d.id})`)
-
+      .attr("xlink:href", d => {
+        const imageUrl = getUserProfilePicture(
+          d.email, 
+          userConnections, 
+          session?.user?.email, 
+          session?.user?.userdp // Pass current user's DP
+        );
+        console.log("Image URL for node:", { email: d.email, url: imageUrl });
+        return imageUrl;
+      })
+      .on("error", function() {
+        // Fallback if image fails to load
+        d3.select(this.parentNode)
+          .append("text")
+          .attr("text-anchor", "middle")
+          .attr("dy", 5)
+          .text(d => d.name?.[0] || '?');
+      });
+  
+    // Add name labels
+    nodeGroup.append("text")
+      .attr("text-anchor", "middle")
+      .attr("dy", 45)
+      .text(d => d.name)
+      .attr("fill", d => d === userNode ? "#1d4ed8" : "#64748b");
+  
+    // Add links
+    const link = g.append("g")
+      .selectAll("line")
+      .data(visibleLinks)
+      .enter()
+      .append("line")
+      .attr("stroke", "#999")
+      .attr("stroke-opacity", 0.3)
+      .attr("stroke-width", d => Math.sqrt(d.value));
+  
+    // Handle paths if present
     if (pathData && pathData.path) {
-      const pathNodes = new Set(pathData.path.map(node => node.id))
-      const pathLinks = visibleLinks.filter(link => 
+      const pathNodes = new Set(pathData.path.map(node => node.id));
+      const pathLinks = visibleLinks.filter(link =>
         pathNodes.has(link.source.id) && pathNodes.has(link.target.id)
-      )
-
-      link.attr("stroke", d => 
-        pathLinks.includes(d) ? "#4CAF50" : "#999"
-      ).attr("stroke-width", d => 
-        pathLinks.includes(d) ? 3 : 1
-      )
-
-      node.attr("fill", d => 
-        pathNodes.has(d.id) ? "#4CAF50" : (d === userNode ? "#3b82f6" : "#f1f5f9")
-      )
+      );
+  
+      link
+        .attr("stroke", d => pathLinks.includes(d) ? "#4CAF50" : "#999")
+        .attr("stroke-width", d => pathLinks.includes(d) ? 3 : 1);
+  
+      nodeGroup.select("circle")
+        .attr("fill", d =>
+          pathNodes.has(d.id) ? "#4CAF50" : (d === userNode ? "#3b82f6" : "#f1f5f9")
+        );
     }
-
+  
+    // Update positions on simulation tick
     simulation.on("tick", () => {
       link
         .attr("x1", d => d.source.x)
         .attr("y1", d => d.source.y)
         .attr("x2", d => d.target.x)
-        .attr("y2", d => d.target.y)
-
-      node
-        .attr("cx", d => d.x)
-        .attr("cy", d => d.y)
-
-      label
-        .attr("x", d => d.x)
-        .attr("y", d => d.y)
-
-      g.selectAll("image")
-        .attr("x", d => (d.x - 30))
-        .attr("y", d => (d.y - 30))
-    })
-
+        .attr("y2", d => d.target.y);
+  
+      nodeGroup
+        .attr("transform", d => `translate(${d.x},${d.y})`);
+    });
+  
     return () => {
-      simulation.stop()
+      simulation.stop();
+    };
+  }, [visibleNodes, visibleLinks, handleNodeClick, graphData, pathData, userConnections, session]);
+  // Helper function to get profile pictures
+  const getUserProfilePicture = (nodeEmail, userConnections, currentUserEmail) => {
+    console.log("Getting profile picture for:", nodeEmail);
+    
+    if (!nodeEmail || !userConnections) {
+      console.log("Missing required data:", { nodeEmail, hasConnections: !!userConnections });
+      return `https://api.dicebear.com/6.x/initials/svg?seed=${nodeEmail || 'unknown'}`;
     }
-
-  }, [visibleNodes, visibleLinks, handleNodeClick, graphData, pathData, userdp])
-
+  
+    // if (nodeEmail === currentUserEmail) {
+    //   console.log("Current user, using default avatar");
+    //   return `https://api.dicebear.com/6.x/initials/svg?seed=${nodeEmail}`;
+    // }
+  
+    const connection = userConnections.find(conn => 
+      conn.requester.email === nodeEmail || conn.recipient.email === nodeEmail
+    );
+    
+    if (connection) {
+      const profilePic = connection.requester.email === nodeEmail 
+        ? connection.requester.userdp 
+        : connection.recipient.userdp;
+      console.log("Found connection profile picture:", profilePic);
+      return profilePic;
+    }
+    
+    console.log("No connection found, using default avatar");
+    return `https://api.dicebear.com/6.x/initials/svg?seed=${nodeEmail}`;
+  };
   const drag = useCallback((simulation) => {
     function dragstarted(event) {
       if (!event.active) simulation.alphaTarget(0.3).restart()
@@ -396,10 +448,10 @@ export default function PersonalNetwork({ data: propData }) {
         </Button>
       </div>
       <div className="flex flex-1 w-full overflow-hidden">
-        <div className="bg-white rounded-lg shadow-md h-full w-full">
-          <svg ref={svgRef} className="w-full h-full"></svg>
-        </div>
-      </div>
+  <div className="bg-white rounded-lg shadow-md h-full w-full" style={{ minHeight: "500px" }}>
+    <svg ref={svgRef} className="w-full h-full"></svg>
+  </div>
+</div>
       <Dialog open={!!selectedPerson} onOpenChange={() => setSelectedPerson(null)}>
         <DialogContent>
           <DialogHeader>
@@ -442,4 +494,3 @@ export default function PersonalNetwork({ data: propData }) {
     </div>
   )
 }
-
