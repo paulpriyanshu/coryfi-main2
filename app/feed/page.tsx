@@ -413,7 +413,7 @@ export default function EnhancedInfiniteScrollNetwork() {
                         ['bold', 'italic', 'underline', 'strike'],
                         ['blockquote', 'code-block'],
                         [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['link', 'image'],
+                        
                         ['clean']
                       ],
                     }}
