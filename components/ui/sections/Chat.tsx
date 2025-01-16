@@ -246,8 +246,8 @@ export default function Chat() {
       </div>
      
       {currentChat && (
-  <AnimatePresence>
-    {isMobileView ? (
+  isMobileView ? (
+    <AnimatePresence>
       <motion.div
         className="mobile-chat-window"
         initial={{ y: "100%", opacity: 0 }} // Starting position (bottom)
@@ -268,23 +268,23 @@ export default function Chat() {
           isTyping={isTyping}
         />
       </motion.div>
-    ) : (
-      <div className="w-2/3 flex flex-col">
-        <ChatWindow
-          chat={currentChat}
-          currentUserId={currentUserId}
-          onClose={() => {
-            setCurrentChat(null);
-            setIsSidebarExtended(false);
-          }}
-          onChatUpdated={() => setRefetchMessages(true)}
-          refetchMessages={refetchMessages}
-          onMessagesFetched={handleMessagesFetched}
-          isTyping={isTyping}
-        />
-      </div>
-    )}
-  </AnimatePresence>
+    </AnimatePresence>
+  ) : (
+    <div className="w-2/3 flex flex-col">
+      <ChatWindow
+        chat={currentChat}
+        currentUserId={currentUserId}
+        onClose={() => {
+          setCurrentChat(null);
+          setIsSidebarExtended(false);
+        }}
+        onChatUpdated={() => setRefetchMessages(true)}
+        refetchMessages={refetchMessages}
+        onMessagesFetched={handleMessagesFetched}
+        isTyping={isTyping}
+      />
+    </div>
+  )
 )}
       
     </div>
