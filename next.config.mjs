@@ -13,7 +13,13 @@ const nextConfig = {
     //   // Explicitly ignore routes we don't want to build
     //   skipTrailingSlashRedirect: true,
     //   skipMiddlewareUrlNormalize: true,
-    
+    webpack: (config, { isServer }) => {
+      if (isServer) {
+        // Ensure Prisma query engine is available in the build
+        config.externals.push({ "@prisma/client": "commonjs @prisma/client" });
+      }
+      return config;
+    },
     typescript: {
         ignoreBuildErrors: true, // Ignore TypeScript errors during build
       },
