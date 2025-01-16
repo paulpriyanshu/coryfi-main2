@@ -200,16 +200,20 @@ export default function ConnectionRequestsDropdown() {
       
 
       {/* Toast notifications */}
-      <Toaster 
-        position="bottom-right"
-        toastOptions={{
-          duration: 5000,
-          style: {
-            background: '#333',
-            color: '#fff',
-          },
-        }}
-      />
+      <div className="relative">
+        <div className='absolute top-16'>
+          <Toaster 
+            position="bottom-center"
+            toastOptions={{
+              duration: 2000,
+              style: {
+                background: '#333',
+                color: '#fff',
+              },
+            }}
+          />
+        </div>
+      </div>
     
     </div>
   )

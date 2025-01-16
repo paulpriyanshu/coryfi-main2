@@ -113,3 +113,6 @@
   }
 }
 
+.custom-toast-position {
+  bottom: 100px !important;  /* Adjust this value to move the toaster down */
+}

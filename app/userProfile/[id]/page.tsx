@@ -156,7 +156,7 @@ export default function EnhancedUserProfilePage() {
   return (
     <div className="container mx-auto p-4 space-y-6">
       <Toaster position="top-center" reverseOrder={false} />
-      <Link href="/network" className="flex items-center text-black hover:underline mb-4">
+      <Link href="/" className="flex items-center text-black hover:underline mb-4">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to Network
       </Link>
@@ -242,9 +242,12 @@ export default function EnhancedUserProfilePage() {
                             height={200}
                             className="w-full h-48 object-cover rounded-md"
                           />
-                        </div>
+                        </div>  
                       )}
-                      {post?.content && <p className="mb-4 line-clamp-3">{post.content}</p>}
+                      {post?.content && <div 
+                      className="mt-2 px-4 text-sm prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: post.content }}
+                    />}
                       <div className="flex justify-between items-center text-sm text-muted-foreground">
                         <div>
                           <span className="mr-4">{post.likes.length} likes</span>

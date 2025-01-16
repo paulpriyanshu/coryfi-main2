@@ -272,9 +272,10 @@ export default function Page({ isOpen = true, onClose }) {
                   </div>
                 </div>
                 {post?.content && (
-                  <p className="mt-2 px-4 text-sm">
-                    {post.content}
-                  </p>
+                  <div 
+                  className="mt-2 px-4 text-sm prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: post.content }}
+                />
                 )}
               </div>
 
