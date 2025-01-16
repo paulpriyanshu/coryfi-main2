@@ -28,6 +28,9 @@ import { likePost, dislikePost } from "../api/actions/media"
 import  PostModal  from "@/components/ui/sections/PostModal"
 import { Toaster, toast } from 'react-hot-toast'
 import ModernUserCarousel from "@/components/ui/sections/ModernUserCarousel"
+import dynamic from 'next/dynamic'
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+import 'react-quill/dist/quill.snow.css'
 
 const DRAFT_STORAGE_KEY = 'postDraft'
 
@@ -242,9 +245,7 @@ export default function EnhancedInfiniteScrollNetwork() {
       try {
         let content = newPostContent.text
         let imageUrl = newPostContent.images.map(img => img.url)
-        // console.log("this is image Url", imageUrl)
-        // console.log("this is the post variables", userId, content, imageUrl)
-
+        
         const newPost = await uploadPost({ userId, content, imageUrl })
 
         setPosts(prevPosts => [newPost, ...prevPosts])
@@ -402,11 +403,21 @@ export default function EnhancedInfiniteScrollNetwork() {
                       : "You"}
                   </AvatarFallback>
                   </Avatar>
-                  <Textarea
-                    className="flex-grow"
-                    placeholder="What's on your mind?"
+                  <ReactQuill
+                    theme="snow"
                     value={newPostContent.text}
-                    onChange={(e) => setNewPostContent(prev => ({ ...prev, text: e.target.value }))}
+                    onChange={(content) => setNewPostContent(prev => ({ ...prev, text: content }))}
+                    placeholder="What's on your mind?"
+                    modules={{
+                      toolbar: [
+                        ['bold', 'italic', 'underline', 'strike'],
+                        ['blockquote', 'code-block'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['link', 'image'],
+                        ['clean']
+                      ],
+                    }}
+                    className="mb-4"
                   />
                 </div>
                 <div className="flex justify-between items-center">
@@ -440,7 +451,7 @@ export default function EnhancedInfiniteScrollNetwork() {
                   <div className="mt-4 grid grid-cols-3 gap-2">
                     {newPostContent.images.map((image, index) => (
                       <div key={Math.random()} className="relative">
-                        <img src={image.url} alt={`Uploaded ${index + 1}`} className="w-full h-24 object-cover rounded" />
+                        <img src={image.url || "/placeholder.svg"} alt={`Uploaded ${index + 1}`} className="w-full h-24 object-cover rounded" />
                         <Button
                           variant="destructive"
                           size="icon"
@@ -494,8 +505,10 @@ export default function EnhancedInfiniteScrollNetwork() {
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-black mb-4">{post.content}</p>
-
+        <div
+       className="prose" // Apply the prose class for rich text formatting
+       dangerouslySetInnerHTML={{ __html: post.content }}
+     />
           {/* Media Carousel */}
           {(post.imageUrl?.length > 0 || post.videoUrl?.length > 0) && (
             <Carousel className="w-full">
@@ -505,7 +518,7 @@ export default function EnhancedInfiniteScrollNetwork() {
                   <CarouselItem key={`image-${idx}`}>
                     <div className="relative aspect-video">
                       <img
-                        src={url}
+                        src={url || "/placeholder.svg"}
                         alt={`Post content ${idx + 1}`}
                         className="rounded-lg w-full h-full object-cover"
                       />

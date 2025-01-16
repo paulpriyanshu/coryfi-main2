@@ -20,6 +20,13 @@ import { likePost, dislikePost } from '@/app/api/actions/media'
 import { toast, Toaster } from 'react-hot-toast'
 import MobilePostModal from './mobile-post-modal'
 import { useMediaQuery } from './hooks/use-media-query'
+// import { sanitizeHtml } from './utils/sanitizeHtml'
+import DOMPurify from 'dompurify';
+
+
+function sanitizeHtml(html: string): string {
+  return DOMPurify.sanitize(html);
+}
 
 function ReplyInput({ postId, parentId, onAddReply, onCancel }) {
   const [newReply, setNewReply] = useState('')
@@ -130,12 +137,15 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
   const [isSaved, setIsSaved] = useState(false)
   const [userEmail, setUserEmail] = useState("")
   const [likesCount, setLikesCount] = useState(post?.likes?.length)
-  console.log("post",post)
+  
+  const isMobile = useMediaQuery("(max-width: 640px)")
+
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.email) {
       setUserEmail(String(session.user.email))
       setIsLiked(post?.likes?.includes(session.user.email))
+      console.log("post",post)
     }
   }, [session, status, post.likes]);
 
@@ -218,15 +228,15 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
       });
     }
   };
-  const isMobile = useMediaQuery("(max-width: 640px)")
 
+  // const post.content = sanitizeHtml(post.content)
 
   return (
     <>
       <Toaster />
       {isMobile ? (
         <MobilePostModal
-          post={post}
+          post={{...post, content: post.content}}
           userId={userId}
           isOpen={isOpen}
           onClose={onClose}
@@ -243,128 +253,124 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
           handleShare={handleShare}
         />
       ) : (
-        <>
-      <Toaster />
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[425px] md:max-w-[890px] lg:max-w-[940px] p-0">
-          <DialogTitle className="sr-only">Post Details</DialogTitle>
-          <DialogDescription className="sr-only">View and interact with this post</DialogDescription>
-          <div className="flex flex-col md:flex-row w-full h-[80vh]">
-            {post.imageUrl?.length > 0 && (
-              <div className="md:flex-1 bg-black flex items-center justify-center relative">
-                <Carousel className="w-full">
-                  <CarouselContent>
-                    {post.imageUrl.map((url, index) => (
-                      <CarouselItem key={index}>
-                        <div className="flex items-center justify-center h-full">
-                          <img
-                            src={url}
-                            alt={`Post image ${index + 1}`}
-                            className="max-h-[80vh] max-w-full object-contain"
-                          />
-                        </div>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                  {post.imageUrl.length > 1 && (
-                    <>
-                      <CarouselPrevious className="absolute left-2" />
-                      <CarouselNext className="absolute right-2" />
-                    </>
+        <Dialog open={isOpen} onOpenChange={onClose}>
+          <DialogContent className="sm:max-w-[425px] md:max-w-[890px] lg:max-w-[940px] p-0">
+            <DialogTitle className="sr-only">Post Details</DialogTitle>
+            <DialogDescription className="sr-only">View and interact with this post</DialogDescription>
+            <div className="flex flex-col md:flex-row w-full h-[80vh]">
+              {post.imageUrl?.length > 0 && (
+                <div className="md:flex-1 bg-black flex items-center justify-center relative">
+                  <Carousel className="w-full">
+                    <CarouselContent>
+                      {post.imageUrl.map((url, index) => (
+                        <CarouselItem key={index}>
+                          <div className="flex items-center justify-center h-full">
+                            <img
+                              src={url || "/placeholder.svg"}
+                              alt={`Post image ${index + 1}`}
+                              className="max-h-[80vh] max-w-full object-contain"
+                            />
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    {post.imageUrl.length > 1 && (
+                      <>
+                        <CarouselPrevious className="absolute left-2" />
+                        <CarouselNext className="absolute right-2" />
+                      </>
+                    )}
+                  </Carousel>
+                </div>
+              )}
+              <div className={`flex flex-col h-full ${post.imageUrl?.length > 0 ? 'md:w-[350px]' : 'w-full'}`}>
+                <DialogHeader className="p-4 border-b shrink-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage src={post.user?.userdp} alt={post.user?.name} />
+                        <AvatarFallback>{post.user?.name?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold">{post.user?.name}</span>
+                        <span className="text-xs text-gray-500">
+                          {new Date(post.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={onClose}>
+                      <span className="sr-only">Close</span>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {post.content && (
+                    <div 
+                      className="mt-2 px-4 text-sm prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: post.content }}
+                    />
                   )}
-                </Carousel>
-              </div>
-            )}
-            <div className={`flex flex-col h-full ${post.imageUrl?.length > 0 ? 'md:w-[350px]' : 'w-full'}`}>
-              <DialogHeader className="p-4 border-b shrink-0">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src={post.user?.userdp} alt={post.user?.name} />
-                      <AvatarFallback>{post.user?.name?.[0]}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-semibold">{post.user?.name}</span>
-                      <span className="text-xs text-gray-500">
-                        {new Date(post.createdAt).toLocaleString()}
-                      </span>
+                </DialogHeader>
+
+                <ScrollArea className="flex-1">
+                  <div className="p-4 space-y-4">
+                    {localComments.map((comment) => (
+                      <CommentItem 
+                        key={comment.id} 
+                        comment={comment} 
+                        postId={post.id} 
+                        onAddReply={handleAddNewReply}
+                      />
+                    ))}
+                  </div>
+                </ScrollArea>
+
+                <div className="border-t p-4 space-y-4 shrink-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={handleLikeToggle}
+                      >
+                        <ThumbsUp className={`w-6 h-6 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                      </Button>
+                      <Button variant="ghost" size="icon">
+                        <MessageCircle className="w-6 h-6" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={(e) => handleShare(e, post.id)}>
+                        <Share className="w-6 h-6" />
+                      </Button>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={onClose}>
-                  </Button>
+                  <p className="text-sm font-semibold">{likesCount} likes</p>
+
+                  {userId ? (
+                    <div className="flex items-center gap-2">
+                      <Input 
+                        placeholder="Add a comment..." 
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleAddNewComment()}
+                      />
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={handleAddNewComment}
+                      >
+                        Post
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center">
+                      Please sign in to comment
+                    </p>
+                  )}
                 </div>
-                {post.content && (
-                  <p className="mt-2 px-4 text-sm">
-                    {post.content}
-                  </p>
-                )}
-              </DialogHeader>
-
-              <ScrollArea className="flex-1">
-                <div className="p-4 space-y-4">
-                  {localComments.map((comment) => (
-                    <CommentItem 
-                      key={comment.id} 
-                      comment={comment} 
-                      postId={post.id} 
-                      onAddReply={handleAddNewReply}
-                    />
-                  ))}
-                </div>
-              </ScrollArea>
-
-              <div className="border-t p-4 space-y-4 shrink-0">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={handleLikeToggle}
-                    >
-                      <ThumbsUp className={`w-6 h-6 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <MessageCircle className="w-6 h-6" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={(e) => handleShare(e, post.id)}>
-                      <Share className="w-6 h-6" />
-                    </Button>
-                  
-                  </div>
-
-                </div>
-                <p className="text-sm font-semibold">{likesCount} likes</p>
-
-                {userId ? (
-                  <div className="flex items-center gap-2">
-                    <Input 
-                      placeholder="Add a comment..." 
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleAddNewComment()}
-                    />
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={handleAddNewComment}
-                    >
-                      Post
-                    </Button>
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500 text-center">
-                    Please sign in to comment
-                  </p>
-                )}
               </div>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
-
+          </DialogContent>
+        </Dialog>
       )}
     </>
   )
 }
-
