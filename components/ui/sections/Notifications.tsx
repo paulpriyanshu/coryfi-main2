@@ -205,7 +205,7 @@ export default function ConnectionRequestsDropdown() {
           <Toaster 
             position="bottom-center"
             toastOptions={{
-              duration: 2000,
+              duration: 1000,
               style: {
                 background: '#333',
                 color: '#fff',
