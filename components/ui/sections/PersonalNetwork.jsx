@@ -396,7 +396,7 @@ export default function PersonalNetwork({ data: propData }) {
         </Button>
       </div>
       <div className="flex flex-1 w-full overflow-hidden">
-        <div className="bg-gray-50 rounded-lg shadow-md h-full w-full">
+        <div className="bg-white rounded-lg shadow-md h-full w-full">
           <svg ref={svgRef} className="w-full h-full"></svg>
         </div>
       </div>
