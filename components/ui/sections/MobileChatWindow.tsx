@@ -10,6 +10,7 @@ import { Loader2, SendIcon, Trash2, X } from 'lucide-react'
 import { getChatMessages, sendMessage, deleteMessage } from './api'
 import { toast } from 'react-hot-toast'
 import { format } from 'date-fns'
+import { ChevronDoubleDownIcon } from '@heroicons/react/20/solid'
 
 const TYPING_EVENT = "typing"
 const STOP_TYPING_EVENT = "stopTyping"
@@ -187,92 +188,88 @@ export function MobileChatWindow({ chat, currentUserId, onClose, onChatUpdated, 
   console.log(chat)
 
   return (
-    <div className="fixed inset-0 bg-background z-50 flex flex-col">
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center space-x-2">
-          <Avatar className="w-8 h-8">
-            <AvatarImage src={chat.avatar?.url} alt={chat.name} />
-            <AvatarFallback>{chat.name[0]}</AvatarFallback>
-          </Avatar>
-          <span className="font-semibold">{chat.name}</span>
-        </div>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-6 w-6" />
-        </Button>
+    <div className="fixed inset-0 bg-background z-50 flex flex-col h-[80vh]">
+  <div className="flex items-center justify-center p-4 border-b">
+    <Button variant="ghost" size="icon" onClick={onClose}>
+      <ChevronDoubleDownIcon className="h-6 w-6" />
+    </Button>
+  </div>
+  <ScrollArea className="flex-grow p-4 max-h-[calc(100vh-180px)]" ref={scrollAreaRef}>
+    {isLoading ? (
+      <div className="flex justify-center items-center h-full">
+        <Loader2 className="h-6 w-6 animate-spin" />
       </div>
-      <ScrollArea className="flex-grow p-4 max-h-[calc(100vh-180px)]" ref={scrollAreaRef}>
-        {isLoading ? (
-          <div className="flex justify-center items-center h-full">
-            <Loader2 className="h-6 w-6 animate-spin" />
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {messages.map((msg) => (
-              <div
-                key={msg._id}
-                className={`flex ${
-                  msg?.sender?._id === currentUserId ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                <div
-                  className={`p-2 rounded-lg max-w-[80%] ${
-                    msg?.sender?._id === currentUserId
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  }`}
-                >
-                  <div className="flex items-center space-x-2 mb-1">
-                    <Avatar className="w-6 h-6">
-                      <AvatarImage src={msg?.sender?.avatar?.url} alt={msg?.sender?.username} />
-                      <AvatarFallback>{msg?.sender?.username[0]}</AvatarFallback>
-                    </Avatar>
-                    <span className="font-semibold text-xs">{msg?.sender?.username}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {msg?.createdAt && !isNaN(new Date(msg?.createdAt).getTime())
-                        ? format(new Date(msg?.createdAt), 'HH:mm')
-                        : 'N/A'}
-                    </span>
-                  </div>
-                  <p className="text-sm break-words">{msg?.content}</p>
-                  {msg?.sender?._id === currentUserId && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteMessage(msg?._id)}
-                      className="mt-1 p-0 h-6"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
+    ) : messages.length === 0 ? (
+      <div className="flex justify-center items-center h-full text-muted-foreground">
+        <p className="text-lg">No messages yet</p>
+      </div>
+    ) : (
+      <div className="space-y-4">
+        {messages.map((msg) => (
+          <div
+            key={msg._id}
+            className={`flex ${
+              msg?.sender?._id === currentUserId ? 'justify-end' : 'justify-start'
+            }`}
+          >
+            <div
+              className={`p-2 rounded-lg max-w-[80%] ${
+                msg?.sender?._id === currentUserId
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted'
+              }`}
+            >
+              <div className="flex items-center space-x-2 mb-1">
+                <Avatar className="w-6 h-6">
+                  <AvatarImage src={msg?.sender?.avatar?.url} alt={msg?.sender?.username} />
+                  <AvatarFallback>{msg?.sender?.username[0]}</AvatarFallback>
+                </Avatar>
+                <span className="font-semibold text-xs">{msg?.sender?.username}</span>
+                <span className="text-xs text-muted-foreground">
+                  {msg?.createdAt && !isNaN(new Date(msg?.createdAt).getTime())
+                    ? format(new Date(msg?.createdAt), 'HH:mm')
+                    : 'N/A'}
+                </span>
               </div>
-            ))}
+              <p className="text-sm break-words">{msg?.content}</p>
+              {msg?.sender?._id === currentUserId && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDeleteMessage(msg?._id)}
+                  className="mt-1 p-0 h-6"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
-        )}
-      </ScrollArea>
-      <div className="p-4 border-t">
-        {isTyping && (
-          <div className="text-sm text-muted-foreground mb-2">
-            Someone is typing...
-          </div>
-        )}
-        <div className="flex items-center space-x-2">
-          <Input
-            value={newMessage}
-            onChange={(e) => {
-              setNewMessage(e.target.value);
-              handleTyping();
-            }}
-            placeholder="Type a message..."
-            onKeyPress={handleKeyPress}
-            className="flex-grow"
-          />
-          <Button onClick={handleSendMessage}>
-            <SendIcon className="h-4 w-4" />
-          </Button>
-        </div>
+        ))}
       </div>
+    )}
+  </ScrollArea>
+  <div className="p-4 border-t">
+    {isTyping && (
+      <div className="text-sm text-muted-foreground mb-2">
+        Someone is typing...
+      </div>
+    )}
+    <div className="flex items-center space-x-2">
+      <Input
+        value={newMessage}
+        onChange={(e) => {
+          setNewMessage(e.target.value);
+          handleTyping();
+        }}
+        placeholder="Type a message..."
+        onKeyPress={handleKeyPress}
+        className="flex-grow"
+      />
+      <Button onClick={handleSendMessage}>
+        <SendIcon className="h-4 w-4" />
+      </Button>
     </div>
-  )
+  </div>
+</div>  )
 }
 

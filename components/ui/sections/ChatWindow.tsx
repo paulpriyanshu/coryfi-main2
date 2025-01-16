@@ -201,12 +201,11 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
     const files = Array.from(e.target.files || [])
     setAttachments(files)
   }
-
+  console.log("chats",chat)
   return (
     <Card className="flex flex-col h-full">
       <CardHeader className="px-4 py-2">
         <CardTitle className="text-lg font-semibold flex justify-between items-center">
-          <span>{chat.name}</span>
           <Button variant="ghost" size="sm" onClick={onClose}>
             Close
           </Button>
