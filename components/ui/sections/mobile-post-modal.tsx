@@ -252,7 +252,10 @@ export default function MobilePostModal({
 
               <div className="p-4 space-y-4">
                 {post.content && (
-                  <p className="text-sm">{post.content}</p>
+                  <div 
+                  className="mt-2 px-4 text-sm prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: post.content }}
+                />
                 )}
 
                 <div className="flex items-center justify-between">
