@@ -129,7 +129,7 @@ const handleUserRoute=async(email:string)=>{
       <Card className="p-2 shadow-lg">
         <form onSubmit={(e) => { e.preventDefault(); handleSearch(searchTerm); }} className="flex items-center gap-2">
           <div className="relative flex-grow">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 md:h-4 md:w-4 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Search..."

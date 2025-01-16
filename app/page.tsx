@@ -19,6 +19,7 @@ import axios from 'axios';
 import { useSession } from 'next-auth/react';
 import { SignInDialog } from '@/components/ui/sections/SigninDialog';
 import { MessageCircleIcon as ChatBubbleIcon } from 'lucide-react';
+import { ChevronDoubleLeftIcon } from '@heroicons/react/24/outline';
 
 type FilterType = 'results' | 'collab' | 'recents' | 'chats';
 
@@ -135,7 +136,7 @@ function Component() {
 
 
         <div
-          className={`absolute left-0 top-0 h-full bg-background/95 backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex ${
+          className={`absolute left-0 top-0 h-full  bg-slate-50  rounded-xl backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex ${
             isExpanded ? (isMobile ? 'w-[340px]' : 'w-[400px]') : 'w-10'
           }`}
         >
@@ -165,7 +166,7 @@ function Component() {
                 className="w-5 h-5 p-0 md:hidden"
                 onClick={toggleSidebar}
               >
-                {isExpanded ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                {isExpanded ? <ChevronDoubleLeftIcon className="h-5 w-5 text-red-400 " /> : <ChevronRight className="h-5 w-5" />}
               </Button>
             </TabsList>
 
@@ -199,7 +200,7 @@ function Component() {
             )}
           </Tabs>
 
-          {!isMobile && (
+         
             <Button
               variant="secondary"
               size="icon"
@@ -208,7 +209,7 @@ function Component() {
             >
               {isExpanded ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>
-          )}
+          
         </div>
 
         <SignInDialog

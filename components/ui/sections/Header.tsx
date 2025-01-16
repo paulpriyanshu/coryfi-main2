@@ -115,64 +115,85 @@ export default function Component() {
       className={`sticky top-0 z-50 w-full transition-all duration-200 ${isScrolled ? 'bg-white/80 backdrop-blur-md shadow-md' : 'bg-white'}`}
     >
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-12 md:h-16 items-center justify-between">
           <div className="flex items-center">
-            <Sheet>
-              <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon" className="mr-2">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] sm:w-[400px] flex flex-col">
-                <div className="flex-grow">
-                  <nav className="flex flex-col space-y-4 mt-4">
-                    {navItems.map((item) => (
-                      <motion.div
-                        key={item.tooltip}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Link href={item.href} className="flex items-center text-2xl font-bold space-x-2 text-black hover:text-black">
-                          {item.icon}
-                          <span>{item.tooltip}</span>
-                        </Link>
-                      </motion.div>
-                    ))}
-                  </nav>
-                  <div className="mt-8">
-                    <h3 className="text-lg font-semibold mb-4">Mode Selection</h3>
-                    <RadioGroup value={mode} onValueChange={setMode} className="grid gap-4">
-                      {[
-                        { value: "normal", label: "Normal", icon: Sun },
-                        { value: "professional", label: "Professional", icon: Laptop },
-                        { value: "business", label: "Business", icon: Moon },
-                      ].map(({ value, label, icon: Icon }) => (
-                        <Label
-                          key={value}
-                          htmlFor={value}
-                          className={`flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary ${
-                            mode === value ? "border-primary" : ""
-                          }`}
-                        >
-                          <RadioGroupItem value={value} id={value} className="sr-only" />
-                          <Icon className="mb-3 h-6 w-6" />
-                          <span>{label}</span>
-                        </Label>
-                      ))}
-                    </RadioGroup>
-                  </div>
-                  <Button variant="outline" className="w-full mt-8" onClick={() => router.push('/settings/profile')}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Button>
-                </div>
-                <Button variant="outline" className="w-full mt-auto mb-4" onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </Button>
-              </SheetContent>
-            </Sheet>
+          <Sheet>
+  <SheetTrigger asChild className="md:hidden">
+    <Button variant="ghost" size="icon" className="mr-2">
+      <Menu className="h-5 w-5" />
+      <span className="sr-only">Toggle menu</span>
+    </Button>
+  </SheetTrigger>
+  <SheetContent 
+    side="left" 
+    className="w-[300px] sm:w-[400px] flex flex-col overflow-y-auto"
+  >
+    <div className="flex-grow">
+      <nav className="flex flex-col space-y-4 mt-4">
+        {navItems.map((item) => (
+          <motion.div
+            key={item.tooltip}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Link
+              href={item.href}
+              className="flex items-center text-lg font-bold space-x-2 text-black hover:text-black"
+              onClick={() => document.querySelector("[data-state=open]").click()} // Close the Sheet
+            >
+              {item.icon}
+              <span>{item.tooltip}</span>
+            </Link>
+          </motion.div>
+        ))}
+      </nav>
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-4">Mode Selection</h3>
+        <RadioGroup value={mode} onValueChange={setMode} className="grid gap-4">
+          {[
+            { value: "normal", label: "Normal", icon: Sun },
+            { value: "professional", label: "Professional", icon: Laptop },
+            { value: "business", label: "Business", icon: Moon },
+          ].map(({ value, label, icon: Icon }) => (
+            <Label
+              key={value}
+              htmlFor={value}
+              className={`flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary ${
+                mode === value ? "border-primary" : ""
+              }`}
+            >
+              <RadioGroupItem value={value} id={value} className="sr-only" />
+              <Icon className="mb-3 h-6 w-6" />
+              <span>{label}</span>
+            </Label>
+          ))}
+        </RadioGroup>
+      </div>
+      <Button
+        variant="outline"
+        className="w-full mt-8"
+        onClick={() => {
+          router.push('/settings/profile');
+          document.querySelector("[data-state=open]").click(); // Close the Sheet
+        }}
+      >
+        <Settings className="mr-2 h-4 w-4" />
+        Settings
+      </Button>
+    </div>
+    <Button
+      variant="outline"
+      className="w-full mt-auto mb-4"
+      onClick={() => {
+        handleLogout();
+        document.querySelector("[data-state=open]").click(); // Close the Sheet
+      }}
+    >
+      <LogOut className="mr-2 h-4 w-4" />
+      Logout
+    </Button>
+  </SheetContent>
+</Sheet>
             <Link href="/" className="flex items-center justify-start md:ml-10">
               <Image
                 src="/logo.png"

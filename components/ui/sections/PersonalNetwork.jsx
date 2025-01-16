@@ -391,8 +391,8 @@ export default function PersonalNetwork({ data: propData }) {
     <div className="flex flex-col h-screen">
       <div className="flex justify-end p-4">
         <Button onClick={handleReload} className="flex items-center">
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Reload Network
+          <RefreshCw className="h-4 w-4" />
+          <p className="hidden md:block">Reload Network</p>
         </Button>
       </div>
       <div className="flex flex-1 w-full overflow-hidden">

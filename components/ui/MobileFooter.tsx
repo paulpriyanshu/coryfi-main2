@@ -50,7 +50,7 @@ export function MobileFooter() {
                     isActive ? "bg-slate-800 rounded-full p-2" : "text-gray-600"
                 )}
             >
-                <div className={cn("w-4 h-4 flex items-center justify-center", isActive ? "text-white" : "text-gray-600")}>
+                <div className={cn("w-5 h-5 flex items-center justify-center", isActive ? "text-white" : "text-gray-600")}>
                     {icon}
                 </div>
                 <span className="sr-only">{label}</span>
@@ -73,7 +73,7 @@ export function MobileFooter() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={onClick}
-                className="bg-gradient-to-r from-black to-cyan-600 text-white rounded-full p-2 shadow-lg"
+                className="bg-gradient-to-r from-black to-cyan-600 text-white rounded-full p-3 shadow-lg"
             >
                 <PlusSquare className="h-5 w-5" />
                 <span className="sr-only">Create</span>
@@ -99,7 +99,7 @@ export function MobileFooter() {
                         transition={{ duration: 0.3 }}
                         className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-20"
                     >
-                        <nav className="flex justify-around items-center h-10">
+                        <nav className="flex justify-around items-center h-11 pb-2 pt-2">
                             <NavButton
                                 icon={<Home />}
                                 label="Home"
