@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSession } from 'next-auth/react';
 import axios from 'axios';
 import { useSocket } from "./context/SocketContext";
+import { MobileChatWindow } from './MobileChatWindow';
 
 const NEW_CHAT_EVENT = "newChat";
 const CHAT_UPDATED_EVENT = "chatUpdated";
@@ -30,6 +31,7 @@ export default function Chat() {
   const { socket } = useSocket();
   const [refetchMessages, setRefetchMessages] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(false);
 
   const getUserChatId = useCallback(async (email) => {
     try {
@@ -95,7 +97,7 @@ export default function Chat() {
   useEffect(() => {
     const interval = setInterval(() => {
       if (currentUserId) {
-        console.log('Polling for new chats and updates...');
+        // console.log('Polling for new chats and updates...');
         fetchChatsAndUsers(currentUserId); // Fetch updated chats and users
       }
     }, 3000); // Poll every 5 seconds
@@ -173,6 +175,19 @@ export default function Chat() {
     }
   }, [socket, currentUserId, currentChat]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 768);
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   const handleUserCardClick = useCallback((user) => {
     setIsSidebarExtended(true);
     setCurrentChat({
@@ -228,9 +243,22 @@ export default function Chat() {
           />
         </ScrollArea>
       </div>
-      {isSidebarExtended && (
-        <div className="w-2/3 flex flex-col">
-          {currentChat && (
+      {currentChat && (
+        isMobileView ? (
+          <MobileChatWindow
+            chat={currentChat}
+            currentUserId={currentUserId}
+            onClose={() => {
+              setCurrentChat(null);
+              setIsSidebarExtended(false);
+            }}
+            onChatUpdated={() => setRefetchMessages(true)}
+            refetchMessages={refetchMessages}
+            onMessagesFetched={handleMessagesFetched}
+            isTyping={isTyping}
+          />
+        ) : (
+          <div className="w-2/3 flex flex-col">
             <ChatWindow
               chat={currentChat}
               currentUserId={currentUserId}
@@ -243,9 +271,10 @@ export default function Chat() {
               onMessagesFetched={handleMessagesFetched}
               isTyping={isTyping}
             />
-          )}
-        </div>
+          </div>
+        )
       )}
     </div>
   );
 }
+

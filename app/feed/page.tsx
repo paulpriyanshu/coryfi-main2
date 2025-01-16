@@ -404,21 +404,22 @@ export default function EnhancedInfiniteScrollNetwork() {
                   </AvatarFallback>
                   </Avatar>
                   <ReactQuill
-                    theme="snow"
-                    value={newPostContent.text}
-                    onChange={(content) => setNewPostContent(prev => ({ ...prev, text: content }))}
-                    placeholder="What's on your mind?"
-                    modules={{
-                      toolbar: [
-                        ['bold', 'italic', 'underline', 'strike'],
-                        ['blockquote', 'code-block'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        
-                        ['clean']
-                      ],
-                    }}
-                    className="mb-2 w-full"
-                  />
+                      theme="snow"
+                      value={newPostContent.text}
+                      onChange={(content) =>
+                        setNewPostContent((prev) => ({ ...prev, text: content }))
+                      }
+                      placeholder="What's on your mind?"
+                      modules={{
+                        toolbar: [
+                          ['bold', 'italic', 'underline', 'strike'],
+                          ['blockquote', 'code-block'],
+                          [{ list: 'ordered' }, { list: 'bullet' }],
+                          ['clean'],
+                        ],
+                      }}
+                      className="mb-2 w-full"
+                    />
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex space-x-2">

@@ -298,10 +298,7 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
                         </span>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={onClose}>
-                      <span className="sr-only">Close</span>
-                      <X className="h-4 w-4" />
-                    </Button>
+                    <Button variant="ghost" size="icon" onClick={onClose}/>
                   </div>
                   {post.content && (
                     <div 

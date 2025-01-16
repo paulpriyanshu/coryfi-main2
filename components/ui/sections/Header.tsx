@@ -173,13 +173,13 @@ export default function Component() {
                 </Button>
               </SheetContent>
             </Sheet>
-            <Link href="/" className="flex items-center justify-start ml-2">
+            <Link href="/" className="flex items-center justify-start md:ml-10">
               <Image
                 src="/logo.png"
                 alt="Company Logo"
                 width={120}
                 height={40}
-                className="w-auto h-8 md:h-10"
+                className="w-auto h-8 md:h-10 "
               />
             </Link>
           </div>

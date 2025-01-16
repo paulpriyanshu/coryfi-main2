@@ -5,9 +5,8 @@ import { useSocket } from "./context/SocketContext"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Loader2, PaperclipIcon, SendIcon, Trash2 } from 'lucide-react'
+import { Loader2, SendIcon, Trash2, X } from 'lucide-react'
 import { getChatMessages, sendMessage, deleteMessage } from './api'
 import { toast } from 'react-hot-toast'
 import { format } from 'date-fns'
@@ -18,10 +17,9 @@ const MESSAGE_RECEIVED_EVENT = "messageReceived"
 const JOIN_CHAT_EVENT = "joinChat"
 const MESSAGE_DELETE_EVENT = "messageDeleted"
 
-export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetchMessages, onMessagesFetched }) {
+export function MobileChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetchMessages, onMessagesFetched }) {
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
-  const [attachments, setAttachments] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isTyping, setIsTyping] = useState(false)
   const scrollAreaRef = useRef(null)
@@ -31,9 +29,9 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
   const fetchMessages = useCallback(async () => {
     try {
       const response = await getChatMessages(chat._id, currentUserId)
-      const newMessages = response.data.data.sort((a: { createdAt: string }, b: { createdAt: string }) => {
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      });
+      const newMessages = response.data.data.sort((a, b) => {
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      })
       setMessages(prevMessages => {
         const lastMessageId = prevMessages[prevMessages.length - 1]?._id
         const newMessageIndex = newMessages.findIndex(msg => msg._id === lastMessageId)
@@ -52,26 +50,20 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
     }
   }, [chat._id, currentUserId, onMessagesFetched])
 
-  // Effect for socket event handling and initial message fetch
   useEffect(() => {
     if (socket && chat._id) {
-      // Join the chat room
       socket.emit(JOIN_CHAT_EVENT, chat._id)
-      // console.log("joined chat")
+      console.log("joined chat")
 
-      // Socket event handlers
       socket.on(TYPING_EVENT, handleOnSocketTyping)
       socket.on(STOP_TYPING_EVENT, handleOnSocketStopTyping)
       socket.on(MESSAGE_RECEIVED_EVENT, handleMessageReceived)
       socket.on(MESSAGE_DELETE_EVENT, handleMessageDelete)
 
-      // Initial message fetch
       fetchMessages()
 
-      // Set up interval for fetching messages every 5 seconds
       const intervalId = setInterval(fetchMessages, 10000)
 
-      // Cleanup socket listeners and interval
       return () => {
         socket.off(TYPING_EVENT)
         socket.off(STOP_TYPING_EVENT)
@@ -82,14 +74,12 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
     }
   }, [socket, chat._id, fetchMessages])
 
-
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
     }
   }, [messages])
 
-  // Refetch messages effect
   useEffect(() => {
     if (refetchMessages) {
       fetchMessages()
@@ -101,13 +91,12 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
       setMessages(prevMessages => [...prevMessages, message])
       onChatUpdated()
       
-      // Auto-scroll to bottom on new message
       if (scrollAreaRef.current) {
         scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
       }
     }
   }
-
+  
   const handleMessageDelete = ({ chatId, messageId }) => {
     if (chatId === chat._id) {
       setMessages(prevMessages => 
@@ -118,15 +107,14 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
   }
 
   const handleSendMessage = async () => {
-    if (newMessage.trim() || attachments.length > 0) {
+    if (newMessage.trim()) {
       try {
         if (socket) {
           socket.emit(STOP_TYPING_EVENT, chat._id)
         }
 
-        const response = await sendMessage(chat._id, newMessage, attachments, currentUserId)
+        const response = await sendMessage(chat._id, newMessage, [], currentUserId)
         setNewMessage('')
-        setAttachments([])
 
         if (socket) {
           socket.emit(MESSAGE_RECEIVED_EVENT, {
@@ -196,96 +184,79 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
       handleSendMessage()
     }
   }
-
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files || [])
-    setAttachments(files)
-  }
+  console.log(chat)
 
   return (
-    <Card className="flex flex-col h-full">
-      <CardHeader className="px-4 py-2">
-        <CardTitle className="text-lg font-semibold flex justify-between items-center">
-          <span>{chat.name}</span>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            Close
-          </Button>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-grow p-4 overflow-hidden">
-        <ScrollArea className="h-[calc(100vh-200px)]" ref={scrollAreaRef}>
-          {isLoading ? (
-            <div className="flex justify-center items-center h-full">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {messages.map((msg) => (
+    <div className="fixed inset-0 bg-background z-50 flex flex-col">
+      <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center space-x-2">
+          <Avatar className="w-8 h-8">
+            <AvatarImage src={chat.avatar?.url} alt={chat.name} />
+            <AvatarFallback>{chat.name[0]}</AvatarFallback>
+          </Avatar>
+          <span className="font-semibold">{chat.name}</span>
+        </div>
+        <Button variant="ghost" size="icon" onClick={onClose}>
+          <X className="h-6 w-6" />
+        </Button>
+      </div>
+      <ScrollArea className="flex-grow p-4 max-h-[calc(100vh-180px)]" ref={scrollAreaRef}>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-full">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {messages.map((msg) => (
+              <div
+                key={msg._id}
+                className={`flex ${
+                  msg?.sender?._id === currentUserId ? 'justify-end' : 'justify-start'
+                }`}
+              >
                 <div
-                  key={msg._id}
-                  className={`flex ${
-                    msg?.sender?._id === currentUserId ? 'justify-end' : 'justify-start'
+                  className={`p-2 rounded-lg max-w-[80%] ${
+                    msg?.sender?._id === currentUserId
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted'
                   }`}
                 >
-                  <div
-                    className={`p-2 rounded-lg max-w-[70%] ${
-                      msg?.sender?._id === currentUserId
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Avatar className="w-6 h-6">
-                        <AvatarImage src={msg?.sender?.avatar.url} alt={msg?.sender?.username} />
-                        <AvatarFallback>{msg?.sender?.username[0]}</AvatarFallback>
-                      </Avatar>
-                      <span className="font-semibold text-xs">{msg?.sender?.username}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {msg?.createdAt && !isNaN(new Date(msg?.createdAt).getTime())
-                          ? format(new Date(msg?.createdAt), 'HH:mm')
-                          : 'N/A'}
-                      </span>
-                    </div>
-                    <p className="text-sm break-words">{msg?.content}</p>
-                    {msg?.attachments && msg?.attachments.length > 0 && (
-                      <div className="mt-2 space-y-1">
-                        {msg?.attachments.map((attachment) => (
-                          <a
-                            key={attachment._id}
-                            href={attachment.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-black underline text-xs block"
-                          >
-                            View Attachment
-                          </a>
-                        ))}
-                      </div>
-                    )}
-                    {msg?.sender?._id === currentUserId && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteMessage(msg?._id)}
-                        className="mt-1 p-0 h-6"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
+                  <div className="flex items-center space-x-2 mb-1">
+                    <Avatar className="w-6 h-6">
+                      <AvatarImage src={msg?.sender?.avatar?.url} alt={msg?.sender?.username} />
+                      <AvatarFallback>{msg?.sender?.username[0]}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-semibold text-xs">{msg?.sender?.username}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {msg?.createdAt && !isNaN(new Date(msg?.createdAt).getTime())
+                        ? format(new Date(msg?.createdAt), 'HH:mm')
+                        : 'N/A'}
+                    </span>
                   </div>
+                  <p className="text-sm break-words">{msg?.content}</p>
+                  {msg?.sender?._id === currentUserId && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteMessage(msg?._id)}
+                      className="mt-1 p-0 h-6"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
-      </CardContent>
+              </div>
+            ))}
+          </div>
+        )}
+      </ScrollArea>
       <div className="p-4 border-t">
         {isTyping && (
           <div className="text-sm text-muted-foreground mb-2">
             Someone is typing...
           </div>
         )}
-        <div className="flex items-center space-x-2 mb-10">
+        <div className="flex items-center space-x-2">
           <Input
             value={newMessage}
             onChange={(e) => {
@@ -296,22 +267,12 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
             onKeyPress={handleKeyPress}
             className="flex-grow"
           />
-          {/* <label htmlFor="file-upload" className="cursor-pointer">
-            <PaperclipIcon className="h-6 w-6" />
-          </label> */}
-          <input
-            id="file-upload"
-            type="file"
-            multiple
-            className="hidden"
-            onChange={handleFileChange}
-          />
           <Button onClick={handleSendMessage}>
             <SendIcon className="h-4 w-4" />
           </Button>
         </div>
       </div>
-    </Card>
+    </div>
   )
 }
 

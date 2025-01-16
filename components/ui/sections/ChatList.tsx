@@ -26,11 +26,11 @@ export function ChatList({ chats, onSelectChat, currentUserId }) {
           const response = await axios.get(
             `https://chat.coryfi.com/api/v1/users/getOneUserWithId/${participant._id}`
           );
-          console.log("this is data",response)
+          // console.log("this is data",response)
           
           const avatarUrl = response.data.data.avatar?.url;
 
-          console.log("Fetched URL for", participant._id, ":", avatarUrl);
+          // console.log("Fetched URL for", participant._id, ":", avatarUrl);
           
           setAvatarUrls(prev => ({
             ...prev,
@@ -46,13 +46,13 @@ export function ChatList({ chats, onSelectChat, currentUserId }) {
     fetchAvatars();
   }, [chats, currentUserId]);
   useEffect(()=>{
-    console.log("this is chats",chats)
+    // console.log("this is chats",chats)
     {chats.map((chat) => {
       const receiver = chat.participants.find(
         participant => participant._id !== currentUserId
       );
-      console.log("this is reciever",receiver?._id)
-      console.log("these are urls",avatarUrls)
+      // console.log("this is reciever",receiver?._id)
+      // console.log("these are urls",avatarUrls)
     })
   }
     
