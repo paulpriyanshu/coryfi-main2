@@ -146,7 +146,10 @@ export default function Page() {
                           />
                         </div>
                       )}
-                      {post?.content && <p className="mb-4 line-clamp-3">{post.content}</p>}
+                      {post?.content &&  <div 
+                      className="mt-2 px-4 text-sm prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: post.content }}
+                    />}
                       <div className="flex justify-between items-center text-sm text-muted-foreground">
                         <div>
                           <span className="mr-4">{post.likes.length} likes</span>
