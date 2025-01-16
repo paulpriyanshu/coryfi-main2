@@ -136,7 +136,7 @@ function Component() {
 
         <div
           className={`absolute left-0 top-0 h-full bg-background/95 backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex ${
-            isExpanded ? (isMobile ? 'w-[300px]' : 'w-[400px]') : 'w-16'
+            isExpanded ? (isMobile ? 'w-[340px]' : 'w-[400px]') : 'w-10'
           }`}
         >
           <Tabs
@@ -145,24 +145,24 @@ function Component() {
             orientation="vertical"
             className="flex h-full w-full"
           >
-            <TabsList className="h-full w-16 flex flex-col items-center py-4 space-y-4 bg-muted/50">
-              <TabsTrigger value="results" className="w-10 h-10 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Search className="w-5 h-5" />
+            <TabsList className="h-full w-10 md:w-16  flex flex-col items-center py-4 space-y-4 bg-muted/50">
+              <TabsTrigger value="results" className="w-7 h-7 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Search className="w-4 h-4" />
               </TabsTrigger>
-              <TabsTrigger value="collab" className="w-10 h-10 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Users className="w-5 h-5" />
+              <TabsTrigger value="collab" className="w-7 h-7 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Users className="w-4 h-4" />
               </TabsTrigger>
-              <TabsTrigger value="recents" className="w-10 h-10 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Clock className="w-5 h-5" />
+              <TabsTrigger value="recents" className="w-7 h-7 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Clock className="w-4 h-4" />
               </TabsTrigger>
-              <TabsTrigger value="chats" className="w-10 h-10 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <ChatBubbleIcon className="w-5 h-5" />
+              <TabsTrigger value="chats" className="w-7 h-7 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <ChatBubbleIcon className="w-4 h-4" />
               </TabsTrigger>
               {/* Add collapse/expand button for mobile */}
               <Button
                 variant="ghost"
                 size="icon"
-                className="w-10 h-10 p-0 md:hidden"
+                className="w-5 h-5 p-0 md:hidden"
                 onClick={toggleSidebar}
               >
                 {isExpanded ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
@@ -227,4 +227,3 @@ export default function Page(){
     </Suspense>
   )
 }
-

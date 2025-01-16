@@ -237,9 +237,7 @@ export default function Chat() {
         <ScrollArea className="flex-grow">
           <ChatList
             chats={chats}
-            availableUsers={availableUsers}
             onSelectChat={handleUserCardClick}
-            onChatCreated={() => fetchChatsAndUsers(currentUserId)}
             currentUserId={currentUserId}
           />
         </ScrollArea>

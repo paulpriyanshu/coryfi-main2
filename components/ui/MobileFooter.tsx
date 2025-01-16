@@ -42,27 +42,29 @@ export function MobileFooter() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
-                    onClick()
-                    router.push(href)
+                    onClick();
+                    router.push(href);
                 }}
                 className={cn(
-                    "relative w-12 h-12 rounded-full transition-colors flex items-center justify-center",
-                    isActive ? "text-white bg-slate-800" : "text-gray-600"
+                    "relative transition-colors flex items-center justify-center",
+                    isActive ? "bg-slate-800 rounded-full p-2" : "text-gray-600"
                 )}
             >
-                {icon}
+                <div className={cn("w-4 h-4 flex items-center justify-center", isActive ? "text-white" : "text-gray-600")}>
+                    {icon}
+                </div>
                 <span className="sr-only">{label}</span>
                 {isActive && (
                     <motion.div
                         layoutId="activeIndicator"
-                        className="absolute bottom-0 left-1/2 w-1.5 h-1.5 bg-black rounded-full"
+                        className="absolute bottom-0 left-1/2 w-1 h-1 bg-black rounded-full"
                         initial={false}
                         transition={{ type: "spring", stiffness: 500, damping: 30 }}
                         style={{ x: '-50%' }}
                     />
                 )}
             </motion.button>
-        )
+        );
     }
 
     function CreateButton({ onClick }) {
@@ -71,9 +73,9 @@ export function MobileFooter() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={onClick}
-                className="bg-gradient-to-r from-black to-cyan-600 text-white rounded-full p-3 shadow-lg"
+                className="bg-gradient-to-r from-black to-cyan-600 text-white rounded-full p-2 shadow-lg"
             >
-                <PlusSquare className="h-6 w-6" />
+                <PlusSquare className="h-5 w-5" />
                 <span className="sr-only">Create</span>
             </motion.button>
         )
@@ -97,7 +99,7 @@ export function MobileFooter() {
                         transition={{ duration: 0.3 }}
                         className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-20"
                     >
-                        <nav className="flex justify-around items-center h-16">
+                        <nav className="flex justify-around items-center h-10">
                             <NavButton
                                 icon={<Home />}
                                 label="Home"
