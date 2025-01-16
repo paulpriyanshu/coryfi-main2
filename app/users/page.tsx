@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/Input"
-import { getUnconnectedUsers } from "@/app/api/actions/media"
+import { getAllUnconnectedUsers } from "@/app/api/actions/media"
 import { useAppDispatch } from '@/app/libs/store/hooks'
 import { setResponseData } from '@/app/libs/features/pathdata/pathSlice'
 
@@ -31,7 +31,7 @@ export default function UnconnectedUsersPage() {
   useEffect(() => {
     const fetchUnconnectedUsers = async () => {
       if (userEmail) {
-        const data = await getUnconnectedUsers(userEmail)
+        const data = await getAllUnconnectedUsers(userEmail)
         console.log("unconnected people", data)
         setUsers(data)
       }

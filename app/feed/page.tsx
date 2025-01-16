@@ -506,9 +506,9 @@ export default function EnhancedInfiniteScrollNetwork() {
         </CardHeader>
         <CardContent>
         <div
-       className="prose" // Apply the prose class for rich text formatting
-       dangerouslySetInnerHTML={{ __html: post.content }}
-     />
+            className="prose" // Apply the prose class for rich text formatting
+               dangerouslySetInnerHTML={{ __html: post.content }}
+          />
           {/* Media Carousel */}
           {(post.imageUrl?.length > 0 || post.videoUrl?.length > 0) && (
             <Carousel className="w-full">
@@ -516,7 +516,7 @@ export default function EnhancedInfiniteScrollNetwork() {
                 {/* Images */}
                 {post.imageUrl?.map((url, idx) => (
                   <CarouselItem key={`image-${idx}`}>
-                    <div className="relative aspect-video">
+                    <div className="relative w-full h-[500px]">
                       <img
                         src={url || "/placeholder.svg"}
                         alt={`Post content ${idx + 1}`}

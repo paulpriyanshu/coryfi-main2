@@ -28,6 +28,74 @@ const getImageUrl = (key: string) => {
 export const getUnconnectedUsers = async (email: string) => {
   try {
     if (!email) {
+      throw new Error("Email is required");
+    }
+
+    const currentUser = await db.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+
+    if (!currentUser) {
+      throw new Error("User not found");
+    }
+
+    // Get 6-7 random unconnected users
+    const users = await db.user.findMany({
+      where: {
+        AND: [
+          { email: { not: email } },
+          {
+            NOT: {
+              OR: [
+                {
+                  connectionsReceived: {
+                    some: {
+                      AND: [
+                        { requesterId: currentUser.id },
+                        { status: "APPROVED" },
+                      ],
+                    },
+                  },
+                },
+                {
+                  connections: {
+                    some: {
+                      AND: [
+                        { recipientId: currentUser.id },
+                        { status: "APPROVED" },
+                      ],
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      take: 6, // Limit the number of users to 7
+      orderBy: {
+        // Random order
+        id: "asc",
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        userdp: true,
+      },
+    });
+
+    console.log("Unconnected users:", users);
+    return users;
+  } catch (error) {
+    console.error("Error fetching unconnected users:", error);
+    throw new Error("Failed to fetch unconnected users");
+  }
+};
+export const getAllUnconnectedUsers = async (email: string) => {
+  try {
+    if (!email) {
       throw new Error("Email is required")
     }
 
@@ -88,6 +156,7 @@ export const getUnconnectedUsers = async (email: string) => {
     throw new Error("Failed to fetch unconnected users")
   }
 }
+
 export const getUrl = async (filename: string) => {
   try {
     if (!filename) {

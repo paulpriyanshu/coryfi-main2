@@ -60,11 +60,11 @@ const handleFindPath = async (email: string) => {
     <Card className="bg-white shadow-lg sticky top-4">
     <CardContent className="p-6">
       <Tabs defaultValue="dms" className="w-full">
-            <div className=" flex  justify-center h-full w-full font-bold text-slate-500 text-lg m-4">People You May Know</div>
+            <div className=" flex  justify-center h-full w-full font-bold text-slate-500 text-lg m-2">People You May Know</div>
         <div>
-          <ScrollArea className="h-[calc(100vh-200px)]">
+          <ScrollArea className="h-[calc(100vh-300px)]">
             {people?.map(people => (
-              <div key={people?.name} className="flex items-center justify-between mb-4 p-2 hover:bg-slate-500 rounded-lg transition-colors">
+              <div key={people?.name} className="flex items-center justify-between mb-5 p-2 hover:bg-slate-500 rounded-lg transition-colors">
                 <div className="flex items-center space-x-2">
                   <Avatar>
                     <AvatarImage src={people?.userdp} alt={people?.name} />
