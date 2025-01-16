@@ -11,7 +11,7 @@ import { useSession } from 'next-auth/react';
 import axios from 'axios';
 import { useSocket } from "./context/SocketContext";
 import { MobileChatWindow } from './MobileChatWindow';
-import { AnimatePresence,motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 
 const NEW_CHAT_EVENT = "newChat";
 const CHAT_UPDATED_EVENT = "chatUpdated";
@@ -246,46 +246,37 @@ export default function Chat() {
       </div>
      
       {currentChat && (
-  isMobileView ? (
-    <AnimatePresence>
-      <motion.div
-        className="mobile-chat-window"
-        initial={{ y: "100%", opacity: 0 }} // Starting position (bottom)
-        animate={{ y: 0, opacity: 1 }} // End position (normal view)
-        exit={{ y: "100%", opacity: 0 }} // Exit animation (slide out)
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      >
-        <MobileChatWindow
-          chat={currentChat}
-          currentUserId={currentUserId}
-          onClose={() => {
-            setCurrentChat(null);
-            setIsSidebarExtended(false);
-          }}
-          onChatUpdated={() => setRefetchMessages(true)}
-          refetchMessages={refetchMessages}
-          onMessagesFetched={handleMessagesFetched}
-          isTyping={isTyping}
-        />
-      </motion.div>
-    </AnimatePresence>
-  ) : (
-    <div className="w-2/3 flex flex-col">
-      <ChatWindow
-        chat={currentChat}
-        currentUserId={currentUserId}
-        onClose={() => {
-          setCurrentChat(null);
-          setIsSidebarExtended(false);
-        }}
-        onChatUpdated={() => setRefetchMessages(true)}
-        refetchMessages={refetchMessages}
-        onMessagesFetched={handleMessagesFetched}
-        isTyping={isTyping}
-      />
-    </div>
-  )
-)}
+
+        isMobileView ? (
+          <MobileChatWindow
+            chat={currentChat}
+            currentUserId={currentUserId}
+            onClose={() => {
+              setCurrentChat(null);
+              setIsSidebarExtended(false);
+            }}
+            onChatUpdated={() => setRefetchMessages(true)}
+            refetchMessages={refetchMessages}
+            onMessagesFetched={handleMessagesFetched}
+            isTyping={isTyping}
+          />
+        ) : (
+          <div className="w-2/3 flex flex-col">
+            <ChatWindow
+              chat={currentChat}
+              currentUserId={currentUserId}
+              onClose={() => {
+                setCurrentChat(null);
+                setIsSidebarExtended(false);
+              }}
+              onChatUpdated={() => setRefetchMessages(true)}
+              refetchMessages={refetchMessages}
+              onMessagesFetched={handleMessagesFetched}
+              isTyping={isTyping}
+            />
+          </div>
+        )
+      )}
       
     </div>
   );
