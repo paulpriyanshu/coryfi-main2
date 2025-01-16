@@ -390,8 +390,8 @@ export default function EnhancedInfiniteScrollNetwork() {
           <div className="md:col-span-2 space-y-4">
             <SearchBar />
             <Card className="bg-white shadow-lg">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2 mb-4">
+              <CardContent className="p-3">
+                <div className="flex items-center space-x-2 mb-2">
                   <Avatar>
                     <AvatarImage src={user ? user.userdp : session?.user?.image} alt="Your Profile" />
                     <AvatarFallback>
@@ -417,7 +417,7 @@ export default function EnhancedInfiniteScrollNetwork() {
                         ['clean']
                       ],
                     }}
-                    className="mb-4"
+                    className="mb-2 w-full"
                   />
                 </div>
                 <div className="flex justify-between items-center">
