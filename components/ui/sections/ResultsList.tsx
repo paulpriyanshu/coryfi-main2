@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Search, Users, Clock, ChevronLeft, ChevronRight, ArrowUp, AlertCircle, CheckCircle, UserPlus } from 'lucide-react'
+import { Search, Users, Clock, ChevronLeft, ChevronRight, ArrowUp, AlertCircle, CheckCircle, UserPlus, Loader2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
@@ -13,6 +13,7 @@ import { useAppDispatch, useAppSelector } from '@/app/libs/store/hooks'
 import { selectResponseData, setResponseData } from '@/app/libs/features/pathdata/pathSlice'
 import axios from 'axios'
 import CollaborativeEvaluationModal from './CollaborativeEvaluationModal'
+import { Toaster, toast } from 'react-hot-toast'
 
 type FilterType = 'results' | 'collab' | 'recents'
 
@@ -50,6 +51,7 @@ async function getPathRanking(index: number, userEmail: string, targetEmail: str
 
 export default function ResultsList() {
   const [paths, setPaths] = useState<ConnectionPath[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const data = useAppSelector(selectResponseData)
   const structuredData = {
     nodes: data?.nodes || [],
@@ -60,24 +62,36 @@ export default function ResultsList() {
     let isMounted = true;
   
     const fetchPaths = async () => {
+      setIsLoading(true);
       const fetchedPaths: ConnectionPath[] = [];
       let index = 0;
-  
+
       while (index < 5) {
         try {
           if (!isMounted) break;
           const path = await getPathRanking(index, structuredData.nodes[0]?.email, structuredData.nodes[1]?.email);
-          if (!path) break;
+          if (!path) {
+            console.log("path not found");
+            break;
+          }
           fetchedPaths.push(path);
         } catch (error) {
-          // console.error(error.message);
+          console.error(error.message);
           break;
         }
         index++;
       }
-  
+
       if (isMounted) {
         setPaths(fetchedPaths);
+        setIsLoading(false);
+        if (fetchedPaths.length === 0) {
+          toast.error('No paths found', {
+            duration: 3000,
+            position: 'top-center',
+            icon: '🚫',
+          });
+        }
       }
     };
   
@@ -89,6 +103,22 @@ export default function ResultsList() {
       isMounted = false;
     };
   }, [structuredData.nodes[0]?.email, structuredData.nodes[1]?.email]);
+
+  if (isLoading) {
+    return (
+      <Card className="bg-background/50 hover:bg-background/80 transition-colors duration-200">
+        <CardContent className="p-8 flex flex-col items-center justify-center text-center">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground animate-pulse">
+              Showing paths...
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
   if (paths.length === 0) {
     return (
       <Card className="bg-background/50 hover:bg-background/80 transition-colors duration-200">
@@ -104,11 +134,14 @@ export default function ResultsList() {
   }
 
   return (
-    <div className="space-y-4">
-      {paths.map((path, index) => (
-        <ResultCard key={index} index={index} path={path} />
-      ))}
-    </div>
+    <>
+      <Toaster position="top-center" />
+      <div className="space-y-4">
+        {paths.map((path, index) => (
+          <ResultCard key={index} index={index} path={path} />
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -166,7 +199,7 @@ function ResultCard({ index, path }: { index: number; path: ConnectionPath }) {
 }
 
 function ConnectionPathCard({ path }: { path }) {
-  const nodesToShow = path.nodes.length > 5 ? [...path.nodes.slice(2,5), '...', path.nodes[path.nodes.length - 1]] : path.nodes;
+  const nodesToShow = path.nodes.length > 5 ? [...path.nodes.slice(2,5), '...', path.nodes[path.nodes.length - 1]] : path.nodes.slice(2,path.nodes.length);
   const hasEllipsis = path.nodes.length > 5;
   // console.log("nodes before show",path?.nodes)
   // console.log("nodes to show",nodesToShow)
@@ -176,7 +209,7 @@ function ConnectionPathCard({ path }: { path }) {
         <div className="flex items-center justify-between">
           {nodesToShow.map((node, index) => (
             node === '...' ? (
-              <div key="ellipsis" className="text-gray-500">...</div> // Display the ellipsis when needed
+              <div key="ellipsis" className="text-gray-500">...</div> 
             ) : (
               <Tooltip key={node.id}>
                 <TooltipTrigger asChild>
@@ -211,3 +244,4 @@ function ConnectionPathCard({ path }: { path }) {
     </TooltipProvider>
   )
 }
+

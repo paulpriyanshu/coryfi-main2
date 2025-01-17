@@ -44,7 +44,7 @@ export default function PersonalNetwork({ data: propData }) {
         // setUserId(id);
         // const userDetails = await fetchUserData(id);
         // setUserDp(userDetails.userdp);
-        console.log("userconnections", userconnections);
+        // console.log("userconnections", userconnections);
         // console.log("propData",propData)
         setUserConnections(userconnections)
 
@@ -53,7 +53,7 @@ export default function PersonalNetwork({ data: propData }) {
         setError("Failed to load user data. Please try again later.");
       } finally {
         setIsLoading(false);
-        console.log("user dp", userdp);
+        // console.log("user dp", userdp);
       }
     };
   
@@ -145,10 +145,10 @@ export default function PersonalNetwork({ data: propData }) {
     if (propData && propData.nodes && propData.nodes.length > 0) {
       try {
         processedData = processData(propData)
-        console.log("processed",processData)
+        // console.log("processed",processData)
       } catch (error) {
         setError("Error processing provided data")
-        console.error("Error processing provided data:", error)
+        // console.error("Error processing provided data:", error)
         setIsLoading(false)
         return
       }
@@ -173,6 +173,7 @@ export default function PersonalNetwork({ data: propData }) {
     }
     
     setGraphData(processedData)
+    console.log("processed data",processData.nodes)
     setVisibleNodes(processedData.nodes)
     setVisibleLinks(processedData.links)
     setIsLoading(false)
@@ -213,7 +214,7 @@ export default function PersonalNetwork({ data: propData }) {
 
   useEffect(() => {
     if (!svgRef.current || !graphData) {
-      console.log("Missing required data:", { svg: !!svgRef.current, data: !!graphData });
+      // console.log("Missing required data:", { svg: !!svgRef.current, data: !!graphData });
       return;
     }
   
@@ -222,7 +223,7 @@ export default function PersonalNetwork({ data: propData }) {
     const width = container.clientWidth;
     const height = container.clientHeight;
   
-    console.log("SVG dimensions:", { width, height });
+    // console.log("SVG dimensions:", { width, height });
   
     const svg = d3.select(svgRef.current)
       .attr("width", width)
@@ -242,7 +243,7 @@ export default function PersonalNetwork({ data: propData }) {
     svg.call(zoom);
   
     const userNode = visibleNodes[0];
-    console.log("User node:", userNode);
+    // console.log("User node:", userNode);
   
     const simulation = d3.forceSimulation(visibleNodes)
       .force("link", d3.forceLink(visibleLinks).id(d => d.id).distance(100))
@@ -293,7 +294,7 @@ export default function PersonalNetwork({ data: propData }) {
           session?.user?.email, 
           session?.user?.userdp // Pass current user's DP
         );
-        console.log("Image URL for node:", { email: d.email, url: imageUrl });
+        // console.log("Image URL for node:", { email: d.email, url: imageUrl });
         return imageUrl;
       })
       .on("error", function() {
@@ -357,15 +358,15 @@ export default function PersonalNetwork({ data: propData }) {
   }, [visibleNodes, visibleLinks, handleNodeClick, graphData, pathData, userConnections, session]);
   // Helper function to get profile pictures
   const getUserProfilePicture = (nodeEmail, userConnections, currentUserEmail) => {
-    console.log("Getting profile picture for:", nodeEmail);
+    // console.log("Getting profile picture for:", nodeEmail);
     
     if (!nodeEmail || !userConnections) {
-      console.log("Missing required data:", { nodeEmail, hasConnections: !!userConnections });
+      // console.log("Missing required data:", { nodeEmail, hasConnections: !!userConnections });
       return `https://api.dicebear.com/6.x/initials/svg?seed=${nodeEmail || 'unknown'}`;
     }
   
     // if (nodeEmail === currentUserEmail) {
-    //   console.log("Current user, using default avatar");
+      // console.log("Current user, using default avatar");
     //   return `https://api.dicebear.com/6.x/initials/svg?seed=${nodeEmail}`;
     // }
   
@@ -377,11 +378,11 @@ export default function PersonalNetwork({ data: propData }) {
       const profilePic = connection.requester.email === nodeEmail 
         ? connection.requester.userdp 
         : connection.recipient.userdp;
-      console.log("Found connection profile picture:", profilePic);
+      // console.log("Found connection profile picture:", profilePic);
       return profilePic;
     }
     
-    console.log("No connection found, using default avatar");
+    // console.log("No connection found, using default avatar");
     return `https://api.dicebear.com/6.x/initials/svg?seed=${nodeEmail}`;
   };
   const drag = useCallback((simulation) => {
@@ -409,16 +410,16 @@ export default function PersonalNetwork({ data: propData }) {
   }, [])
 
   const handleConnect = useCallback(() => {
-    // console.log("Connecting with", selectedPerson?.name)
+    console.log("Connecting with", selectedPerson?.name)
   }, [selectedPerson])
 
   const handleMessage = useCallback(() => {
-    // console.log("Messaging", selectedPerson?.name)
+    console.log("Messaging", selectedPerson?.name)
   }, [selectedPerson])
 
   const handleViewFullProfile = useCallback(() => {
     if (selectedPerson) {
-      // console.log(selectedPerson.id)
+      console.log(selectedPerson.id)
       router.push(`/userProfile/${selectedPerson.id}`)
     }
   }, [selectedPerson, router])
