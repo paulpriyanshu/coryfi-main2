@@ -2,15 +2,11 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react"
 import { useSession } from "next-auth/react"
-import { MessageSquare, ThumbsUp, Share2, ChevronUp, Mail, ImageIcon, Smile, Video, AlertCircle, X, ChevronLeft, ChevronRight, Send } from 'lucide-react'
+import { MessageSquare, ThumbsUp, Share2, ChevronUp, ImageIcon, AlertCircle, X, ChevronLeft, ChevronRight, Send } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/Input"
 import {
   Carousel,
   CarouselContent,
@@ -36,6 +32,7 @@ const DRAFT_STORAGE_KEY = 'postDraft'
 
 export default function EnhancedInfiniteScrollNetwork() {
   const [posts, setPosts] = useState([])
+  const { data: session } = useSession()
   const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
@@ -45,11 +42,11 @@ export default function EnhancedInfiniteScrollNetwork() {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [notification, setNotification] = useState(null)
-  const [Email, setEmail] = useState("")
+  const [Email, setEmail] = useState(session?.user?.email)
   const [userId, setUserId] = useState(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [currentEditingImage, setCurrentEditingImage] = useState(null)
-  const { data: session } = useSession()
+
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const router = useRouter()
   const [selectedPost, setSelectedPost] = useState(null)
@@ -93,29 +90,27 @@ const [isProcessingQueue, setIsProcessingQueue] = useState(false)
     if (node) observer.current.observe(node)
   }, [loading, hasMore])
 
+
+       
+       
+  console.log("email1",session?.user?.email)
   useEffect(() => {
     if (session?.user?.email) {
-      const fetchCred = async () => {
+      const fetchUserDetails = async () => {
         try {
-          const data = await fetchUserId(session?.user?.email)
-          setUser(data)
-          // console.log("User ID fetched:", data)
-
-          setUserId(data.id)
+          const data = await fetchUserId(session.user.email);
+          setUser(data);
+          setUserId(data.id);
         } catch (error) {
-          // console.log("Error while fetching user ID:", error)
+          console.error("Error while fetching user ID:", error);
         }
-      }
-
-      fetchCred()
-      fetchUserCred(session.user.email)
+      };
+  
+      fetchUserDetails();
     }
-  }, [session])
+  }, [session, fetchUserId]);
 
-  const fetchUserCred = (email) => {
-    setEmail(email)
-  }
-
+  
   useEffect(() => {
     const getImages = async () => {
       setIsInitialLoading(true)
@@ -374,15 +369,7 @@ const handleSaveEditedImage = async (editedImage) => {
     }
   };
 
-  const handleAddComment = (postId, commentText) => {
-    // Handle adding a comment
-    // console.log('Adding comment:', postId, commentText);
-  };
 
-  const handleAddReply = (commentId, replyText) => {
-    // Handle adding a reply
-    // console.log('Adding reply:', commentId, replyText);
-  };
 
   const RightSidebar = () => (
     <Card className="bg-white shadow-lg sticky top-4">
@@ -424,7 +411,7 @@ const handleSaveEditedImage = async (editedImage) => {
         )}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="hidden md:block">
-            <LeftSidebar  userEmail={Email ? Email : null} />
+            <LeftSidebar  userEmail={session?.user?.email ? session?.user?.email : null} />
           </div>
          
 

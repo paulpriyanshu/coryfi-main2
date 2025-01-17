@@ -20,6 +20,8 @@ import { useSession } from 'next-auth/react';
 import { SignInDialog } from '@/components/ui/sections/SigninDialog';
 import { MessageCircleIcon as ChatBubbleIcon } from 'lucide-react';
 import { ChevronDoubleLeftIcon } from '@heroicons/react/24/outline';
+import { Badge } from "@/components/ui/badge";
+import { fetchRequestsForIntermediary } from '@/app/api/actions/network';
 
 type FilterType = 'results' | 'collab' | 'recents' | 'chats';
 
@@ -41,9 +43,8 @@ function Component() {
   const isMobile = useIsMobile();
   const [receiverId, setReceiverId] = useState(null);
   const { data: session, status } = useSession();
-  const [Email, setEmail] = useState("");
   const [isSignInDialogOpen, setIsSignInDialogOpen] = useState(false);
-
+  const [collabCount, setCollabCount] = useState(0);
   const router = useRouter();
   const searchParams = useSearchParams();
   const data = useAppSelector(selectResponseData);
@@ -52,18 +53,10 @@ function Component() {
     links: data?.links || [],
   };
 
-  // Set email when session is available
-  useEffect(() => {
-    if (session?.user?.email) {
-      setEmail(session.user.email);
-    }
-  }, [session]);
-
-  // Handle query parameters and initial state
   useEffect(() => {
     const initialTab = searchParams.get('tab') as FilterType;
     const shouldExpand = searchParams.get('expand') === 'true';
-    const id = searchParams.get('id'); // Extract the `id` parameter
+    const id = searchParams.get('id');
     
     if (id) {
       // console.log('ID from query:', id);
@@ -74,6 +67,21 @@ function Component() {
     }
     setIsExpanded(shouldExpand);
   }, [searchParams]);
+
+  useEffect(() => {
+    async function fetchCollabCount() {
+      if (session?.user?.email) {
+        const collabData = await fetchRequestsForIntermediary(session.user.email);
+        if (collabData.success && collabData.data) {
+          setCollabCount(collabData.data.length);
+        }
+      }
+    }
+
+    fetchCollabCount();
+    const intervalId = setInterval(fetchCollabCount, 5 * 60 * 1000); // Refresh every 5 minutes
+    return () => clearInterval(intervalId);
+  }, [session]);
 
   const toggleSidebar = () => {
     const newExpandState = !isExpanded;
@@ -95,37 +103,23 @@ function Component() {
     setSidebarWidth(size.width);
   };
 
-  // Fetch user and chat data
   useEffect(() => {
-    const id = searchParams.get('id'); // Extract the `id` parameter
+    const id = searchParams.get('id');
 
     async function getUser() {
-      if (activeFilter === 'chats' && id && Email) {
-        // console.log("receiver id ", id);
-        
-        // Fetch receiver user data
+      if (activeFilter === 'chats' && id && session?.user?.email) {
         const receiverData = await fetchUserData(Number(id));
-        // console.log("receiver", receiverData);
-
-        // Get receiver chat data
         const receiverChatData = await axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${receiverData.email}`);
-        const userChatData = await axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${Email}`);
-
-        // console.log("receiver chat data", receiverChatData.data.data._id);
-        // console.log("user chat data", userChatData.data.data._id);
-
-        // Create a chat between the two users
+        const userChatData = await axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${session?.user?.email}`);
         const chat = await axios.post(`https://chat.coryfi.com/api/v1/chat-app/chats/c/${receiverChatData?.data?.data?._id}/${userChatData?.data?.data?._id}`);
-        // console.log("chat created", chat);
-
-        setReceiverId(id); // Update the receiver ID
+        setReceiverId(id);
       }
     }
 
     if (session?.user?.email) {
       getUser();
     }
-  }, [activeFilter, searchParams, Email]); 
+  }, [activeFilter, searchParams, session?.user?.email]); 
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -134,9 +128,8 @@ function Component() {
           <PersonalNetwork data={structuredData} />
         </div>
 
-
         <div
-          className={`absolute left-0 top-0 h-full  bg-slate-50  rounded-xl backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex ${
+          className={`absolute left-0 top-0 h-full bg-slate-50 rounded-xl backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex ${
             isExpanded ? (isMobile ? 'w-[340px]' : 'w-[400px]') : 'w-10'
           }`}
         >
@@ -146,12 +139,17 @@ function Component() {
             orientation="vertical"
             className="flex h-full w-full"
           >
-            <TabsList className="h-full w-10 md:w-16  flex flex-col items-center py-4 space-y-4 bg-muted/50">
+            <TabsList className="h-full w-10 md:w-16 flex flex-col items-center py-4 space-y-4 bg-muted/50">
               <TabsTrigger value="results" className="w-7 h-7 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Search className="w-4 h-4" />
               </TabsTrigger>
-              <TabsTrigger value="collab" className="w-7 h-7 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger value="collab" className="w-7 h-7 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground relative">
                 <Users className="w-4 h-4" />
+                {collabCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]" variant="destructive">
+                    {collabCount}
+                  </Badge>
+                )}
               </TabsTrigger>
               <TabsTrigger value="recents" className="w-7 h-7 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Clock className="w-4 h-4" />
@@ -159,14 +157,13 @@ function Component() {
               <TabsTrigger value="chats" className="w-7 h-7 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <ChatBubbleIcon className="w-4 h-4" />
               </TabsTrigger>
-              {/* Add collapse/expand button for mobile */}
               <Button
                 variant="ghost"
                 size="icon"
                 className="w-5 h-5 p-0 md:hidden"
                 onClick={toggleSidebar}
               >
-                {isExpanded ? <ChevronDoubleLeftIcon className="h-5 w-5 text-red-400 " /> : <ChevronRight className="h-5 w-5" />}
+                {isExpanded ? <ChevronDoubleLeftIcon className="h-5 w-5 text-red-400" /> : <ChevronRight className="h-5 w-5" />}
               </Button>
             </TabsList>
 
@@ -200,16 +197,14 @@ function Component() {
             )}
           </Tabs>
 
-         
-            <Button
-              variant="secondary"
-              size="icon"
-              className="absolute -right-6 top-1/2 transform -translate-y-1/2 h-24 w-6 rounded-l-none rounded-r-lg shadow-lg border-l-0 flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors"
-              onClick={toggleSidebar}
-            >
-              {isExpanded ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </Button>
-          
+          <Button
+            variant="secondary"
+            size="icon"
+            className="absolute -right-6 top-1/2 transform -translate-y-1/2 h-24 w-6 rounded-l-none rounded-r-lg shadow-lg border-l-0 flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors"
+            onClick={toggleSidebar}
+          >
+            {isExpanded ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </Button>
         </div>
 
         <SignInDialog
@@ -221,10 +216,11 @@ function Component() {
   );
 }
 
-export default function Page(){
+export default function Page() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <Component />
     </Suspense>
-  )
+  );
 }
+
