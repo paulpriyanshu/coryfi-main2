@@ -501,7 +501,7 @@ const handleSaveEditedImage = async (editedImage) => {
             <div>
             {(
         <div className="md:hidden">
-          <ModernUserCarousel userEmail={Email ? Email : null} />
+          <ModernUserCarousel userEmail={session?.user?.email ? session?.user?.email: null} />
         </div>
       )}
   {posts.map((post, index) => (
