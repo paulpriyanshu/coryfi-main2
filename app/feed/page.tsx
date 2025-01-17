@@ -55,6 +55,9 @@ export default function EnhancedInfiniteScrollNetwork() {
   const [selectedPost, setSelectedPost] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [user,setUser]=useState(null)
+  const [imageQueue, setImageQueue] = useState([])
+const [isProcessingQueue, setIsProcessingQueue] = useState(false)
+
 
   useEffect(() => {
     const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY)
@@ -163,82 +166,120 @@ export default function EnhancedInfiniteScrollNetwork() {
     return module.default
   }
   const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      if (file.type === 'image/heic') {
-        try {
-          // Dynamically load heic2any
-          const heic2any = await loadHeic2Any()
-          
-          // Convert HEIC to JPEG
-          const convertedBlob = await heic2any({
-            blob: file,
-            toType: 'image/jpeg'
-          })
+    const files = Array.from(e.target.files || [])
     
-          // Create a Data URL for the converted file
-          const reader = new FileReader()
-          reader.onload = (event) => {
-            if (event.target?.result) {
-              setCurrentEditingImage(event.target.result as string)
-              setIsEditModalOpen(true)
-            }
+    // Prevent uploading more than 4 images at once
+    if (newPostContent.images.length + files.length > 5) {
+      showNotification('You can only upload up to 5 images per post', 'error')
+      return
+    }
+  
+    // Process each file sequentially
+    for (const file of files) {
+      setIsUploading(true)
+      setUploadProgress(0)
+  
+      try {
+        let imageToProcess = file
+        
+        if (file.type === 'image/heic') {
+          try {
+            const heic2any = await loadHeic2Any()
+            const convertedBlob = await heic2any({
+              blob: file,
+              toType: 'image/jpeg'
+            })
+            imageToProcess = new File([convertedBlob], file.name.replace('.heic', '.jpg'), { 
+              type: 'image/jpeg' 
+            })
+            
+          } catch (error) {
+            console.error('Error converting HEIC image:', error)
+            continue
           }
-          reader.readAsDataURL(convertedBlob as Blob)
-        } catch (error) {
-          console.error('Error converting HEIC image:', error)
         }
-      } else {
-        // Handle other image formats
-        const reader = new FileReader()
-        reader.onload = (event) => {
-          if (event.target?.result) {
-            setCurrentEditingImage(event.target.result as string)
-            setIsEditModalOpen(true)
-          }
-        }
-        reader.readAsDataURL(file)
+  
+        // Create unique filename using timestamp
+        const timestamp = Date.now()
+        const uniqueFilename = `${timestamp}_${imageToProcess.name}`
+        
+        const uploadUrlResponse = await axios.get(`https://media.coryfi.com/api/imageUpload/${uniqueFilename}`)
+        const { url, filename } = uploadUrlResponse.data
+  
+        await axios.put(url, imageToProcess, {
+          headers: { 'Content-Type': imageToProcess.type },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            setUploadProgress(percentCompleted)
+          },
+        })
+  
+        const previewResponse = await axios.get(`https://media.coryfi.com/api/image/${filename}`)
+        
+        // Update state only after successful upload
+        setNewPostContent((prev) => ({
+          ...prev,
+          images: [...prev.images, { url: previewResponse.data.url, filename }],
+        }))
+  
+        showNotification('Image uploaded successfully')
+      } catch (error) {
+        console.error('Error uploading image:', error)
+        showNotification(`Failed to upload image: ${error.message}`, 'error')
       }
     }
-  }
-
-  const handleSaveEditedImage = async (editedImage) => {
-    setIsUploading(true)
+    
+    setIsUploading(false)
     setUploadProgress(0)
-
-    try {
-      const response = await fetch(editedImage)
-      const blob = await response.blob()
-      const file = new File([blob], 'edited_image.jpg', { type: 'image/jpeg' })
-
-      const uploadUrlResponse = await axios.get(`https://media.coryfi.com/api/imageUpload/${file.name}`)
-      const { url, filename } = uploadUrlResponse.data
-      // console.log("image uploaded",filename,url)
-
-      await axios.put(url, file, {
-        headers: { 'Content-Type': file.type },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-          setUploadProgress(percentCompleted)
-        },
-      })
-
-      const previewResponse = await axios.get(`https://media.coryfi.com/api/image/${filename}`)
-      setNewPostContent((prev) => ({
-        ...prev,
-        images: [...prev.images, { url: previewResponse.data.url, filename }],
-      }))
-
-      showNotification('Image uploaded successfully')
-    } catch (error) {
-      console.error('Error uploading edited image:', error)
-      showNotification('Failed to upload edited image', 'error')
-    } finally {
-      setIsUploading(false)
-      setUploadProgress(0)
-      setIsEditModalOpen(false)
-    }
+    
+    // Clear the file input
+    e.target.value = ''
   }
+
+const handleSaveEditedImage = async (editedImage) => {
+  setIsUploading(true)
+  setUploadProgress(0)
+
+  try {
+    const response = await fetch(editedImage)
+    const blob = await response.blob()
+    const timestamp = Date.now()
+    const originalFileName = imageQueue[0].originalFile.name
+    const uniqueFilename = `${timestamp}_${originalFileName}`
+    const file = new File([blob], uniqueFilename, { type: 'image/jpeg' })
+
+    const uploadUrlResponse = await axios.get(`https://media.coryfi.com/api/imageUpload/${file.name}`)
+    const { url, filename } = uploadUrlResponse.data
+
+    await axios.put(url, file, {
+      headers: { 'Content-Type': file.type },
+      onUploadProgress: (progressEvent) => {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+        setUploadProgress(percentCompleted)
+      },
+    })
+
+    const previewResponse = await axios.get(`https://media.coryfi.com/api/image/${filename}`)
+    setNewPostContent((prev) => ({
+      ...prev,
+      images: [...prev.images, { url: previewResponse.data.url, filename }],
+    }))
+
+    showNotification('Image uploaded successfully')
+  } catch (error) {
+    console.error('Error uploading edited image:', error)
+    showNotification('Failed to upload edited image', 'error')
+  } finally {
+    setIsUploading(false)
+    setUploadProgress(0)
+    setIsEditModalOpen(false)
+    
+    // Remove processed image from queue and continue with next
+    setImageQueue(prev => prev.slice(1))
+    setTimeout(processNextImage, 100) // Small delay before processing next image
+  }
+}
+
 
   const handleNewPost = async () => {
     if (newPostContent.text.trim() || newPostContent.images.length > 0) {
@@ -434,6 +475,7 @@ export default function EnhancedInfiniteScrollNetwork() {
                             onChange={handleImageUpload}
                             className="hidden"
                             accept="image/*,image/heic"
+                            multiple
                           />
                     </Button>
                  

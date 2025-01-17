@@ -141,6 +141,7 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
   const isMobile = useMediaQuery("(max-width: 640px)")
 
 
+
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.email) {
       setUserEmail(String(session.user.email))
