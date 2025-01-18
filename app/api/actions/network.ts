@@ -5,8 +5,8 @@ import db from "@/db"
 import { fetchUserId } from "./media";
 import { createUserChat } from "@/components/ui/sections/api";
 import { getSession } from "next-auth/react";
+import AWS from 'aws-sdk'
 
-const prisa = new PrismaClient();
 
 export const check_connection=async(requesterEmail:string,recipientEmail:string)=>{
   if (!requesterEmail || !recipientEmail ) {
@@ -44,6 +44,168 @@ export const check_connection=async(requesterEmail:string,recipientEmail:string)
   return false
 
 }
+
+
+// AWS SES Configuration
+  // Replace with your verified sender email
+const CHARSET = "UTF-8";
+const AWS_REGION = "us-east-1";
+
+AWS.config.update({
+  region: AWS_REGION,
+  accessKeyId: process.env.ACCESS_KEY,
+  secretAccessKey: process.env.SECRET_KEY
+});
+
+const ses = new AWS.SES();
+
+// Email sending function
+const sendEmail = async (recipientEmail, subject, bodyText, bodyHtml) => {
+  const params = {
+    Source: process.env.SENDER,
+    Destination: {
+      ToAddresses: [recipientEmail]
+    },
+    Message: {
+      Subject: {
+        Data: subject,
+        Charset: CHARSET
+      },
+      Body: {
+        Text: {
+          Data: bodyText,
+          Charset: CHARSET
+        },
+        Html: {
+          Data: bodyHtml,
+          Charset: CHARSET
+        }
+      }
+    }
+  };
+
+  try {
+    const data = await ses.sendEmail(params).promise();
+    console.log("Email sent! Message ID: ", data.MessageId);
+    return { success: true, messageId: data.MessageId };
+  } catch (err) {
+    console.error("Error sending email: ", err);
+    return { success: false, error: err.message };
+  }
+};
+
+// Usage Example
+const sendConnectionRequestEmail = async (recipientEmail, requesterEmail, strengthLevel) => {
+  const subject = "New Connection Request";
+  const bodyText = `${requesterEmail} has requested to connect with you. The strength level of this connection is ${strengthLevel}.`;
+  const bodyHtml = `
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connection Request</title>
+  <style>
+    :root {
+      --primary-color: black;
+      --secondary-color: #007BFF;
+      --background-color: #f4f7f9;
+      --text-color: #333;
+      --font-family: 'Arial', sans-serif;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--background-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      color: var(--primary-color);
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .strong {
+      font-weight: bold;
+      color: var(--secondary-color);
+    }
+
+    .button {
+      display: inline-block;
+      padding: 0.8rem 1.5rem;
+      background-color: var(--secondary-color);
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      margin-top: 1.5rem;
+      transition: background-color 0.3s ease;
+    }
+
+    .button:hover {
+      background-color: #cbd5e1;
+    }
+
+    footer {
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    footer a {
+      color: var(--secondary-color);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>${requesterEmail} has requested to connect with you!</h2>
+    <p>The strength level of this connection is <span class="strong">${strengthLevel}</span>.</p>
+    <a href="https://connect.coryfi.com" class="button">View Connection</a>
+    <footer>
+      <p>For more information, visit <a href="https://connect.coryfi.com">Coryfi Connect</a></p>
+    </footer>
+  </div>
+</body>
+</html>
+`;
+
+  const result = await sendEmail(recipientEmail, subject, bodyText, bodyHtml);
+  return result;
+};
+
+// Example usage
+// const requesterEmail = "priyanshu@coryfi.com";
+// const recipientEmail = "sgarvit22@gmail.com";
+// const strengthLevel = 5;
+
+// sendConnectionRequestEmail(recipientEmail, requesterEmail, strengthLevel);
 
 export const connect_users = async (
   requesterEmail: string,
@@ -99,6 +261,7 @@ export const connect_users = async (
         status: "PENDING", // Initial status
       },
     });
+    sendConnectionRequestEmail(recipientEmail, requesterEmail, StrengthLevel);
 
     return { success: true, connection };
   } catch (error) {
