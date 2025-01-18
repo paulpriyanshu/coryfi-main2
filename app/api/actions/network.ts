@@ -60,7 +60,7 @@ AWS.config.update({
 const ses = new AWS.SES();
 
 // Email sending function
-const sendEmail = async (recipientEmail, subject, bodyText, bodyHtml) => {
+const sendEmail = async (recipientEmail,name ,subject, bodyText, bodyHtml) => {
   const params = {
     Source: process.env.SENDER,
     Destination: {
@@ -95,7 +95,7 @@ const sendEmail = async (recipientEmail, subject, bodyText, bodyHtml) => {
 };
 
 // Usage Example
-const sendConnectionRequestEmail = async (recipientEmail, requesterEmail, strengthLevel) => {
+const sendConnectionRequestEmail = async (recipientEmail,requesterName,requesterEmail,strengthLevel) => {
   const subject = "New Connection Request";
   const bodyText = `${requesterEmail} has requested to connect with you. The strength level of this connection is ${strengthLevel}.`;
   const bodyHtml = `
@@ -185,7 +185,7 @@ const sendConnectionRequestEmail = async (recipientEmail, requesterEmail, streng
 </head>
 <body>
   <div class="container">
-    <h2>${requesterEmail} has requested to connect with you!</h2>
+    <h2>${requesterName} has requested to connect with you!</h2>
     <p>The strength level of this connection is <span class="strong">${strengthLevel}</span>.</p>
     <a href="https://connect.coryfi.com" class="button">View Connection</a>
     <footer>
@@ -196,7 +196,9 @@ const sendConnectionRequestEmail = async (recipientEmail, requesterEmail, streng
 </html>
 `;
 
-  const result = await sendEmail(recipientEmail, subject, bodyText, bodyHtml);
+
+
+  const result = await sendEmail(recipientEmail,requesterName, subject, bodyText, bodyHtml);
   return result;
 };
 
@@ -209,6 +211,7 @@ const sendConnectionRequestEmail = async (recipientEmail, requesterEmail, streng
 
 export const connect_users = async (
   requesterEmail: string,
+  requesterName:string,
   recipientEmail: string,
   StrengthLevel: any
 ) => {
@@ -261,7 +264,7 @@ export const connect_users = async (
         status: "PENDING", // Initial status
       },
     });
-    sendConnectionRequestEmail(recipientEmail, requesterEmail, StrengthLevel);
+    sendConnectionRequestEmail(recipientEmail,requesterName,requesterEmail,StrengthLevel);
 
     return { success: true, connection };
   } catch (error) {

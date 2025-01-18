@@ -62,7 +62,7 @@ export default function EnhancedUserProfilePage() {
         const userData = await fetchUserData(id)
         setUser(userData)
         if (session?.user?.email && userData.email) {
-          const connectionExists = await check_connection(session.user.email, userData.email)
+          const connectionExists = await check_connection(session.user.email,userData.email)
           setIsConnected(connectionExists)
           setConnectionStatus(connectionExists ? 'Connected' : 'Connect')
         }
@@ -97,7 +97,8 @@ export default function EnhancedUserProfilePage() {
 
     setConnectionStatus('Connecting')
     // console.log("emails",session.user.email,user.email,rating)
-    const connectPromise = connect_users(session.user.email, user.email,rating)
+    
+    const connectPromise = connect_users(session.user.email,session?.user?.name,user.email,rating)
     
     toast.promise(
       connectPromise,
