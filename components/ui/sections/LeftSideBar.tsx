@@ -84,7 +84,7 @@ export default function LeftSidebar({ userEmail }) {
                 ))
               ) : (
                 people?.map(person => (
-                  <div key={person?.name} className="flex items-center justify-between mb-5 p-2 hover:bg-slate-500 rounded-lg transition-colors">
+                  <div key={person?.name} className="flex items-center justify-between mb-5 p-2 hover:bg-slate-200 rounded-lg transition-colors">
                     <div className="flex items-center space-x-2">
                       <Avatar>
                         <AvatarImage src={person?.userdp} alt={person?.name} />
@@ -95,7 +95,7 @@ export default function LeftSidebar({ userEmail }) {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-black border-black hover:bg-slate-500"
+                      className="text-black border-black hover:bg-slate-400"
                       onClick={() => {
                         handleFindPath(person.email);
                         handleUserRoute(person.id);

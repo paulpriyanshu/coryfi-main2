@@ -75,7 +75,8 @@ export default function ConnectionRequestsDropdown() {
   const handleAccept = async (request: ConnectionRequest) => {
     if (session?.user?.email) {
       // Approve the request through your API
-      const result = await approve_request(request.requester.email, session.user.email)
+      // console.log("request",request)
+      const result = await approve_request(request.requester.email, session?.user?.email,session?.user?.name)
       
       // Update connection strength in the backend
       await axios.post('https://neo.coryfi.com/api/v1/connect', {

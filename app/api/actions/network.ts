@@ -60,7 +60,7 @@ AWS.config.update({
 const ses = new AWS.SES();
 
 // Email sending function
-const sendEmail = async (recipientEmail,name ,subject, bodyText, bodyHtml) => {
+const sendEmail = async (recipientEmail,subject, bodyText, bodyHtml) => {
   const params = {
     Source: process.env.SENDER,
     Destination: {
@@ -99,106 +99,213 @@ const sendConnectionRequestEmail = async (recipientEmail,requesterName,requester
   const subject = "New Connection Request";
   const bodyText = `${requesterEmail} has requested to connect with you. The strength level of this connection is ${strengthLevel}.`;
   const bodyHtml = `
-<html lang="en">
-<head>
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
+ <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Connection Request</title>
-  <style>
-    :root {
-      --primary-color: black;
-      --secondary-color: #007BFF;
-      --background-color: #f4f7f9;
-      --text-color: #333;
-      --font-family: 'Arial', sans-serif;
-    }
-
-    body {
-      font-family: var(--font-family);
-      background-color: var(--background-color);
-      color: var(--text-color);
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-
-    .container {
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      padding: 2rem;
-      max-width: 600px;
-      width: 100%;
-      text-align: center;
-    }
-
-    h1 {
-      color: var(--primary-color);
-      font-size: 1.8rem;
-      margin-bottom: 1rem;
-    }
-
-    p {
-      font-size: 1.1rem;
-      line-height: 1.6;
-      margin-bottom: 1rem;
-    }
-
-    .strong {
-      font-weight: bold;
-      color: var(--secondary-color);
-    }
-
-    .button {
-      display: inline-block;
-      padding: 0.8rem 1.5rem;
-      background-color: var(--secondary-color);
-      color: white;
-      text-decoration: none;
-      border-radius: 4px;
-      margin-top: 1.5rem;
-      transition: background-color 0.3s ease;
-    }
-
-    .button:hover {
-      background-color: #cbd5e1;
-    }
-
-    footer {
-      margin-top: 2rem;
-      font-size: 0.9rem;
-      color: #666;
-    }
-
-    footer a {
-      color: var(--secondary-color);
-      text-decoration: none;
-    }
-
-    footer a:hover {
-      text-decoration: underline;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>${requesterName} has requested to connect with you!</h2>
-    <p>The strength level of this connection is <span class="strong">${strengthLevel}</span>.</p>
-    <a href="https://connect.coryfi.com" class="button">View Connection</a>
-    <footer>
-      <p>For more information, visit <a href="https://connect.coryfi.com">Coryfi Connect</a></p>
-    </footer>
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta content="telephone=no" name="format-detection">
+  <title>New Connection Request</title><!--[if (mso 16)]>
+    <style type="text/css">
+    a {text-decoration: none;}
+    </style>
+    <![endif]--><!--[if gte mso 9]><style>sup { font-size: 100% !important; }</style><![endif]--><!--[if gte mso 9]>
+<noscript>
+         <xml>
+           <o:OfficeDocumentSettings>
+           <o:AllowPNG></o:AllowPNG>
+           <o:PixelsPerInch>96</o:PixelsPerInch>
+           </o:OfficeDocumentSettings>
+         </xml>
+      </noscript>
+<![endif]--><!--[if mso]><xml>
+    <w:WordDocument xmlns:w="urn:schemas-microsoft-com:office:word">
+      <w:DontUseAdvancedTypographyReadingMail/>
+    </w:WordDocument>
+    </xml><![endif]-->
+  <style type="text/css">.rollover:hover .rollover-first {
+  max-height:0px!important;
+  display:none!important;
+}
+.rollover:hover .rollover-second {
+  max-height:none!important;
+  display:block!important;
+}
+.rollover span {
+  font-size:0px;
+}
+u + .body img ~ div div {
+  display:none;
+}
+#outlook a {
+  padding:0;
+}
+span.MsoHyperlink,
+span.MsoHyperlinkFollowed {
+  color:inherit;
+  mso-style-priority:99;
+}
+a.s {
+  mso-style-priority:100!important;
+  text-decoration:none!important;
+}
+a[x-apple-data-detectors],
+#MessageViewBody a {
+  color:inherit!important;
+  text-decoration:none!important;
+  font-size:inherit!important;
+  font-family:inherit!important;
+  font-weight:inherit!important;
+  line-height:inherit!important;
+}
+.i {
+  display:none;
+  float:left;
+  overflow:hidden;
+  width:0;
+  max-height:0;
+  line-height:0;
+  mso-hide:all;
+}
+@media only screen and (max-width:600px) {.bk { padding-top:5px!important } .bj { padding-bottom:5px!important } .bi { padding-top:40px!important } .bh { padding-bottom:15px!important }  *[class="gmail-fix"] { display:none!important } p, a { line-height:150%!important } h1, h1 a { line-height:120%!important } h2, h2 a { line-height:120%!important } h3, h3 a { line-height:120%!important } h4, h4 a { line-height:120%!important } h5, h5 a { line-height:120%!important } h6, h6 a { line-height:120%!important }  .be p { } .bd p { } .bc p { } h1 { font-size:30px!important; text-align:left } h2 { font-size:24px!important; text-align:left } h3 { font-size:20px!important; text-align:left } h4 { font-size:24px!important; text-align:left } h5 { font-size:20px!important; text-align:left } h6 { font-size:16px!important; text-align:left }       .g td a { font-size:14px!important } .bf p, .bf a { font-size:14px!important } .be p, .be a { font-size:14px!important } .bd p, .bd a { font-size:16px!important } .bc p, .bc a { font-size:12px!important } .z, .z h1, .z h2, .z h3, .z h4, .z h5, .z h6 { text-align:center!important }     .y .rollover:hover .rollover-second, .z .rollover:hover .rollover-second, .ba .rollover:hover .rollover-second { display:inline!important }   a.s, button.s { font-size:18px!important; padding:10px 20px 10px 20px!important; line-height:120%!important } a.s, button.s, .w { display:inline-block!important }  .r, .r .s, .t, .t td, .g { display:inline-block!important }  .l table, .m table, .n table, .l, .n, .m { width:100%!important; max-width:600px!important } .adapt-img { width:100%!important; height:auto!important }      .g td { width:1%!important } table.f, .esd-block-html table { width:auto!important } .h-auto { height:auto!important } .img-2725 { height:151px!important } h1 a { text-align:left } h2 a { text-align:left } h3 a { text-align:left } .d .e, .d .e * { font-size:16px!important; line-height:150%!important } .a .b.c, .a .b.c * { font-size:20px!important; line-height:150%!important } }
+@media screen and (max-width:384px) {.mail-message-content { width:414px!important } }</style>
+ </head>
+ <body class="body" style="width:100%;height:100%;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;padding:0;Margin:0">
+  <div dir="ltr" class="es-wrapper-color" lang="en" style="background-color:#F6F6F6"><!--[if gte mso 9]>
+			<v:background xmlns:v="urn:schemas-microsoft-com:vml" fill="t">
+				<v:fill type="tile" color="#f6f6f6"></v:fill>
+			</v:background>
+		<![endif]-->
+   <table cellspacing="0" cellpadding="0" width="100%" class="es-wrapper" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;padding:0;Margin:0;width:100%;height:100%;background-repeat:repeat;background-position:center top;background-color:#F6F6F6">
+     <tr>
+      <td valign="top" style="padding:0;Margin:0">
+       <table cellspacing="0" cellpadding="0" align="center" class="m" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important;background-color:transparent;background-repeat:repeat;background-position:center top">
+         <tr>
+          <td align="center" style="padding:0;Margin:0">
+           <table cellspacing="0" cellpadding="0" bgcolor="#ffffff" align="center" class="bf" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#ffffff;width:600px" role="none">
+             <tr>
+              <td bgcolor="#ffffff" align="left" style="padding:10px;Margin:0;background-color:#ffffff">
+               <table cellspacing="0" cellpadding="0" width="100%" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                 <tr>
+                  <td valign="top" align="center" style="padding:0;Margin:0;width:580px">
+                   <table cellspacing="0" cellpadding="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                     <tr>
+                      <td align="center" style="padding:0;Margin:0;font-size:0"><a href="https://connect.coryfi.com" target="_blank" style="mso-line-height-rule:exactly;text-decoration:underline;color:#1376C8;font-size:14px"><img src="https://ekcpefh.stripocdn.email/content/guids/CABINET_58374735cbe51047ab668e973a968c91de21257e54d4f75892e31f0139faeacb/images/image.png" alt="" height="140" class="img-2725" width="215" style="display:block;font-size:14px;border:0;outline:none;text-decoration:none"></a></td>
+                     </tr>
+                   </table></td>
+                 </tr>
+               </table></td>
+             </tr>
+           </table></td>
+         </tr>
+       </table>
+       <table cellspacing="0" cellpadding="0" align="center" class="l" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important">
+         <tr>
+          <td align="center" style="padding:0;Margin:0">
+           <table cellspacing="0" cellpadding="0" bgcolor="#ffffff" align="center" class="be" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#FFFFFF;width:600px">
+             <tr>
+              <td align="left" bgcolor="#ffffff" style="padding:20px;Margin:0;background-color:#ffffff">
+               <table cellspacing="0" cellpadding="0" width="100%" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                 <tr>
+                  <td valign="top" align="center" style="padding:0;Margin:0;width:560px">
+                   <table cellspacing="0" cellpadding="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                     <tr>
+                      <td align="center" class="a" style="padding:0;Margin:0"><h2 class="z c b" style="Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;mso-line-height-rule:exactly;letter-spacing:0;font-size:24px;font-style:normal;font-weight:normal;line-height:28.8px;color:#000000">New Connection Request</h2></td>
+                     </tr>
+                     <tr>
+                      <td align="center" class="d" style="padding:0;Margin:0"><p class="e" style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:24px;letter-spacing:0;color:#000000;font-size:16px">Strength Level -${strengthLevel};</p></td>
+                     </tr>
+                   </table></td>
+                 </tr>
+               </table></td>
+             </tr>
+           </table></td>
+         </tr>
+       </table>
+       <table cellspacing="0" cellpadding="0" align="center" class="l" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important">
+         <tr>
+          <td align="center" style="padding:0;Margin:0">
+           <table cellspacing="0" cellpadding="0" bgcolor="#ffffff" align="center" class="be" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#FFFFFF;width:600px">
+             <tr>
+              <td align="left" bgcolor="#ffffff" style="padding:5px;Margin:0;background-color:#ffffff">
+               <table cellspacing="0" cellpadding="0" width="100%" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                 <tr>
+                  <td align="left" style="padding:0;Margin:0;width:590px">
+                   <table cellspacing="0" cellpadding="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                     <tr>
+                      <td align="center" bgcolor="#ffffff" style="padding:0;Margin:0;padding-top:15px;padding-right:25px;padding-bottom:10px"><h3 class="z" style="Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;mso-line-height-rule:exactly;letter-spacing:0;font-size:20px;font-style:normal;font-weight:normal;line-height:24px;color:#000000">${requesterName}</h3></td>
+                     </tr>
+                     <tr>
+                      <td align="center" bgcolor="#ffffff" style="padding:0;Margin:0;padding-right:25px;padding-bottom:10px;padding-top:10px"><p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:21px;letter-spacing:0;color:#000000;font-size:14px">has sent you a connection request</p></td>
+                     </tr>
+                     <tr>
+                      <td align="center" bgcolor="#ffffff" style="padding:0;Margin:0;padding-top:10px;padding-right:10px;padding-bottom:15px"><span class="w" style="border-style:solid;border-color:#333333;background:#000000;border-width:0;display:inline-block;border-radius:20px;width:auto;border-left-color:#2cb543"><a href="https://connect.coryfi.com/" target="_blank" class="s" style="mso-style-priority:100 !important;text-decoration:none !important;mso-line-height-rule:exactly;color:#FFFFFF;font-size:18px;padding:10px 20px;display:inline-block;background:#000000;border-radius:20px;font-family:arial, 'helvetica neue', helvetica, sans-serif;font-weight:normal;font-style:normal;line-height:21.6px;width:auto;text-align:center;letter-spacing:0;mso-padding-alt:0;mso-border-alt:10px solid #000000">See Profile</a></span></td>
+                     </tr>
+                   </table></td>
+                 </tr>
+               </table></td>
+             </tr>
+           </table></td>
+         </tr>
+       </table>
+       <table cellspacing="0" cellpadding="0" align="center" class="n" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important;background-color:transparent;background-repeat:repeat;background-position:center top">
+         <tr>
+          <td align="center" style="padding:0;Margin:0">
+           <table align="center" cellpadding="0" cellspacing="0" class="bd" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:transparent;width:600px" role="none">
+             <tr>
+              <td align="left" bgcolor="#ffffff" class="bk bj" style="padding:20px;Margin:0;background-color:#ffffff">
+               <table cellpadding="0" cellspacing="0" width="100%" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                 <tr>
+                  <td align="left" style="padding:0;Margin:0;width:560px">
+                   <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                     <tr>
+                      <td align="center" bgcolor="#ffffff" class="bc bi" style="padding:0;Margin:0;padding-bottom:15px;padding-top:35px;font-size:0">
+                       <table cellpadding="0" cellspacing="0" class="f t" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                         <tr>
+                          <td align="center" valign="top" style="padding:0;Margin:0;padding-right:40px"><a target="_blank" href="https://x.com/CoryfiConnect" style="mso-line-height-rule:exactly;text-decoration:underline;color:#CCCCCC;font-size:12px"><img title="X" src="https://ekcpefh.stripocdn.email/content/assets/img/social-icons/logo-black/x-logo-black.png" alt="X" width="32" height="32" style="display:block;font-size:14px;border:0;outline:none;text-decoration:none"></a></td>
+                          <td align="center" valign="top" style="padding:0;Margin:0;padding-right:40px"><a target="_blank" href="https://www.linkedin.com/company/coryfi-connect/" style="mso-line-height-rule:exactly;text-decoration:underline;color:#CCCCCC;font-size:12px"><img title="LinkedIn" src="https://ekcpefh.stripocdn.email/content/assets/img/social-icons/logo-black/linkedin-logo-black.png" alt="In" width="32" height="32" style="display:block;font-size:14px;border:0;outline:none;text-decoration:none"></a></td>
+                          <td align="center" valign="top" style="padding:0;Margin:0"><a target="_blank" href="https://www.reddit.com/r/Coryfi/" style="mso-line-height-rule:exactly;text-decoration:underline;color:#CCCCCC;font-size:12px"><img title="Reddit" src="https://ekcpefh.stripocdn.email/content/assets/img/social-icons/logo-black/reddit-logo-black.png" alt="Reddit" width="32" height="32" style="display:block;font-size:14px;border:0;outline:none;text-decoration:none"></a></td>
+                         </tr>
+                       </table></td>
+                     </tr>
+                     <tr>
+                      <td align="center" bgcolor="#ffffff" class="bc bh bk" style="padding:0;Margin:0;padding-bottom:10px"><p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:18px;letter-spacing:0;color:#b2b1b1;font-size:12px">Coryfi Connect © 2025 Coryfi Connect Pvt Ltd</p><p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:18px;letter-spacing:0;color:#b2b1b1;font-size:12px">All Rights Reserved.</p><p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:18px;letter-spacing:0;color:#b2b1b1;font-size:12px">Contact: support@coryfi.com</p></td>
+                     </tr>
+                     <tr>
+                      <td class="bc" style="padding:0;Margin:0">
+                       <table cellpadding="0" cellspacing="0" width="100%" class="g" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                         <tr class="links">
+                          <td align="center" valign="top" width="33.33%" class="bc" style="Margin:0;border:0;padding-top:5px;padding-right:5px;padding-bottom:5px;padding-left:5px">
+                           <div style="vertical-align:middle;display:block"><a target="_blank" href="https://connect.coryfi.com" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Visit Us </a>
+                           </div></td>
+                          <td align="center" valign="top" width="33.33%" class="bc" style="Margin:0;border:0;padding-top:5px;padding-right:5px;padding-bottom:5px;padding-left:5px;border-left:1px solid #ffffff">
+                           <div style="vertical-align:middle;display:block"><a target="_blank" href="https://drive.google.com/file/d/1rOu9NfpS6kG3Glj4uM3sftEWwCzH5HTZ/view?usp=drive_link" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Privacy Policy</a>
+                           </div></td>
+                          <td align="center" valign="top" width="33.33%" class="bc" style="Margin:0;border:0;padding-top:5px;padding-right:5px;padding-bottom:5px;padding-left:5px;border-left:1px solid #ffffff">
+                           <div style="vertical-align:middle;display:block"><a target="_blank" href="https://drive.google.com/file/d/1m99JCl8X2eEAlQejePDemZPr4Xi-zi-g/view?usp=drive_link" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Terms of Use</a>
+                           </div></td>
+                         </tr>
+                       </table></td>
+                     </tr>
+                   </table></td>
+                 </tr>
+               </table></td>
+             </tr>
+           </table></td>
+         </tr>
+       </table></td>
+     </tr>
+   </table>
   </div>
-</body>
+ </body>
 </html>
 `;
 
 
 
-  const result = await sendEmail(recipientEmail,requesterName, subject, bodyText, bodyHtml);
+  const result = await sendEmail(recipientEmail, subject, bodyText, bodyHtml);
   return result;
 };
 
@@ -272,7 +379,219 @@ export const connect_users = async (
     return { success: false, error: error.message };
   }
 };  
-export const approve_request = async (requesterEmail: string, recipientEmail: string) => {
+
+const sendApprovalRequestEmail=async(requesterEmail:string,recipientName)=>{
+  const subject = "Connection Request Accepted";
+  const bodyText = `Congratulations!! your connection request has been approved .`;
+  const bodyHtml = `
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta content="telephone=no" name="format-detection">
+  <title>Connection Request Approved</title><!--[if (mso 16)]>
+    <style type="text/css">
+    a {text-decoration: none;}
+    </style>
+    <![endif]--><!--[if gte mso 9]><style>sup { font-size: 100% !important; }</style><![endif]--><!--[if gte mso 9]>
+<noscript>
+         <xml>
+           <o:OfficeDocumentSettings>
+           <o:AllowPNG></o:AllowPNG>
+           <o:PixelsPerInch>96</o:PixelsPerInch>
+           </o:OfficeDocumentSettings>
+         </xml>
+      </noscript>
+<![endif]--><!--[if mso]><xml>
+    <w:WordDocument xmlns:w="urn:schemas-microsoft-com:office:word">
+      <w:DontUseAdvancedTypographyReadingMail/>
+    </w:WordDocument>
+    </xml><![endif]-->
+  <style type="text/css">.rollover:hover .rollover-first {
+  max-height:0px!important;
+  display:none!important;
+}
+.rollover:hover .rollover-second {
+  max-height:none!important;
+  display:block!important;
+}
+.rollover span {
+  font-size:0px;
+}
+u + .body img ~ div div {
+  display:none;
+}
+#outlook a {
+  padding:0;
+}
+span.MsoHyperlink,
+span.MsoHyperlinkFollowed {
+  color:inherit;
+  mso-style-priority:99;
+}
+a.s {
+  mso-style-priority:100!important;
+  text-decoration:none!important;
+}
+a[x-apple-data-detectors],
+#MessageViewBody a {
+  color:inherit!important;
+  text-decoration:none!important;
+  font-size:inherit!important;
+  font-family:inherit!important;
+  font-weight:inherit!important;
+  line-height:inherit!important;
+}
+.i {
+  display:none;
+  float:left;
+  overflow:hidden;
+  width:0;
+  max-height:0;
+  line-height:0;
+  mso-hide:all;
+}
+@media only screen and (max-width:600px) {.bk { padding-top:5px!important } .bj { padding-bottom:5px!important } .bi { padding-top:40px!important } .bh { padding-bottom:15px!important }  *[class="gmail-fix"] { display:none!important } p, a { line-height:150%!important } h1, h1 a { line-height:120%!important } h2, h2 a { line-height:120%!important } h3, h3 a { line-height:120%!important } h4, h4 a { line-height:120%!important } h5, h5 a { line-height:120%!important } h6, h6 a { line-height:120%!important }  .be p { } .bd p { } .bc p { } h1 { font-size:30px!important; text-align:left } h2 { font-size:24px!important; text-align:left } h3 { font-size:20px!important; text-align:left } h4 { font-size:24px!important; text-align:left } h5 { font-size:20px!important; text-align:left } h6 { font-size:16px!important; text-align:left }       .g td a { font-size:14px!important } .bf p, .bf a { font-size:14px!important } .be p, .be a { font-size:14px!important } .bd p, .bd a { font-size:16px!important } .bc p, .bc a { font-size:12px!important } .z, .z h1, .z h2, .z h3, .z h4, .z h5, .z h6 { text-align:center!important }     .y .rollover:hover .rollover-second, .z .rollover:hover .rollover-second, .ba .rollover:hover .rollover-second { display:inline!important }   a.s, button.s { font-size:18px!important; padding:10px 20px 10px 20px!important; line-height:120%!important } a.s, button.s, .w { display:inline-block!important }  .r, .r .s, .t, .t td, .g { display:inline-block!important }  .l table, .m table, .n table, .l, .n, .m { width:100%!important; max-width:600px!important } .adapt-img { width:100%!important; height:auto!important }      .g td { width:1%!important } table.f, .esd-block-html table { width:auto!important } .h-auto { height:auto!important } .img-2725 { height:151px!important } h1 a { text-align:left } h2 a { text-align:left } h3 a { text-align:left } .d .e, .d .e * { font-size:16px!important; line-height:150%!important } .a .b.c, .a .b.c * { font-size:20px!important; line-height:150%!important } }
+@media screen and (max-width:384px) {.mail-message-content { width:414px!important } }</style>
+ </head>
+ <body class="body" style="width:100%;height:100%;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;padding:0;Margin:0">
+  <div dir="ltr" class="es-wrapper-color" lang="en" style="background-color:#F6F6F6"><!--[if gte mso 9]>
+			<v:background xmlns:v="urn:schemas-microsoft-com:vml" fill="t">
+				<v:fill type="tile" color="#f6f6f6"></v:fill>
+			</v:background>
+		<![endif]-->
+   <table cellspacing="0" cellpadding="0" width="100%" class="es-wrapper" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;padding:0;Margin:0;width:100%;height:100%;background-repeat:repeat;background-position:center top;background-color:#F6F6F6">
+     <tr>
+      <td valign="top" style="padding:0;Margin:0">
+       <table cellspacing="0" cellpadding="0" align="center" class="m" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important;background-color:transparent;background-repeat:repeat;background-position:center top">
+         <tr>
+          <td align="center" style="padding:0;Margin:0">
+           <table cellspacing="0" cellpadding="0" bgcolor="#ffffff" align="center" class="bf" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#ffffff;width:600px" role="none">
+             <tr>
+              <td bgcolor="#ffffff" align="left" style="padding:10px;Margin:0;background-color:#ffffff">
+               <table cellspacing="0" cellpadding="0" width="100%" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                 <tr>
+                  <td valign="top" align="center" style="padding:0;Margin:0;width:580px">
+                   <table cellspacing="0" cellpadding="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                     <tr>
+                      <td align="center" style="padding:0;Margin:0;font-size:0"><a href="https://connect.coryfi.com" target="_blank" style="mso-line-height-rule:exactly;text-decoration:underline;color:#1376C8;font-size:14px"><img src="https://ekcpefh.stripocdn.email/content/guids/CABINET_58374735cbe51047ab668e973a968c91de21257e54d4f75892e31f0139faeacb/images/image.png" alt="" height="140" class="img-2725" width="215" style="display:block;font-size:14px;border:0;outline:none;text-decoration:none"></a></td>
+                     </tr>
+                   </table></td>
+                 </tr>
+               </table></td>
+             </tr>
+           </table></td>
+         </tr>
+       </table>
+       <table cellspacing="0" cellpadding="0" align="center" class="l" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important">
+         <tr>
+          <td align="center" style="padding:0;Margin:0">
+           <table cellspacing="0" cellpadding="0" bgcolor="#ffffff" align="center" class="be" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#FFFFFF;width:600px">
+             <tr>
+              <td align="left" bgcolor="#ffffff" style="padding:20px;Margin:0;background-color:#ffffff">
+               <table cellspacing="0" cellpadding="0" width="100%" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                 <tr>
+                  <td valign="top" align="center" style="padding:0;Margin:0;width:560px">
+                   <table cellspacing="0" cellpadding="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                     <tr>
+                      <td align="center" class="a" style="padding:0;Margin:0"><h2 class="z c b" style="Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;mso-line-height-rule:exactly;letter-spacing:0;font-size:24px;font-style:normal;font-weight:normal;line-height:28.8px;color:#000000">Connection Request Accepted</h2></td>
+                     </tr>
+                   </table></td>
+                 </tr>
+               </table></td>
+             </tr>
+           </table></td>
+         </tr>
+       </table>
+       <table cellspacing="0" cellpadding="0" align="center" class="l" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important">
+         <tr>
+          <td align="center" style="padding:0;Margin:0">
+           <table cellspacing="0" cellpadding="0" bgcolor="#ffffff" align="center" class="be" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#FFFFFF;width:600px">
+             <tr>
+              <td align="left" bgcolor="#ffffff" style="padding:5px;Margin:0;background-color:#ffffff">
+               <table cellspacing="0" cellpadding="0" width="100%" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                 <tr>
+                  <td align="left" style="padding:0;Margin:0;width:590px">
+                   <table cellspacing="0" cellpadding="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                     <tr>
+                      <td align="center" bgcolor="#ffffff" style="padding:0;Margin:0;padding-top:15px;padding-right:25px;padding-bottom:10px"><h3 class="z" style="Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;mso-line-height-rule:exactly;letter-spacing:0;font-size:20px;font-style:normal;font-weight:normal;line-height:24px;color:#000000">${recipientName}</h3></td>
+                     </tr>
+                     <tr>
+                      <td align="center" bgcolor="#ffffff" style="padding:0;Margin:0;padding-right:25px;padding-bottom:10px;padding-top:10px"><p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:21px;letter-spacing:0;color:#000000;font-size:14px">has accepted your connection request</p></td>
+                     </tr>
+                     <tr>
+                      <td align="center" bgcolor="#ffffff" style="padding:0;Margin:0;padding-top:10px;padding-right:10px;padding-bottom:15px"><span class="w" style="border-style:solid;border-color:#333333;background:#000000;border-width:0;display:inline-block;border-radius:20px;width:auto;border-left-color:#2cb543"><a href="https://connect.coryfi.com/" target="_blank" class="s" style="mso-style-priority:100 !important;text-decoration:none !important;mso-line-height-rule:exactly;color:#FFFFFF;font-size:18px;padding:10px 20px;display:inline-block;background:#000000;border-radius:20px;font-family:arial, 'helvetica neue', helvetica, sans-serif;font-weight:normal;font-style:normal;line-height:21.6px;width:auto;text-align:center;letter-spacing:0;mso-padding-alt:0;mso-border-alt:10px solid #000000">See Profile</a></span></td>
+                     </tr>
+                   </table></td>
+                 </tr>
+               </table></td>
+             </tr>
+           </table></td>
+         </tr>
+       </table>
+       <table cellspacing="0" cellpadding="0" align="center" class="n" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important;background-color:transparent;background-repeat:repeat;background-position:center top">
+         <tr>
+          <td align="center" style="padding:0;Margin:0">
+           <table align="center" cellpadding="0" cellspacing="0" class="bd" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:transparent;width:600px" role="none">
+             <tr>
+              <td align="left" bgcolor="#ffffff" class="bk bj" style="padding:20px;Margin:0;background-color:#ffffff">
+               <table cellpadding="0" cellspacing="0" width="100%" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                 <tr>
+                  <td align="left" style="padding:0;Margin:0;width:560px">
+                   <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                     <tr>
+                      <td align="center" bgcolor="#ffffff" class="bc bi" style="padding:0;Margin:0;padding-bottom:15px;padding-top:35px;font-size:0">
+                       <table cellpadding="0" cellspacing="0" class="f t" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                         <tr>
+                          <td align="center" valign="top" style="padding:0;Margin:0;padding-right:40px"><a target="_blank" href="https://x.com/CoryfiConnect" style="mso-line-height-rule:exactly;text-decoration:underline;color:#CCCCCC;font-size:12px"><img title="X" src="https://ekcpefh.stripocdn.email/content/assets/img/social-icons/logo-black/x-logo-black.png" alt="X" width="32" height="32" style="display:block;font-size:14px;border:0;outline:none;text-decoration:none"></a></td>
+                          <td align="center" valign="top" style="padding:0;Margin:0;padding-right:40px"><a target="_blank" href="https://www.linkedin.com/company/coryfi-connect/" style="mso-line-height-rule:exactly;text-decoration:underline;color:#CCCCCC;font-size:12px"><img title="LinkedIn" src="https://ekcpefh.stripocdn.email/content/assets/img/social-icons/logo-black/linkedin-logo-black.png" alt="In" width="32" height="32" style="display:block;font-size:14px;border:0;outline:none;text-decoration:none"></a></td>
+                          <td align="center" valign="top" style="padding:0;Margin:0"><a target="_blank" href="https://www.reddit.com/r/Coryfi/" style="mso-line-height-rule:exactly;text-decoration:underline;color:#CCCCCC;font-size:12px"><img title="Reddit" src="https://ekcpefh.stripocdn.email/content/assets/img/social-icons/logo-black/reddit-logo-black.png" alt="Reddit" width="32" height="32" style="display:block;font-size:14px;border:0;outline:none;text-decoration:none"></a></td>
+                         </tr>
+                       </table></td>
+                     </tr>
+                     <tr>
+                      <td align="center" bgcolor="#ffffff" class="bc bh bk" style="padding:0;Margin:0;padding-bottom:10px"><p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:18px;letter-spacing:0;color:#b2b1b1;font-size:12px">Coryfi Connect © 2025 Coryfi Connect Pvt Ltd</p><p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:18px;letter-spacing:0;color:#b2b1b1;font-size:12px">All Rights Reserved.</p><p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:18px;letter-spacing:0;color:#b2b1b1;font-size:12px">Contact: support@coryfi.com</p></td>
+                     </tr>
+                     <tr>
+                      <td class="bc" style="padding:0;Margin:0">
+                       <table cellpadding="0" cellspacing="0" width="100%" class="g" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                         <tr class="links">
+                          <td align="center" valign="top" width="33.33%" class="bc" style="Margin:0;border:0;padding-top:5px;padding-right:5px;padding-bottom:5px;padding-left:5px">
+                           <div style="vertical-align:middle;display:block"><a target="_blank" href="https://connect.coryfi.com" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Visit Us </a>
+                           </div></td>
+                          <td align="center" valign="top" width="33.33%" class="bc" style="Margin:0;border:0;padding-top:5px;padding-right:5px;padding-bottom:5px;padding-left:5px;border-left:1px solid #ffffff">
+                           <div style="vertical-align:middle;display:block"><a target="_blank" href="https://drive.google.com/file/d/1rOu9NfpS6kG3Glj4uM3sftEWwCzH5HTZ/view?usp=drive_link" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Privacy Policy</a>
+                           </div></td>
+                          <td align="center" valign="top" width="33.33%" class="bc" style="Margin:0;border:0;padding-top:5px;padding-right:5px;padding-bottom:5px;padding-left:5px;border-left:1px solid #ffffff">
+                           <div style="vertical-align:middle;display:block"><a target="_blank" href="https://drive.google.com/file/d/1m99JCl8X2eEAlQejePDemZPr4Xi-zi-g/view?usp=drive_link" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Terms of Use</a>
+                           </div></td>
+                         </tr>
+                       </table></td>
+                     </tr>
+                   </table></td>
+                 </tr>
+               </table></td>
+             </tr>
+           </table></td>
+         </tr>
+       </table></td>
+     </tr>
+   </table>
+  </div>
+ </body>
+</html>
+  `;
+
+
+
+  const result = await sendEmail(requesterEmail, subject, bodyText, bodyHtml);
+  return result;
+
+}
+export const approve_request = async (requesterEmail: string, recipientEmail: string,recipientName:string) => {
     try {
       // Validate input
       if (!requesterEmail || !recipientEmail) {
@@ -325,6 +644,7 @@ export const approve_request = async (requesterEmail: string, recipientEmail: st
           status: 'APPROVED',
         },
       });
+      sendApprovalRequestEmail(requesterEmail,recipientName)
   
       return { success: true, connection: updatedConnection };
     } catch (error) {

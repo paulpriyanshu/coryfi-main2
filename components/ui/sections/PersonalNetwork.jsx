@@ -254,6 +254,15 @@ export default function PersonalNetwork({ data: propData }) {
     // Create definitions for image clipping
     const defs = g.append("defs");
   
+    const link = g.append("g")
+    .selectAll("line")
+    .data(visibleLinks)
+    .enter()
+    .append("line")
+    .attr("stroke", "#999")
+    .attr("stroke-opacity", 1)
+    .attr("stroke-width", d => Math.sqrt(d.value));
+
     // Create a clipPath for each node
     defs.selectAll(".clip")
       .data(visibleNodes)
@@ -278,7 +287,8 @@ export default function PersonalNetwork({ data: propData }) {
     .attr("r", 30) // Node radius
     .attr("fill", d => d === userNode ? "#3b82f6" : "#d1dbe6") // Node fill color
     .attr("stroke", "#64748b") // Border color (black)
-    .attr("stroke-width", 0.7); // 
+    .attr("stroke-width", 0.7) 
+    .attr("opacity",1)
   
     // Add images
     nodeGroup.append("image")
@@ -314,14 +324,6 @@ export default function PersonalNetwork({ data: propData }) {
       .attr("fill", d => d === userNode ? "#1d4ed8" : "#64748b");
   
     // Add links
-    const link = g.append("g")
-      .selectAll("line")
-      .data(visibleLinks)
-      .enter()
-      .append("line")
-      .attr("stroke", "#999")
-      .attr("stroke-opacity", 0.3)
-      .attr("stroke-width", d => Math.sqrt(d.value));
   
     // Handle paths if present
     if (pathData && pathData.path) {
