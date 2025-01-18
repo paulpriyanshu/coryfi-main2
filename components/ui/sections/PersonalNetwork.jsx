@@ -44,8 +44,8 @@ export default function PersonalNetwork({ data: propData }) {
         // setUserId(id);
         // const userDetails = await fetchUserData(id);
         // setUserDp(userDetails.userdp);
-        // console.log("userconnections", userconnections);
-        // console.log("propData",propData)
+        console.log("userconnections", userconnections);
+        console.log("propData",propData)
         setUserConnections(userconnections)
 
       } catch (err) {
@@ -421,10 +421,25 @@ export default function PersonalNetwork({ data: propData }) {
 
   const handleViewFullProfile = useCallback(() => {
     if (selectedPerson) {
-      console.log(selectedPerson.id)
-      router.push(`/userProfile/${selectedPerson.id}`)
+      const matchedItem = userConnections.find(
+        (item) =>
+          item.requester.email === selectedPerson.email ||
+          item.recipient.email === selectedPerson.email
+      );
+  
+      if (matchedItem) {
+        const id =
+          matchedItem.requester.email === selectedPerson.email
+            ? matchedItem.requester.id
+            : matchedItem.recipient.id;
+  
+        console.log(id); // Log the ID to verify
+        router.push(`/userProfile/${id}`);
+      } else {
+        console.log('No matching profile found for the selected person.');
+      }
     }
-  }, [selectedPerson, router])
+  }, [selectedPerson, router, userConnections]);
 
   const handleReload = useCallback(() => {
     fetchData()
@@ -474,21 +489,11 @@ export default function PersonalNetwork({ data: propData }) {
               <p className="text-sm text-gray-500 mb-4">{selectedPerson?.email}</p>
               <p className="mb-4">{selectedPerson?.bio}</p>
               <div className="flex space-x-2">
-                <Button onClick={handleConnect} className="flex items-center">
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  <span className="sr-only">Connect</span>
-                </Button>
-                <Button onClick={handleMessage} className="flex items-center">
-                  <MessageCircle className="mr-2 h-4 w-4" />
-                  <span className="sr-only">Message</span>
-                </Button>
                 <Button onClick={handleViewFullProfile} className="flex items-center">
                   <User className="mr-2 h-4 w-4" />
                   View Full Profile
                 </Button>
-                <Button onClick={() => selectedPerson && handleFindPath(selectedPerson.email)} className="flex items-center">
-                  Find Path
-                </Button>
+               
               </div>
             </CardContent>
           </Card>
