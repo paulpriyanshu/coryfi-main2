@@ -51,7 +51,11 @@ const ModernUserCarousel= ({userEmail}) => {
       }
       fetchUnconnectedUsers()
      },[])
-
+     
+     
+     if(!userEmail || !users){
+      return null
+     }
   return (
     <div className="relative w-5/6 max-w-sm m-5">
       <div className="overflow-hidden" ref={emblaRef}>

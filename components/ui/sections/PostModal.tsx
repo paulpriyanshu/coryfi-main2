@@ -269,7 +269,7 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
                             <img
                               src={url || "/placeholder.svg"}
                               alt={`Post image ${index + 1}`}
-                              className="max-h-[80vh] max-w-full object-contain"
+                              className="max-h-[80vh] max-w-full object-contain rounded-lg"
                             />
                           </div>
                         </CarouselItem>

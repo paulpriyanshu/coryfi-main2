@@ -415,9 +415,9 @@ const handleSaveEditedImage = async (editedImage) => {
           </div>
          
 
-          <div className="md:col-span-2 space-y-4">
+          <div className="md:col-span-2 space-y-5">
             <SearchBar />
-            <Card className="bg-white shadow-lg">
+            <Card className="bg-white shadow-lg md:h-[200px]">
               <CardContent className="p-3">
                 <div className="flex items-center space-x-2 mb-2">
                   <Avatar>
@@ -440,13 +440,14 @@ const handleSaveEditedImage = async (editedImage) => {
                       placeholder="What's on your mind?"
                       modules={{
                         toolbar: [
-                          ['bold', 'italic', 'underline', 'strike'],
+                          [{ header: [1, 2, false] }], 
+                          ['bold', 'italic', 'underline'],
                           ['blockquote', 'code-block'],
                           [{ list: 'ordered' }, { list: 'bullet' }],
                           ['clean'],
                         ],
                       }}
-                      className="mb-2 w-full"
+                      className="w-full"
                     />
                 </div>
                 <div className="flex justify-between items-center">
@@ -507,11 +508,11 @@ const handleSaveEditedImage = async (editedImage) => {
   {posts.map((post, index) => (
     <React.Fragment key={post._id || index}>
       <Card 
-        className="bg-white shadow-lg cursor-pointer my-5" 
+        className="bg-white shadow-lg cursor-pointer my-2 p-0" 
         onClick={() => handleOpenModal(post)}
       >
         <CardHeader>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             <Avatar>
               <AvatarImage 
                 src={post?.user?.userdp} 
@@ -534,7 +535,7 @@ const handleSaveEditedImage = async (editedImage) => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="w-full">
         <div
             className="prose" // Apply the prose class for rich text formatting
                dangerouslySetInnerHTML={{ __html: post.content }}
@@ -550,26 +551,32 @@ const handleSaveEditedImage = async (editedImage) => {
                       <img
                         src={url || "/placeholder.svg"}
                         alt={`Post content ${idx + 1}`}
-                        className="rounded-lg w-full h-full object-cover"
+                        className="rounded-lg w-full h-full object-contain"
                       />
                     </div>
                   </CarouselItem>
                 ))}
+                {(post.imageUrl?.length > 0 || post.videoUrl?.length > 0) && (
+                    <Carousel className="w-full">
+                      <CarouselContent>
+                        {/* Images */}
+                        {post.imageUrl?.map((url, idx) => (
+                          <CarouselItem key={`image-${idx}`}>
+                            {/* Make the height responsive */}
+                            <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] ">
+                              <img
+                                src={url || "/placeholder.svg"}
+                                alt={`Post content ${idx + 1}`}
+                                className="rounded-lg w-full h-full object-contain sm:object-cover"
+                              />
+                            </div>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                    </Carousel>
+                  )}
 
-                {/* Videos */}
-                {post.videoUrl?.map((url, idx) => (
-                  <CarouselItem key={`video-${idx}`}>
-                    <div className="relative aspect-video">
-                      <video
-                        src={url}
-                        controls
-                        className="rounded-lg w-full h-full object-cover"
-                      >
-                        Your browser does not support the video tag.
-                      </video>
-                    </div>
-                  </CarouselItem>
-                ))}
+                
               </CarouselContent>
 
               {/* Only show navigation if there's more than one media item */}
