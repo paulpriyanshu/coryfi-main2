@@ -130,7 +130,7 @@ function Component() {
 
         <div
           className={`absolute left-0 top-0 h-full bg-slate-50 rounded-xl backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex ${
-            isExpanded ? (isMobile ? 'w-[340px]' : 'w-[400px]') : 'w-10'
+            isExpanded ? (isMobile ? 'w-[340px]' : 'w-[400px]') : 'w-16'
           }`}
         >
           <Tabs
@@ -140,22 +140,22 @@ function Component() {
             className="flex h-full w-full"
           >
             <TabsList className="h-full w-10 md:w-16 flex flex-col items-center py-4 space-y-4 bg-muted/50">
-              <TabsTrigger value="results" className="w-7 h-7 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Search className="w-4 h-4" />
+              <TabsTrigger value="results" className="w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Search className="md:w-8 md:h-8 w-4 h-4" />
               </TabsTrigger>
-              <TabsTrigger value="collab" className="w-7 h-7 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground relative">
-                <Users className="w-4 h-4" />
+              <TabsTrigger value="collab" className="w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground relative">
+                <Users className="w-4 h-4 md:w-8 md:h-8" />
                 {collabCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]" variant="destructive">
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 md:w-8 md:h-8 p-1flex items-center justify-center text-[10px]" variant="destructive">
                     {collabCount}
                   </Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="recents" className="w-7 h-7 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Clock className="w-4 h-4" />
+              <TabsTrigger value="recents" className="w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Clock className="w-4 h-4 md:w-8 md:h-8" />
               </TabsTrigger>
-              <TabsTrigger value="chats" className="w-7 h-7 p-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <ChatBubbleIcon className="w-4 h-4" />
+              <TabsTrigger value="chats" className="w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <ChatBubbleIcon className="w-4 h-4 md:w-8 md:h-8" />
               </TabsTrigger>
               <Button
                 variant="ghost"

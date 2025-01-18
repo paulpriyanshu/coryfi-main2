@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { get_new_requests, approve_request, reject_request } from "@/app/api/actions/network"
+import useSWR, { mutate } from 'swr'
+import { approve_request, reject_request } from "@/app/api/actions/network"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -46,61 +47,89 @@ interface ConnectionRequest {
   blockedAt: Date
 }
 
+// SWR fetcher function
+const fetcher = async (url: string) => {
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error('Failed to fetch requests')
+  }
+  const data = await response.json()
+  return data.requests
+}
+
 export default function ConnectionRequestsDropdown() {
-  // Initialize state and session
   const { data: session } = useSession()
-  const [requests, setRequests] = useState([])
   const [showTooltip, setShowTooltip] = useState(false)
 
-  // Fetch connection requests when component mounts or session changes
-  useEffect(() => {
-    const fetchRequests = async () => {
-      if (session?.user?.email) {
-        const result = await get_new_requests(session.user.email)
-        if (result?.success) {
-          setRequests(result.requests)
-        }
-      }
+  // SWR hook for fetching requests
+  const { data: requests = [], error, isLoading } = useSWR(
+    session?.user?.email ? `/api/connection-requests?email=${session.user.email}` : null,
+    fetcher,
+    {
+      refreshInterval: 5000, // Poll every 5 seconds
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true
     }
-
-    fetchRequests()
-    // Refresh requests every 5 minutes
-    const intervalId = setInterval(fetchRequests, 5 * 60 * 1000)
-    
-    // Cleanup interval on unmount
-    return () => clearInterval(intervalId)
-  }, [session])
+  )
 
   // Handle accepting a connection request
   const handleAccept = async (request: ConnectionRequest) => {
     if (session?.user?.email) {
-      // Approve the request through your API
-      // console.log("request",request)
-      const result = await approve_request(request.requester.email, session?.user?.email,session?.user?.name)
-      
-      // Update connection strength in the backend
-      await axios.post('https://neo.coryfi.com/api/v1/connect', {
-        email1: session.user.email,
-        email2: request.requester.email,
-        strength: request.StrengthLevel
-      })
+      try {
+        // Optimistically update UI
+        const updatedRequests = requests.filter(req => req.id !== request.id)
+        mutate(`/api/connection-requests?email=${session.user.email}`, updatedRequests, false)
 
-      if (result.success) {
-        // Remove the request from the list
-        setRequests(requests.filter(req => req.id !== request.id))
-        toast.success(`You are now connected with ${request.requester.name}.`)
-      } else {
-        toast.error(result.error || "Failed to accept the request. Please try again.")
+        // Approve the request
+        const result = await approve_request(request.requester.email, session.user.email, session.user.name)
+        
+        // Update connection strength
+        await axios.post('https://neo.coryfi.com/api/v1/connect', {
+          email1: session.user.email,
+          email2: request.requester.email,
+          strength: request.StrengthLevel
+        })
+
+        if (result.success) {
+          toast.success(`You are now connected with ${request.requester.name}.`)
+          // Revalidate the data
+          mutate(`/api/connection-requests?email=${session.user.email}`)
+        } else {
+          throw new Error(result.error || "Failed to accept the request")
+        }
+      } catch (error) {
+        toast.error("Failed to accept the request. Please try again.")
+        // Revert optimistic update
+        mutate(`/api/connection-requests?email=${session.user.email}`)
       }
     }
   }
 
   // Handle rejecting a connection request
-  const handleReject = async (request) => {
-    const result = await reject_request(request.requester.email, session.user.email)
+  const handleReject = async (request: ConnectionRequest) => {
+    try {
+      // Optimistically update UI
+      const updatedRequests = requests.filter(req => req.id !== request.id)
+      mutate(`/api/connection-requests?email=${session.user.email}`, updatedRequests, false)
+
+      const result = await reject_request(request.requester.email, session.user.email)
       
-    setRequests(requests.filter(req => req.id !== request.id))
-    toast.success("Request rejected successfully.")
+      if (result.success) {
+        toast.success("Request rejected successfully.")
+        // Revalidate the data
+        mutate(`/api/connection-requests?email=${session.user.email}`)
+      } else {
+        throw new Error(result.error || "Failed to reject the request")
+      }
+    } catch (error) {
+      toast.error("Failed to reject the request. Please try again.")
+      // Revert optimistic update
+      mutate(`/api/connection-requests?email=${session.user.email}`)
+    }
+  }
+
+  if (error) {
+    toast.error("Failed to load notifications")
   }
 
   return (
@@ -109,7 +138,6 @@ export default function ConnectionRequestsDropdown() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
-            {/* Show badge with request count if there are any requests */}
             {requests.length > 0 && (
               <Badge variant="destructive" className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs">
                 {requests.length}
@@ -124,25 +152,26 @@ export default function ConnectionRequestsDropdown() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="my-1" />
           {showTooltip && (
-        <div className="absolute left-2 top-2 transform -translate-x-10 z-100 bg-slate-800 text-white p-2 rounded shadow-lg max-w-screen-2xl text-sm">
-          This number represents the quality of the bond you share with each other on a scale of 1-10
-        </div>
-      )}
+            <div className="absolute left-2 top-2 transform -translate-x-10 z-100 bg-slate-800 text-white p-2 rounded shadow-lg max-w-screen-2xl text-sm">
+              This number represents the quality of the bond you share with each other on a scale of 1-10
+            </div>
+          )}
           
-          {/* Show message if no requests */}
-          {requests.length === 0 ? (
+          {isLoading ? (
+            <DropdownMenuItem disabled className="text-center py-8 text-gray-500">
+              Loading...
+            </DropdownMenuItem>
+          ) : requests.length === 0 ? (
             <DropdownMenuItem disabled className="text-center py-8 text-gray-500">
               No new notifications
             </DropdownMenuItem>
           ) : (
-            // List of connection requests
             <div className="max-h-[400px] overflow-y-auto">
               {requests.map((request) => (
                 <DropdownMenuItem 
                   key={request.id} 
                   className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors duration-150 ease-in-out focus:bg-gray-100"
                 >
-                  {/* User information section */}
                   <div className="flex items-center space-x-3">
                     <Avatar className="h-12 w-12">
                       <AvatarImage src={request.requester.userdp || request.requester.image} />
@@ -159,7 +188,6 @@ export default function ConnectionRequestsDropdown() {
                     </div>
                   </div>
 
-                  {/* Actions section */}
                   <div className="flex flex-col items-end space-y-2">
                     <Badge 
                       variant="secondary" 
@@ -167,10 +195,9 @@ export default function ConnectionRequestsDropdown() {
                       onMouseEnter={() => setShowTooltip(true)}
                       onMouseLeave={() => setShowTooltip(false)}
                     >
-                     {request.StrengthLevel}
+                      {request.StrengthLevel}
                     </Badge>
                     
-                    {/* Accept/Reject buttons */}
                     <div className="flex space-x-2">
                       <Button
                         size="sm"
@@ -197,10 +224,6 @@ export default function ConnectionRequestsDropdown() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Tooltip that appears above the notification bell */}
-      
-
-      {/* Toast notifications */}
       <div className="relative">
         <div className='absolute top-16'>
           <Toaster 
@@ -215,7 +238,6 @@ export default function ConnectionRequestsDropdown() {
           />
         </div>
       </div>
-    
     </div>
   )
 }
