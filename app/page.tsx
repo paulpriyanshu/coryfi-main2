@@ -129,8 +129,8 @@ function Component() {
         </div>
 
         <div
-          className={`absolute left-0 top-0 h-full bg-slate-50 md:w-16 rounded-xl backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex ${
-            isExpanded ? (isMobile ? 'w-[340px]' : 'w-[400px]') : 'w-10'
+          className={`absolute left-0 top-0 h-full bg-slate-50  rounded-xl backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex  ${
+            isExpanded ? (isMobile ? 'w-[340px]' : 'w-[450px]') : 'w-10 md:w-16'
           }`}
         >
           <Tabs
