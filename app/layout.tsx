@@ -27,7 +27,7 @@ const geistMono = localFont({
 // Define metadata for the application
 export const metadata: Metadata = {
   title: "Coryfi Connect",
-  description: "A Networking Platform for Everyone",
+  description: "We remove the 'Cold' from Cold Approach",
 };
 
 // Root layout component
