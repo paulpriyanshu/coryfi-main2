@@ -296,7 +296,16 @@ export function MobileChatWindow({ chat,currentUserId, onClose, onChatUpdated, r
           >
             <SendIcon className="h-4 w-4" />
           </Button>
+
         </div>
+        <div className='flex justify-center w-full p-2'>
+        <Button className='rounded-lg bg-gray-100 w-2/3' onClick={onClose}>
+          
+          <ChevronDoubleDownIcon className='text-black'/>
+        </Button>
+
+        </div>
+      
       </div>
     </div>
   )
