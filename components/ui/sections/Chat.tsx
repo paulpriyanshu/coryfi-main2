@@ -11,7 +11,13 @@ import { useSession } from 'next-auth/react';
 import axios from 'axios';
 import { useSocket } from "./context/SocketContext";
 import { MobileChatWindow } from './MobileChatWindow';
-import { AnimatePresence } from 'framer-motion';
+import { DeleteMessageButton } from './components/DeleteMessageButton';
+import MobileFooter from '../MobileFooter';
+import { useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { setMobileChatOpen } from '@/app/libs/features/mobilefooter/footerSlice';
+import { useAppDispatch, useAppSelector } from '@/app/libs/store/hooks';
+
 
 const NEW_CHAT_EVENT = "newChat";
 const CHAT_UPDATED_EVENT = "chatUpdated";
@@ -175,7 +181,7 @@ export default function Chat() {
       };
     }
   }, [socket, currentUserId, currentChat]);
-
+  // const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
   useEffect(() => {
     const handleResize = () => {
       setIsMobileView(window.innerWidth < 768);
@@ -204,79 +210,121 @@ export default function Chat() {
     setRefetchMessages(false);
   }, []);
 
-  return (
-    <div className="flex h-screen">
-      <Toaster position="top-right" />
-      <div className={`flex flex-col ${isSidebarExtended ? 'w-1/3' : 'w-full'} border-r`}>
-        <div className="p-4">
-          <Input
-            type="text"
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="mb-4"
-          />
-          {searchTerm && (
-            <ScrollArea className="max-h-40 mt-2 border rounded-md">
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map(user => (
-                  <div
-                    key={user._id}
-                    className="p-2 cursor-pointer hover:bg-gray-200"
-                    onClick={() => handleCreateChat(user._id)}
-                  >
-                    {user.username}
-                  </div>
-                ))
-              ) : (
-                <div className="p-2 text-gray-500">No users found</div>
-              )}
-            </ScrollArea>
-          )}
-        </div>
-        <ScrollArea className="flex-grow">
-          <ChatList
-            chats={chats}
-            onSelectChat={handleUserCardClick}
-            currentUserId={currentUserId}
-          />
-        </ScrollArea>
-      </div>
-     
-      {currentChat && (
+  const handleDeleteMessage = useCallback((messageId: string) => {
+    setChats(prevChats => prevChats.map(chat => {
+      if (chat._id === currentChat._id) {
+        return {
+          ...chat,
+          messages: chat.messages.filter(message => message._id !== messageId)
+        };
+      }
+      return chat;
+    }));
+  }, [currentChat]);
+  
+  // useEffect(() => {
+  //   // Update mobile chat state whenever currentChat changes
+  //   setIsMobileChatOpen(!!currentChat && isMobileView);
+  // }, [currentChat, isMobileView]);
+  const dispatch = useAppDispatch()
+  const isMobileChatOpen = useAppSelector((state) => state.chat.isMobileChatOpen);
+  
+  const handleMobileChatToggle = (chat: any) => {
 
-        isMobileView ? (
-          <MobileChatWindow
-            chat={currentChat}
-            currentUserId={currentUserId}
-            onClose={() => {
-              setCurrentChat(null);
-              setIsSidebarExtended(false);
-            }}
-            onChatUpdated={() => setRefetchMessages(true)}
-            refetchMessages={refetchMessages}
-            onMessagesFetched={handleMessagesFetched}
-            isTyping={isTyping}
-          />
-        ) : (
-          <div className="w-2/3 flex flex-col">
-            <ChatWindow
-              chat={currentChat}
-              currentUserId={currentUserId}
-              onClose={() => {
-                setCurrentChat(null);
-                setIsSidebarExtended(false);
-              }}
-              onChatUpdated={() => setRefetchMessages(true)}
-              refetchMessages={refetchMessages}
-              onMessagesFetched={handleMessagesFetched}
-              isTyping={isTyping}
-            />
+    dispatch(setMobileChatOpen(!!chat));
+  };
+  useEffect(()=>{
+    if(currentChat){
+      const handleMobileChatToggle = () => {
+
+        dispatch(setMobileChatOpen(true));
+      };
+      handleMobileChatToggle()
+    }
+    
+  },[currentChat])
+
+
+return (
+      <div className="flex h-screen w-full">
+        <Toaster position="top-right" />
+    
+        {/* Sidebar */}
+        {!currentChat && (
+          <div className={`flex flex-col ${isSidebarExtended ? 'w-1/3' : 'w-full'} border-r`}>
+            <div className="p-4">
+              <Input
+                type="text"
+                placeholder="Search users..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="mb-4"
+              />
+              {searchTerm && (
+                <ScrollArea className="max-h-40 mt-2 border rounded-md">
+                  {filteredUsers.length > 0 ? (
+                    filteredUsers.map(user => (
+                      <div
+                        key={user._id}
+                        className="p-2 cursor-pointer hover:bg-gray-200"
+                        onClick={() => handleCreateChat(user._id)}
+                      >
+                        {user.username}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-2 text-gray-500">No users found</div>
+                  )}
+                </ScrollArea>
+              )}
+            </div>
+            <ScrollArea className="flex-grow">
+              <ChatList
+                chats={chats}
+                onSelectChat={handleUserCardClick}
+                currentUserId={currentUserId}
+              />
+            </ScrollArea>
           </div>
-        )
-      )}
-      
-    </div>
+        )}
+    
+        {/* Chat Window */}
+        {currentChat && (
+          <div className="w-full h-full">
+            {isMobileView ? (
+              <MobileChatWindow
+                chat={currentChat}
+                currentUserId={currentUserId}
+                onClose={() => {
+                  setCurrentChat(null);
+                  setIsSidebarExtended(false);
+                  dispatch(setMobileChatOpen(false))
+                }}
+                onChatUpdated={() => setRefetchMessages(true)}
+                refetchMessages={refetchMessages}
+                onMessagesFetched={handleMessagesFetched}
+                isTyping={isTyping}
+                onDeleteMessage={handleDeleteMessage}
+              />
+            ) : (
+              <ChatWindow
+                chat={currentChat}
+                currentUserId={currentUserId}
+                onClose={() => {
+                  setCurrentChat(null);
+                  setIsSidebarExtended(false);
+                }}
+                onChatUpdated={() => setRefetchMessages(true)}
+                refetchMessages={refetchMessages}
+                onMessagesFetched={handleMessagesFetched}
+                isTyping={isTyping}
+                onDeleteMessage={handleDeleteMessage}
+              />
+            )}
+          </div>
+        )}
+      </div>
+    
   );
 }
 

@@ -18,7 +18,7 @@ const MESSAGE_RECEIVED_EVENT = "messageReceived"
 const JOIN_CHAT_EVENT = "joinChat"
 const MESSAGE_DELETE_EVENT = "messageDeleted"
 
-export function MobileChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetchMessages, onMessagesFetched }) {
+export function MobileChatWindow({ chat,currentUserId, onClose, onChatUpdated, refetchMessages, onMessagesFetched }) {
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
@@ -54,7 +54,7 @@ export function MobileChatWindow({ chat, currentUserId, onClose, onChatUpdated, 
   useEffect(() => {
     if (socket && chat._id) {
       socket.emit(JOIN_CHAT_EVENT, chat._id)
-      console.log("joined chat")
+      // console.log("joined chat")
 
       socket.on(TYPING_EVENT, handleOnSocketTyping)
       socket.on(STOP_TYPING_EVENT, handleOnSocketStopTyping)
@@ -185,99 +185,120 @@ export function MobileChatWindow({ chat, currentUserId, onClose, onChatUpdated, 
       handleSendMessage()
     }
   }
-  console.log(chat)
+  // console.log(chat)
 
   return (
-    <div className="fixed inset-0 bg-background z-50 flex flex-col h-[80vh]">
-  <div className="flex items-center justify-center p-4 border-b">
-    <Button variant="ghost" size="icon" onClick={onClose}>
-      <ChevronDoubleDownIcon className="h-6 w-6" />
-    </Button>
-  </div>
-  <ScrollArea className="flex-grow p-4 max-h-[calc(100vh-180px)]" ref={scrollAreaRef}>
-    {isLoading ? (
-      <div className="flex justify-center items-center h-full">
-        <Loader2 className="h-6 w-6 animate-spin" />
-      </div>
-    ) : messages.length === 0 ? (
-      <div className="flex justify-center items-center h-full text-muted-foreground">
-        <p className="text-lg">No messages yet</p>
-      </div>
-    ) : (
-      <div className="space-y-4">
-        {messages.map((msg) => (
-          <div
-            key={msg._id}
-            className={`flex ${
-              msg?.sender?._id === currentUserId ? 'justify-end' : 'justify-start'
-            }`}
-          >
-            <div
-              className={`p-2 rounded-lg max-w-[80%] ${
-                msg?.sender?._id === currentUserId
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted'
-              }`}
-            >
-              <div className="flex items-center space-x-2 mb-1">
-                <Avatar className="w-6 h-6">
-                  <AvatarImage src={msg?.sender?.avatar?.url} alt={msg?.sender?.username} />
-                  <AvatarFallback>{msg?.sender?.username[0]}</AvatarFallback>
-                </Avatar>
-                <span className="font-semibold text-xs">{msg?.sender?.username}</span>
-                <span className="text-xs text-muted-foreground">
-                  {msg?.createdAt && !isNaN(new Date(msg?.createdAt).getTime())
-                    ? format(new Date(msg?.createdAt), 'HH:mm')
-                    : 'N/A'}
-                </span>
-              </div>
-              <p className="text-sm break-words">{msg?.content}</p>
-              {msg?.sender?._id === currentUserId && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDeleteMessage(msg?._id)}
-                  className="mt-1 p-0 h-6"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+    <div className="fixed inset-0 bg-background z-[99999] flex flex-col h-[100dvh] overflow-hidden">
+      <div className="flex items-center justify-between px-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        {/* <div className="flex items-center gap-2">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={chat?.avatar?.url} alt={chat?.name} />
+            <AvatarFallback>{chat?.name?.[0]}</AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">{chat?.name}</span>
+            {isTyping && (
+              <span className="text-xs text-muted-foreground">typing...</span>
+            )}
           </div>
-        ))}
+        </div> */}
+        <Button variant="ghost" size="icon" onClick={onClose}>
+          <X className="h-5 w-5" />
+        </Button>
       </div>
-    )}
-  </ScrollArea>
-  <div className="p-4 border-t">
-    {isTyping && (
-      <div className="text-sm text-muted-foreground mb-2">
-        Someone is typing...
-      </div>
-    )}
-    <div className="flex items-center space-x-2">
-      <Input
-        value={newMessage}
-        onChange={(e) => {
-          setNewMessage(e.target.value);
-          handleTyping();
-        }}
-        placeholder="Type a message..."
-        onKeyPress={handleKeyPress}
-        className="flex-grow"
-      />
-      <Button onClick={handleSendMessage}>
-        <SendIcon className="h-4 w-4" />
-      </Button>
-    </div>
-   
-  </div>
-  <div className="flex items-center justify-center p-4 border-b  mt-4">
-    <Button variant="ghost" size="icon" onClick={onClose}>
-      <ChevronDoubleDownIcon className="h-6 w-6" />
-    </Button>
-  </div>
-</div>  
+      
+      <ScrollArea 
+        className="flex-grow px-4 py-1 overflow-hidden" 
+        ref={scrollAreaRef}
+      >
+        <div className="space-y-3 pb-4">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-full">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="flex justify-center items-center h-full text-muted-foreground">
+              <p className="text-lg">No messages yet</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {messages.map((msg) => (
+                <div
+                  key={msg._id}
+                  className={`flex ${
+                    msg?.sender?._id === currentUserId ? 'justify-end' : 'justify-start'
+                  } group`}
+                >
+                  <div
+                    className={`flex flex-col space-y-1 max-w-[85%] ${
+                      msg?.sender?._id === currentUserId
+                        ? 'items-end'
+                        : 'items-start'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 px-2">
+                      {msg?.sender?._id !== currentUserId && (
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={msg?.sender?.avatar?.url} alt={msg?.sender?.username} />
+                          <AvatarFallback>{msg?.sender?.username[0]}</AvatarFallback>
+                        </Avatar>
+                      )}
+                      <span className="text-xs text-muted-foreground">
+                        {msg?.sender?.username} • {msg?.createdAt && !isNaN(new Date(msg?.createdAt).getTime())
+                          ? format(new Date(msg?.createdAt), 'HH:mm')
+                          : 'N/A'}
+                      </span>
+                    </div>
+                    <div
+                      className={`px-4 py-2.5 rounded-2xl break-words ${
+                        msg?.sender?._id === currentUserId
+                          ? 'bg-primary text-primary-foreground rounded-br-none'
+                          : 'bg-muted rounded-bl-none'
+                      }`}
+                    >
+                      <p className="text-sm">{msg?.content}</p>
+                    </div>
+                    {msg?.sender?._id === currentUserId && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteMessage(msg?._id)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity -mt-1 h-6 px-2"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </ScrollArea>
 
-)
+      <div className="p-2 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky bottom-10 flex-shrink-0">
+        <div className="flex items-center gap-2 max-w-3xl mx-auto">
+          <Input
+            value={newMessage}
+            onChange={(e) => {
+              setNewMessage(e.target.value);
+              handleTyping();
+            }}
+            placeholder="Type a message..."
+            onKeyPress={handleKeyPress}
+            className="flex-grow rounded-full"
+          />
+          <Button 
+            onClick={handleSendMessage} 
+            size="icon"
+            className="rounded-full"
+            disabled={!newMessage.trim()}
+          >
+            <SendIcon className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
 }
 

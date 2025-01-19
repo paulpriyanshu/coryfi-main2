@@ -7,8 +7,10 @@ import { cn } from "@/lib/utils"
 import { useRouter } from 'next/navigation'
 import CreatePostModal from './CreatePostModal'
 import DraftAlert from './DraftAlert'
+import { useAppSelector } from '@/app/libs/store/hooks'
 
-export function MobileFooter() {
+export default function MobileFooter() {
+
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
     const [activePage, setActivePage] = useState('network')
     const [hasDraft, setHasDraft] = useState(false)
@@ -21,7 +23,12 @@ export function MobileFooter() {
         setHasDraft(!!draft)
     }, [])
 
+    // Immediately update visibility when  changes
+   
+
     useEffect(() => {
+
+
         const handleScroll = () => {
             const currentScrollY = window.scrollY
             if (currentScrollY < lastScrollY) {
@@ -64,7 +71,7 @@ export function MobileFooter() {
                     />
                 )}
             </motion.button>
-        );
+        )
     }
 
     function CreateButton({ onClick }) {
@@ -87,18 +94,24 @@ export function MobileFooter() {
             setHasDraft(true)
         }
     }
+    const isMobileChatOpen = useAppSelector((state) => state.chat.isMobileChatOpen);
+    
+  if(isMobileChatOpen){
+    console.log("this is mobile chat",isMobileChatOpen)
+    return null
+  }
 
     return (
-        <>
-            <AnimatePresence>
-                {isVisible && (
-                    <motion.footer
-                        initial={{ y: '100%' }}
-                        animate={{ y: 0 }}
-                        exit={{ y: '100%' }}
-                        transition={{ duration: 0.3 }}
-                        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-20"
-                    >
+        <AnimatePresence>
+                <motion.div
+                    initial={{ y: '100%' }}
+                    animate={{ y: 0 }}
+                    exit={{ y: '100%' }}
+                    transition={{ duration: 0.3 }}
+                    className="fixed bottom-0 left-0 right-0 z-10"
+                >
+                    <footer className="bg-white border-t border-gray-200">
+                        
                         <nav className="flex justify-around items-center h-11 pb-2 pt-2">
                             <NavButton
                                 icon={<Home />}
@@ -130,13 +143,10 @@ export function MobileFooter() {
                                 href="/profile"
                             />
                         </nav>
-                    </motion.footer>
-                )}
-            </AnimatePresence>
-            <CreatePostModal isOpen={isCreateModalOpen} onClose={handleCloseModal} />
-            <DraftAlert isOpen={hasDraft} onClose={() => setHasDraft(false)} />
-        </>
-    )
+                    </footer>
+                    <CreatePostModal isOpen={isCreateModalOpen} onClose={handleCloseModal} />
+                    <DraftAlert isOpen={hasDraft} onClose={() => setHasDraft(false)} />
+                </motion.div>
+                 </AnimatePresence>
+    );
 }
-
-export default MobileFooter

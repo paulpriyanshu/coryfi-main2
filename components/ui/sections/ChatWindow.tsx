@@ -203,7 +203,7 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
   }
   console.log("chats",chat)
   return (
-    <Card className="flex flex-col h-full">
+    <Card className="flex flex-col h-full w-full">
       <CardHeader className="px-4 py-2">
         <CardTitle className="text-lg font-semibold flex justify-between items-center">
           <Button variant="ghost" size="sm" onClick={onClose}>

@@ -59,7 +59,7 @@ export default function RootLayout({
 
           {/* Mobile Footer - Visible only on small screens */}
           <div className="md:hidden">
-            <MobileFooter />
+            <MobileFooter/>
           </div>
           </StoreProvider>
         </Providers>
