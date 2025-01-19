@@ -215,7 +215,7 @@ a[x-apple-data-detectors],
                       <td align="center" class="a" style="padding:0;Margin:0"><h2 class="z c b" style="Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;mso-line-height-rule:exactly;letter-spacing:0;font-size:24px;font-style:normal;font-weight:normal;line-height:28.8px;color:#000000">New Connection Request</h2></td>
                      </tr>
                      <tr>
-                      <td align="center" class="d" style="padding:0;Margin:0"><p class="e" style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:24px;letter-spacing:0;color:#000000;font-size:16px">Strength Level -${strengthLevel};</p></td>
+                      <td align="center" class="d" style="padding:0;Margin:0"><p class="e" style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:24px;letter-spacing:0;color:#000000;font-size:16px">Strength Level ${strengthLevel};</p></td>
                      </tr>
                    </table></td>
                  </tr>
