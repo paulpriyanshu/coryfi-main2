@@ -28,6 +28,7 @@ import dynamic from 'next/dynamic'
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import 'react-quill/dist/quill.snow.css'
 
+
 const DRAFT_STORAGE_KEY = 'postDraft'
 
 export default function EnhancedInfiniteScrollNetwork() {
@@ -282,7 +283,7 @@ const handleSaveEditedImage = async (editedImage) => {
         let content = newPostContent.text
         let imageUrl = newPostContent.images.map(img => img.url)
         
-        const newPost = await uploadPost({ userId, content, imageUrl })
+        const newPost = await uploadPost( userId,session.user.name,content, imageUrl )
 
         setPosts(prevPosts => [newPost, ...prevPosts])
         setNewPostContent({ text: '', images: [] })
