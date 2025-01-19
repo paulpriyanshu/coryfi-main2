@@ -328,7 +328,7 @@ const sendSESEmail = async (to: string, subject: string, bodyText: string,bodyHt
 };
 export const notifyUsersOnNewPost = async ( name: string) => {
   try {
-    const users = await prisma.user.findMany({
+    const users = await db.user.findMany({
       select: { email: true }, // Fetch only emails
     });
 
