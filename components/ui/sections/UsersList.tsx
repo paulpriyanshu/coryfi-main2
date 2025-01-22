@@ -1,5 +1,5 @@
 // app/components/UsersList/UsersContainer.tsx
-import UsersList from "./UserListCLient"
+import UsersList from "./UserListClient";
 import { findPath } from "@/app/api/actions/pathActions";
 
 interface User {
@@ -13,7 +13,7 @@ interface UsersContainerProps {
   users: User[];
 }
 
-export default function UsersContainer({ users }: UsersContainerProps) {
+export default function UsersContainer({ users }) {
     // console.log("users",users)
   return <UsersList users={users} findPath={findPath} />;
 }
