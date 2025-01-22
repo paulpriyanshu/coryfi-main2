@@ -1,40 +1,33 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/Input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { MessageCircle, X, ThumbsUp, Share } from 'lucide-react'
-import { useSession } from 'next-auth/react'
-import { fetchComments, handleAddComment, handleReplyToComment } from './utils'
+import { MessageCircle, X, ThumbsUp, Share } from "lucide-react"
+import { useSession } from "next-auth/react"
+import { fetchComments, handleAddComment, handleReplyToComment } from "./utils"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
-import { likePost, dislikePost } from '@/app/api/actions/media'
-import { toast, Toaster } from 'react-hot-toast'
-import MobilePostModal from './mobile-post-modal'
-import { useMediaQuery } from './hooks/use-media-query'
+import { likePost, dislikePost } from "@/app/api/actions/media"
+import { toast, Toaster } from "react-hot-toast"
+import MobilePostModal from "./mobile-post-modal"
+import { useMediaQuery } from "./hooks/use-media-query"
 // import { sanitizeHtml } from './utils/sanitizeHtml'
-import DOMPurify from 'dompurify';
-
+import DOMPurify from "dompurify"
 
 function sanitizeHtml(html: string): string {
-  return DOMPurify.sanitize(html);
+  return DOMPurify.sanitize(html)
 }
 
 function ReplyInput({ postId, parentId, onAddReply, onCancel }) {
-  const [newReply, setNewReply] = useState('')
+  const [newReply, setNewReply] = useState("")
 
   const handleReplySubmit = async () => {
     if (newReply.trim()) {
       await onAddReply(postId, parentId, newReply.trim())
-      setNewReply('')
+      setNewReply("")
       onCancel()
     }
   }
@@ -48,18 +41,10 @@ function ReplyInput({ postId, parentId, onAddReply, onCancel }) {
         onChange={(e) => setNewReply(e.target.value)}
         className="flex-grow"
       />
-      <Button 
-        onClick={handleReplySubmit} 
-        size="sm"
-        variant="ghost"
-      >
+      <Button onClick={handleReplySubmit} size="sm" variant="ghost">
         Post
       </Button>
-      <Button 
-        onClick={onCancel} 
-        size="sm"
-        variant="ghost"
-      >
+      <Button onClick={onCancel} size="sm" variant="ghost">
         Cancel
       </Button>
     </div>
@@ -69,7 +54,7 @@ function ReplyInput({ postId, parentId, onAddReply, onCancel }) {
 function CommentItem({ comment, postId, onAddReply }) {
   const [isReplying, setIsReplying] = useState(false)
   const [showReplies, setShowReplies] = useState(false)
-  console.log("comment",comment)
+  console.log("comment", comment)
   const hasReplies = comment.replies && comment.replies.length > 0
 
   return (
@@ -83,21 +68,16 @@ function CommentItem({ comment, postId, onAddReply }) {
           <span className="text-sm font-semibold">{comment?.user?.name}</span>
           <span className="text-sm ml-2">{comment.content}</span>
           <div className="flex flex-wrap items-center gap-2 mt-1">
-            <button
-              className="text-xs text-gray-500 hover:text-gray-700"
-              onClick={() => setIsReplying(!isReplying)}
-            >
+            <button className="text-xs text-gray-500 hover:text-gray-700" onClick={() => setIsReplying(!isReplying)}>
               Reply
             </button>
-            <span className="text-xs text-gray-500">
-              {new Date(comment.createdAt).toLocaleString()}
-            </span>
+            <span className="text-xs text-gray-500">{new Date(comment.createdAt).toLocaleString()}</span>
             {hasReplies && (
               <button
                 className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
                 onClick={() => setShowReplies(!showReplies)}
               >
-                {comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}
+                {comment.replies.length} {comment.replies.length === 1 ? "reply" : "replies"}
               </button>
             )}
           </div>
@@ -105,9 +85,9 @@ function CommentItem({ comment, postId, onAddReply }) {
       </div>
 
       {isReplying && (
-        <ReplyInput 
-          postId={postId} 
-          parentId={comment.id} 
+        <ReplyInput
+          postId={postId}
+          parentId={comment.id}
           onAddReply={onAddReply}
           onCancel={() => setIsReplying(false)}
         />
@@ -116,12 +96,7 @@ function CommentItem({ comment, postId, onAddReply }) {
       {hasReplies && showReplies && (
         <div className="ml-8 space-y-4">
           {comment.replies.map((reply) => (
-            <CommentItem 
-              key={reply.id} 
-              comment={reply} 
-              postId={postId} 
-              onAddReply={onAddReply}
-            />
+            <CommentItem key={reply.id} comment={reply} postId={postId} onAddReply={onAddReply} />
           ))}
         </div>
       )}
@@ -132,36 +107,34 @@ function CommentItem({ comment, postId, onAddReply }) {
 export default function PostModal({ post, userId, isOpen, onClose }) {
   const { data: session, status } = useSession()
   const [localComments, setLocalComments] = useState(post.comments || [])
-  const [newComment, setNewComment] = useState('')
+  const [newComment, setNewComment] = useState("")
   const [isLiked, setIsLiked] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const [userEmail, setUserEmail] = useState("")
   const [likesCount, setLikesCount] = useState(post?.likes?.length)
-  
+
   const isMobile = useMediaQuery("(max-width: 640px)")
 
-
-
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.email) {
+    if (status === "authenticated" && session?.user?.email) {
       setUserEmail(String(session.user.email))
       setIsLiked(post?.likes?.includes(session.user.email))
-      console.log("post",post)
+      console.log("post", post)
     }
-  }, [session, status, post.likes]);
+  }, [session, status, post.likes])
 
   const handleLikeToggle = async () => {
-    if (!userEmail) return;
+    if (!userEmail) return
 
     try {
       if (isLiked) {
         await dislikePost(post.id, userEmail)
         setIsLiked(false)
-        setLikesCount(prev => prev - 1)
+        setLikesCount((prev) => prev - 1)
       } else {
         await likePost(post.id, userEmail)
         setIsLiked(true)
-        setLikesCount(prev => prev + 1)
+        setLikesCount((prev) => prev + 1)
       }
     } catch (error) {
       console.error("Error toggling like:", error)
@@ -183,29 +156,29 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
 
     const comment = await handleAddComment(post.id, userId, newComment)
     if (comment) {
-      setLocalComments(prev => [...prev, comment])
-      setNewComment('')
+      setLocalComments((prev) => [...prev, comment])
+      setNewComment("")
     }
   }
 
   const handleAddNewReply = async (postId, parentId, content) => {
     const newReply = await handleReplyToComment(postId, userId, content, parentId)
     if (newReply) {
-      setLocalComments(prev => updateCommentsWithNewReply(prev, parentId, newReply))
+      setLocalComments((prev) => updateCommentsWithNewReply(prev, parentId, newReply))
     }
   }
 
   const updateCommentsWithNewReply = (comments, parentId, newReply) => {
-    return comments.map(comment => {
+    return comments.map((comment) => {
       if (comment.id === parentId) {
         return {
           ...comment,
-          replies: [...(comment.replies || []), newReply]
+          replies: [...(comment.replies || []), newReply],
         }
       } else if (comment.replies?.length > 0) {
         return {
           ...comment,
-          replies: updateCommentsWithNewReply(comment.replies, parentId, newReply)
+          replies: updateCommentsWithNewReply(comment.replies, parentId, newReply),
         }
       }
       return comment
@@ -213,22 +186,22 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
   }
 
   const handleShare = async (e, postId) => {
-    e.stopPropagation(); // Prevent post modal from opening
-    const url = `https://connect.coryfi.com/p/${postId}`;
+    e.stopPropagation() // Prevent post modal from opening
+    const url = `https://connect.coryfi.com/p/${postId}`
     try {
-      await navigator.clipboard.writeText(url);
-      toast.success('Link copied to clipboard', {
+      await navigator.clipboard.writeText(url)
+      toast.success("Link copied to clipboard", {
         duration: 3000,
-        position: 'top-center',
-      });
+        position: "top-center",
+      })
     } catch (error) {
-      console.error('Failed to copy:', error);
-      toast.error('Failed to copy link', {
+      console.error("Failed to copy:", error)
+      toast.error("Failed to copy link", {
         duration: 3000,
-        position: 'top-center',
-      });
+        position: "top-center",
+      })
     }
-  };
+  }
 
   // const post.content = sanitizeHtml(post.content)
 
@@ -237,7 +210,7 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
       <Toaster />
       {isMobile ? (
         <MobilePostModal
-          post={{...post, content: post.content}}
+          post={{ ...post, content: post.content }}
           userId={userId}
           isOpen={isOpen}
           onClose={onClose}
@@ -284,7 +257,7 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
                   </Carousel>
                 </div>
               )}
-              <div className={`flex flex-col h-full ${post.imageUrl?.length > 0 ? 'md:w-[350px]' : 'w-full'}`}>
+              <div className={`flex flex-col h-full ${post.imageUrl?.length > 0 ? "md:w-[350px]" : "w-full"}`}>
                 <DialogHeader className="p-4 border-b shrink-0">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -294,30 +267,34 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
                       </Avatar>
                       <div className="flex flex-col">
                         <span className="text-sm font-semibold">{post.user?.name}</span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(post.createdAt).toLocaleString()}
-                        </span>
+                        <span className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleString()}</span>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={onClose}/>
+                    <Button variant="ghost" size="icon" onClick={onClose} />
                   </div>
-                  {post.content && (
-                    <div 
-                      className="mt-2 px-4 text-sm prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: post.content }}
-                    />
-                  )}
+                  {post.content &&
+                    (post.imageUrl?.length === 0 ? (
+                      <ScrollArea className="h-[200px] mt-2 px-4">
+                        <div
+                          className="text-sm prose prose-sm max-w-none"
+                          dangerouslySetInnerHTML={{ __html: post.content }}
+                        />
+                      </ScrollArea>
+                    ) : (
+                      <ScrollArea className="h-[200px] mt-2 px-4">
+                      <div
+                        className="mt-2 px-4 text-sm prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: post.content }}
+                      />
+                      </ScrollArea>
+                      
+                    ))}
                 </DialogHeader>
 
                 <ScrollArea className="flex-1">
                   <div className="p-4 space-y-4">
                     {localComments.map((comment) => (
-                      <CommentItem 
-                        key={comment.id} 
-                        comment={comment} 
-                        postId={post.id} 
-                        onAddReply={handleAddNewReply}
-                      />
+                      <CommentItem key={comment.id} comment={comment} postId={post.id} onAddReply={handleAddNewReply} />
                     ))}
                   </div>
                 </ScrollArea>
@@ -325,12 +302,8 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
                 <div className="border-t p-4 space-y-4 shrink-0">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={handleLikeToggle}
-                      >
-                        <ThumbsUp className={`w-6 h-6 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                      <Button variant="ghost" size="icon" onClick={handleLikeToggle}>
+                        <ThumbsUp className={`w-6 h-6 ${isLiked ? "fill-red-500 text-red-500" : ""}`} />
                       </Button>
                       <Button variant="ghost" size="icon">
                         <MessageCircle className="w-6 h-6" />
@@ -344,24 +317,18 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
 
                   {userId ? (
                     <div className="flex items-center gap-2">
-                      <Input 
-                        placeholder="Add a comment..." 
+                      <Input
+                        placeholder="Add a comment..."
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleAddNewComment()}
+                        onKeyPress={(e) => e.key === "Enter" && handleAddNewComment()}
                       />
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={handleAddNewComment}
-                      >
+                      <Button variant="ghost" size="sm" onClick={handleAddNewComment}>
                         Post
                       </Button>
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-500 text-center">
-                      Please sign in to comment
-                    </p>
+                    <p className="text-sm text-gray-500 text-center">Please sign in to comment</p>
                   )}
                 </div>
               </div>
@@ -372,3 +339,4 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
     </>
   )
 }
+

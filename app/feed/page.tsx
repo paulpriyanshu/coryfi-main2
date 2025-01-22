@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react"
 import { useSession } from "next-auth/react"
-import { MessageSquare, ThumbsUp, Share2, ChevronUp, ImageIcon, AlertCircle, X, ChevronLeft, ChevronRight, Send } from 'lucide-react'
+import { MessageSquare, ThumbsUp, Share2, ChevronUp, ImageIcon, AlertCircle, X } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -27,7 +27,8 @@ import ModernUserCarousel from "@/components/ui/sections/ModernUserCarousel"
 import dynamic from 'next/dynamic'
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import 'react-quill/dist/quill.snow.css'
-
+import Posts from "@/components/ui/sections/Posts"
+import useSWR from "swr"
 
 const DRAFT_STORAGE_KEY = 'postDraft'
 
@@ -111,22 +112,39 @@ const [isProcessingQueue, setIsProcessingQueue] = useState(false)
     }
   }, [session, fetchUserId]);
 
-  
-  useEffect(() => {
-    const getImages = async () => {
-      setIsInitialLoading(true)
-      try {
-        const images = await fetchImages()
-        // console.log("these are images", images)
-        setPosts(images)
-      } catch (error) {
-        console.error("Error fetching images:", error)
-      } finally {
-        setIsInitialLoading(false)
-      }
+  const imageFetcher = async () => {
+    try {
+      const images = await fetchImages()
+      return images
+    } catch (error) {
+      console.error("Error in fetcher:", error)
+      throw error
     }
-    getImages()
-  }, [])
+  }
+
+  // Use SWR with the custom fetcher
+  const { 
+    data: images, 
+    error, 
+    mutate,
+    isLoading 
+  } = useSWR('fetchImages', imageFetcher, {
+    refreshInterval: 60000, // Refresh every 10 seconds
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+    onError: (error) => {
+      console.error("SWR error:", error)
+      showNotification('Failed to fetch posts', 'error')
+    }
+  })
+  useEffect(() => {
+    console.log("images",images)
+    if (images) {
+      setPosts(images); // Update posts with new images
+      setIsInitialLoading(false)
+    }
+  }, [images]); // This will run every time `images` changes
+
 
   const [isClient, setIsClient] = useState(false) // Track if it's client-side
 
@@ -136,7 +154,7 @@ const [isProcessingQueue, setIsProcessingQueue] = useState(false)
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 300)
     }
-
+    
     if (isClient) {
       window.addEventListener('scroll', handleScroll)
       return () => window.removeEventListener('scroll', handleScroll)
@@ -283,7 +301,7 @@ const handleSaveEditedImage = async (editedImage) => {
         let content = newPostContent.text
         let imageUrl = newPostContent.images.map(img => img.url)
         
-        const newPost = await uploadPost( userId,session.user.name,content, imageUrl )
+        const newPost = await uploadPost( userId,session?.user?.name,content, imageUrl )
 
         setPosts(prevPosts => [newPost, ...prevPosts])
         setNewPostContent({ text: '', images: [] })
@@ -303,37 +321,7 @@ const handleSaveEditedImage = async (editedImage) => {
     }))
   }
 
-  const handleLike = async (postId) => {
-    try {
-      if (!session?.user?.email) {
-        // showNotification('Please log in to like posts', 'error')
-        return
-      }
 
-      const currentPost = posts.find(post => post.id === postId)
-      const isLiked = currentPost?.likes?.includes(session.user.email)
-
-      let updatedLikes
-      if (isLiked) {
-        await dislikePost(postId, session.user.email)
-        updatedLikes = currentPost.likes.filter(email => email !== session.user.email)
-        showNotification('Post disliked')
-      } else {
-        await likePost(postId, session.user.email)
-        updatedLikes = [...currentPost.likes, session.user.email]
-        showNotification(`Post liked `)
-      }
-
-      setPosts(prevPosts =>
-        prevPosts.map(post =>
-          post.id === postId ? { ...post, likes: updatedLikes } : post
-        )
-      )
-    } catch (error) {
-      console.error('Error toggling like on post:', error)
-      showNotification('Failed to update like status', 'error')
-    }
-  }
 
   const handleOpenModal = (post) => {
     // console.log("this is post",post)
@@ -397,6 +385,37 @@ const handleSaveEditedImage = async (editedImage) => {
       <div className="animate-spin rounded-full h-16 w-16 sm:h-10 sm:w-10 border-t-2 border-b-2 border-black"></div>
     </div>
     )
+  }
+  const handleLike = async (postId) => {
+    try {
+      if (!session?.user?.email) {
+        // showNotification('Please log in to like posts', 'error')
+        return
+      }
+
+      const currentPost = posts.find(post => post.id === postId)
+      const isLiked = currentPost?.likes?.includes(session.user.email)
+
+      let updatedLikes
+      if (isLiked) {
+        await dislikePost(postId, session.user.email)
+        updatedLikes = currentPost.likes.filter(email => email !== session.user.email)
+        showNotification('Post disliked')
+      } else {
+        await likePost(postId, session.user.email)
+        updatedLikes = [...currentPost.likes, session.user.email]
+        showNotification("Post liked ")
+      }
+
+      setPosts(prevPosts =>
+        prevPosts.map(post =>
+          post.id === postId ? { ...post, likes: updatedLikes } : post
+        )
+      )
+    } catch (error) {
+      console.error('Error toggling like on post:', error)
+      showNotification('Failed to update like status', 'error')
+    }
   }
 
   return (
@@ -505,135 +524,11 @@ const handleSaveEditedImage = async (editedImage) => {
         <div className="md:hidden">
           <ModernUserCarousel userEmail={session?.user?.email ? session?.user?.email: null} />
         </div>
-      )}
-  {posts.map((post, index) => (
-    <React.Fragment key={post._id || index}>
-      <Card 
-        className="bg-white shadow-lg cursor-pointer my-2 p-0" 
-        onClick={() => handleOpenModal(post)}
-      >
-        <CardHeader>
-          <div className="flex items-center space-x-2">
-            <Avatar>
-              <AvatarImage 
-                src={post?.user?.userdp} 
-                alt={post.user?.name} 
-                onClick={() => router.push(`/userProfile/${post?.user?.id}`)} 
-              />
-              <AvatarFallback onClick={() => router.push(`/userProfile/${post?.user?.id}`)}>
-                {post.user?.name?.[0]}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <div onClick={() => router.push(`/userProfile/${post?.user?.id}`)}>
-                <CardTitle className="text-black hover:underline hover:cursor-pointer">
-                  {post?.user?.name}
-                </CardTitle>
-              </div>
-              <p className="text-sm text-black">
-                {new Date(post?.createdAt).toLocaleString()}
-              </p>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="w-full">
-        <div
-            className="prose" // Apply the prose class for rich text formatting
-               dangerouslySetInnerHTML={{ __html: post.content }}
-          />
-          {/* Media Carousel */}
-          {(post.imageUrl?.length > 0 || post.videoUrl?.length > 0) && (
-            <Carousel className="w-full">
-              <CarouselContent>
-                {/* Images */}
-                {post.imageUrl?.map((url, idx) => (
-                  <CarouselItem key={`image-${idx}`}>
-                    <div className="relative w-full h-[500px]">
-                      <img
-                        src={url || "/placeholder.svg"}
-                        alt={`Post content ${idx + 1}`}
-                        className="rounded-lg w-full h-full object-contain"
-                      />
-                    </div>
-                  </CarouselItem>
-                ))}
-                {(post.imageUrl?.length > 0 || post.videoUrl?.length > 0) && (
-                    <Carousel className="w-full">
-                      <CarouselContent>
-                        {/* Images */}
-                        {post.imageUrl?.map((url, idx) => (
-                          <CarouselItem key={`image-${idx}`}>
-                            {/* Make the height responsive */}
-                            <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] ">
-                              <img
-                                src={url || "/placeholder.svg"}
-                                alt={`Post content ${idx + 1}`}
-                                className="rounded-lg w-full h-full object-contain sm:object-cover"
-                              />
-                            </div>
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                    </Carousel>
-                  )}
-
-                
-              </CarouselContent>
-
-              {/* Only show navigation if there's more than one media item */}
-              {(post.imageUrl?.length + (post.videoUrl?.length || 0)) > 1 && (
-                <>
-                  <CarouselPrevious className="left-2" />
-                  <CarouselNext className="right-2" />
-                </>
-              )}
-            </Carousel>
-          )}
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`hover:text-black hover:bg-slate-500 ${
-              post.likes.includes(session?.user?.email) ? 'text-black' : 'text-gray-600'
-            }`}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleLike(post.id);
-            }}
-          >
-            <ThumbsUp className="w-4 h-4 mr-2" />
-            {post.likes.length}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-black hover:text-black hover:bg-slate-500"
-          >
-            <MessageSquare className="w-4 h-4 mr-2" />
-            {post.comments?.length || 0}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-black hover:text-black hover:bg-slate-500"
-            onClick={(e) => handleShare(e, post.id)}
-          >
-            <Share2 className="w-4 h-4 mr-2" />
-            Share
-          </Button>
-        </CardFooter>
-      </Card>
-
-      {/* Render the ModernUserCarousel after every 5 posts */}
-      {(index + 1) % 3 === 0 && (
-        <div className="md:hidden">
-          <ModernUserCarousel userEmail={Email ? Email : null} />
-        </div>
-      )}
-    </React.Fragment>
-  ))}
-</div>
+           )}
+        {posts.map((post, index) => (
+          <Posts key={post.id} post={post} session={session} handleLike={handleLike}/>
+        ))}
+      </div>
 
             {loading && <p className="text-center text-black">Loading more posts...</p>}
             {!hasMore && <p className="text-center text-black">No more posts to load</p>}

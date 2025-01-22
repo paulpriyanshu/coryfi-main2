@@ -113,7 +113,7 @@ export default function CreatePostModal({ isOpen, onClose }: { isOpen: boolean; 
                 let content = newPostContent.text
                 let imageUrl = newPostContent.images.map(img => img.url)
 
-                const newPost = await uploadPost({ userId, content, imageUrl })
+                const newPost = await uploadPost( userId,session?.user?.name, content, imageUrl )
 
                 setNewPostContent({ text: '', images: [] })
                 localStorage.removeItem(DRAFT_STORAGE_KEY)

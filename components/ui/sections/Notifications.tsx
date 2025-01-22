@@ -1,135 +1,82 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import useSWR, { mutate } from 'swr'
-import { approve_request, reject_request } from "@/app/api/actions/network"
+import { approve_request, reject_request, get_new_requests } from "@/app/api/actions/network"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Bell, Check, X } from 'lucide-react'
 import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
 
-// Define interfaces for type safety
-interface Requester {
-  id: number
-  name: string
-  email: string
-  bio: string
-  connections: number
-  banner: string
-  location: string
-  currentPosition: string
-  company: string
-  website: string
-  image?: string
-  userdp?: string
-}
-
-interface ConnectionRequest {
-  StrengthLevel: number
-  id: number
-  requester: Requester
-  requesterId: number
-  recipientId: number
-  status: string
-  createdAt: Date
-  updatedAt: Date
-  blockedAt: Date
-}
-
-// SWR fetcher function
-const fetcher = async (url: string) => {
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error('Failed to fetch requests')
-  }
-  const data = await response.json()
-  return data.requests
-}
-
 export default function ConnectionRequestsDropdown() {
   const { data: session } = useSession()
+  const [requests, setRequests] = useState([])
+  const [loading, setLoading] = useState(true)
   const [showTooltip, setShowTooltip] = useState(false)
 
-  // SWR hook for fetching requests
-  const { data: requests = [], error, isLoading } = useSWR(
-    session?.user?.email ? `/api/connection-requests?email=${session.user.email}` : null,
-    fetcher,
-    {
-      refreshInterval: 5000, // Poll every 5 seconds
-      revalidateOnFocus: true,
-      revalidateOnReconnect: true
-    }
-  )
-
-  // Handle accepting a connection request
-  const handleAccept = async (request: ConnectionRequest) => {
-    if (session?.user?.email) {
+  useEffect(() => {
+    const fetchRequests = async () => {
+      if (!session?.user?.email) return
       try {
-        // Optimistically update UI
-        const updatedRequests = requests.filter(req => req.id !== request.id)
-        mutate(`/api/connection-requests?email=${session.user.email}`, updatedRequests, false)
-
-        // Approve the request
-        const result = await approve_request(request.requester.email, session.user.email, session.user.name)
-        
-        // Update connection strength
-        await axios.post('https://neo.coryfi.com/api/v1/connect', {
-          email1: session.user.email,
-          email2: request.requester.email,
-          strength: request.StrengthLevel
-        })
-
+        const result = await get_new_requests(session.user.email)
         if (result.success) {
-          toast.success(`You are now connected with ${request.requester.name}.`)
-          // Revalidate the data
-          mutate(`/api/connection-requests?email=${session.user.email}`)
+          setRequests(result.requests)
         } else {
-          throw new Error(result.error || "Failed to accept the request")
+          throw new Error('Failed to fetch requests')
         }
       } catch (error) {
-        toast.error("Failed to accept the request. Please try again.")
-        // Revert optimistic update
-        mutate(`/api/connection-requests?email=${session.user.email}`)
+        toast.error('Failed to load notifications')
+      } finally {
+        setLoading(false)
       }
     }
-  }
 
-  // Handle rejecting a connection request
-  const handleReject = async (request: ConnectionRequest) => {
+    fetchRequests()
+  }, [session?.user?.email])
+
+  const handleAccept = async (request) => {
+    if (!session?.user?.email) return
+
     try {
-      // Optimistically update UI
-      const updatedRequests = requests.filter(req => req.id !== request.id)
-      mutate(`/api/connection-requests?email=${session.user.email}`, updatedRequests, false)
+      setRequests(requests.filter(req => req.id !== request.id))
 
-      const result = await reject_request(request.requester.email, session.user.email)
-      
+      const result = await approve_request(request.requester.email, session.user.email, session.user.name)
+
+      await axios.post('https://neo.coryfi.com/api/v1/connect', {
+        email1: session.user.email,
+        email2: request.requester.email,
+        strength: request.StrengthLevel
+      })
+
       if (result.success) {
-        toast.success("Request rejected successfully.")
-        // Revalidate the data
-        mutate(`/api/connection-requests?email=${session.user.email}`)
+        toast.success(`Connected with ${request.requester.name}`)
       } else {
-        throw new Error(result.error || "Failed to reject the request")
+        throw new Error(result.error)
       }
     } catch (error) {
-      toast.error("Failed to reject the request. Please try again.")
-      // Revert optimistic update
-      mutate(`/api/connection-requests?email=${session.user.email}`)
+      toast.error("Failed to accept request")
     }
   }
 
-  if (error) {
-    toast.error("Failed to load notifications")
+  const handleReject = async (request) => {
+    if (!session?.user?.email) return
+
+    try {
+      setRequests(requests.filter(req => req.id !== request.id))
+
+      const result = await reject_request(request.requester.email, session.user.email)
+
+      if (result.success) {
+        toast.success("Request rejected")
+      } else {
+        throw new Error(result.error)
+      }
+    } catch (error) {
+      toast.error("Failed to reject request")
+    }
   }
 
   return (
@@ -153,11 +100,11 @@ export default function ConnectionRequestsDropdown() {
           <DropdownMenuSeparator className="my-1" />
           {showTooltip && (
             <div className="absolute left-2 top-2 transform -translate-x-10 z-100 bg-slate-800 text-white p-2 rounded shadow-lg max-w-screen-2xl text-sm">
-              This number represents the quality of the bond you share with each other on a scale of 1-10
+              Bond strength scale: 1-10
             </div>
           )}
           
-          {isLoading ? (
+          {loading ? (
             <DropdownMenuItem disabled className="text-center py-8 text-gray-500">
               Loading...
             </DropdownMenuItem>
@@ -174,7 +121,7 @@ export default function ConnectionRequestsDropdown() {
                 >
                   <div className="flex items-center space-x-3">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={request.requester.userdp || request.requester.image} />
+                      <AvatarImage src={request.requester.userdp || request.requester.name.slice(0,2)} />
                       <AvatarFallback className="text-lg">
                         {request.requester.name.charAt(0)}
                       </AvatarFallback>
@@ -182,9 +129,6 @@ export default function ConnectionRequestsDropdown() {
                     <div>
                       <p className="text-sm font-medium">{request.requester.name}</p>
                       <p className="text-xs text-gray-500">{request.requester.email}</p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {request.requester.currentPosition} at {request.requester.company}
-                      </p>
                     </div>
                   </div>
 
@@ -224,20 +168,7 @@ export default function ConnectionRequestsDropdown() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <div className="relative">
-        <div className='absolute top-16'>
-          <Toaster 
-            position="bottom-center"
-            toastOptions={{
-              duration: 1000,
-              style: {
-                background: '#333',
-                color: '#fff',
-              },
-            }}
-          />
-        </div>
-      </div>
+      <Toaster position="bottom-center" toastOptions={{ duration: 1000, style: { background: '#333', color: '#fff' } }} />
     </div>
   )
 }

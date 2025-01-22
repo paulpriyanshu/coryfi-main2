@@ -718,6 +718,7 @@ export const approve_request = async (requesterEmail: string, recipientEmail: st
     try {
       // Validate input
       if (!email) {
+        
         throw new Error('Email is required.');
       }
   
