@@ -729,10 +729,7 @@ export const approve_request = async (requesterEmail: string, recipientEmail: st
       if (!user) {
         throw new Error('No user found with the given email.');
       }
-      console.log("fetching user id ",user)
       const { id: recipientId } = user;
-      console.log("fetched user id ",recipientId)
-      // Fetch pending connection requests
       const newRequests = await db.connection.findMany({
         where: {
           recipientId,

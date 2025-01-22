@@ -8,7 +8,7 @@ interface CustomUser extends User {
   id: string;
 }
 
-const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthOptions = {
   debug: true,
   providers: [
     GoogleProvider({

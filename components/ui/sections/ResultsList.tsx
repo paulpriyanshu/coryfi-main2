@@ -1,19 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Search, Users, Clock, ChevronLeft, ChevronRight, ArrowUp, AlertCircle, CheckCircle, UserPlus, Loader2 } from 'lucide-react'
-import { Button } from "@/components/ui/button"
+import { AlertCircle, Loader2 } from 'lucide-react'
 import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import PersonalNetwork from '@/components/ui/sections/PersonalNetwork'
-import { useAppDispatch, useAppSelector } from '@/app/libs/store/hooks'
-import { selectResponseData, setResponseData } from '@/app/libs/features/pathdata/pathSlice'
-import axios from 'axios'
-import CollaborativeEvaluationModal from './CollaborativeEvaluationModal'
+import {  useAppSelector } from '@/app/libs/store/hooks'
+import { selectResponseData } from '@/app/libs/features/pathdata/pathSlice'
 import { Toaster, toast } from 'react-hot-toast'
+import { getPathRanking } from '@/app/api/actions/pathActions'
+import ResultCard from './ResultCard'
 
 type FilterType = 'results' | 'collab' | 'recents'
 
@@ -32,22 +26,7 @@ type ConnectionPath = {
   links: { source: number; target: number; value: number }[]
 }
 
-async function getPathRanking(index: number, userEmail: string, targetEmail: string): Promise<ConnectionPath | null> {
-  try {
-    const response = await axios.post('https://neo.coryfi.com/api/v1/getpathranking', {
-      sourceEmail: userEmail,
-      targetEmail: targetEmail,
-      pathIndex: index
-    });
 
-    const data = response.data;
-    // console.log(data);
-    return data;
-  } catch (error) {
-    console.error("Error fetching path ranking:", error);
-    return null;
-  }
-}
 
 export default function ResultsList() {
   const [paths, setPaths] = useState<ConnectionPath[]>([]);
@@ -145,103 +124,7 @@ export default function ResultsList() {
   );
 }
 
-function ResultCard({ index, path }: { index: number; path: ConnectionPath }) {
-  const dispatch = useAppDispatch()
-  const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const handlePathClick = () => {
-    // console.log("Dispatching path:", path)
-    dispatch(setResponseData(path))
-  }
 
-  const handleCollaborativeEvaluation = (e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent card click event
-    setIsModalOpen(true)
-  }
 
-  const lastNode = path.nodes[path?.nodes?.length - 1];
-  return (
-    <>
-      <Card 
-        className="bg-background/50 hover:bg-background/80 transition-colors duration-200 hover:cursor-pointer hover:bg-slate-100"
-        onClick={handlePathClick}
-      >
-        <CardContent className="p-4">
-          <div className="flex items-center space-x-4 mb-4">
-            <Avatar className="w-10 h-10">
-              <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${lastNode.name}`} alt={lastNode.name} />
-              <AvatarFallback>{lastNode.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div className="flex-grow">
-              <h3 className="font-semibold text-sm">{lastNode.name}</h3>
-              <p className="text-xs text-muted-foreground">Connected through {path.nodes.length - 2} people</p>
-            </div>
-            <Button 
-              onClick={handleCollaborativeEvaluation}
-              className="ml-auto"
-              variant="outline"
-              size="sm"
-            >
-              <img src='/icon.png' className="w-5 h-5" />
-              <div className='font-sans text-extrabold text-slate-700'>Start</div>
-            </Button>
-          </div>
-          <ConnectionPathCard path={path} />
-        </CardContent>
-      </Card>
-      <CollaborativeEvaluationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        path={path}
-      />
-    </>
-  )
-}
-
-function ConnectionPathCard({ path }: { path }) {
-  const nodesToShow = path.nodes.length > 5 ? [...path.nodes.slice(2,5), '...', path.nodes[path.nodes.length - 1]] : path.nodes.slice(2,path.nodes.length);
-  const hasEllipsis = path.nodes.length > 5;
-  // console.log("nodes before show",path?.nodes)
-  // console.log("nodes to show",nodesToShow)
-  return (
-    <TooltipProvider>
-      <div className="relative py-6">
-        <div className="flex items-center justify-between">
-          {nodesToShow.map((node, index) => (
-            node === '...' ? (
-              <div key="ellipsis" className="text-gray-500">...</div> 
-            ) : (
-              <Tooltip key={node.id}>
-                <TooltipTrigger asChild>
-                  <div className="flex flex-col items-center relative">
-                    <Avatar className={`w-12 h-12 relative z-10 ${index === 1 ? 'ring-4 ring-black/50 ring-offset-2' : ''}`}>
-                      <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${node.name}`} alt={node.name} />
-                      <AvatarFallback>{node.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    {index === 1 && (
-                      <div className="absolute -bottom-7">
-                        <ArrowUp className="w-5 h-5 text-black" />
-                      </div>
-                    )}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{node.name}</p>
-                  <p className="text-xs text-muted-foreground">{node.email}</p>
-                </TooltipContent>
-                <div className={`absolute top-1/2 left-0 right-0 h-0.5 ${hasEllipsis ? 'bg-transparent' : 'bg-black/50'} -translate-y-1/2 z-0`}>
-          {hasEllipsis && (
-            <div className="absolute left-1/3 right-1/3 border-t border-dashed border-gray-500" />
-          )}
-        </div>
-                
-              </Tooltip>
-            )
-          ))}
-        </div>
-        <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-black/50 -translate-y-1/2 z-0"></div>
-      </div>
-    </TooltipProvider>
-  )
-}
 
