@@ -25,7 +25,7 @@ export async function getPathRanking(index: number, userEmail: string, targetEma
     });
 
     const data = response.data;
-    // console.log(data);
+    console.log("this is network data",data);
     return data;
   } catch (error) {
     console.error("Error fetching path ranking:", error);

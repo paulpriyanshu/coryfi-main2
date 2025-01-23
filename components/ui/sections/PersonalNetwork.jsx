@@ -44,8 +44,8 @@ export default function PersonalNetwork({ data: propData }) {
         // setUserId(id);
         // const userDetails = await fetchUserData(id);
         // setUserDp(userDetails.userdp);
-        console.log("userconnections", userconnections);
-        console.log("propData",propData)
+        // console.log("userconnections", userconnections);
+        // console.log("propData",propData)
         setUserConnections(userconnections)
 
       } catch (err) {

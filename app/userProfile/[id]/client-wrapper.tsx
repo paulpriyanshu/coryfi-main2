@@ -35,7 +35,7 @@ export function ClientWrapper({ userId, isConnected: initialIsConnected, userDat
       
     }
     userData()
-  })
+  },[])
 
   const handleConnectClick = () => {
     if (!session?.user?.email) {
@@ -88,7 +88,7 @@ export function ClientWrapper({ userId, isConnected: initialIsConnected, userDat
     setIsLoading(true);
     if(session.user.email){
       try {
-     
+        console.log("entered the function")
         const response = await getPathRanking(0, session.user.email, email);
         console.log("response of user",response)
         if (!response || response.nodes.length === 0) {

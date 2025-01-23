@@ -116,6 +116,7 @@ export default function SearchBar() {
   return (
     <div ref={searchRef} className="relative mb-6">
       <Card className="p-2 shadow-lg">
+
         <form
           onSubmit={(e) => {
             e.preventDefault()
