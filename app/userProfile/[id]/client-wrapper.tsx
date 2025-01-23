@@ -96,10 +96,10 @@ export function ClientWrapper({ userId, isConnected: initialIsConnected, userDat
           toast.error('No connection path found. Please verify the user email or try again.');
           return;
         }
-        
+        router.push('/?tab=results&expand=true');
         dispatch(setResponseData(response));
         toast.success('Path data loaded successfully!');
-        router.push('/?tab=results&expand=true');
+        
       } catch (error) {
         console.error('Error finding path:', error);
         
