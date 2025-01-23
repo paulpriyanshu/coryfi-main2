@@ -118,6 +118,7 @@ function Posts({ post, session, handleLike }) {
             Share
           </Button>
         </CardFooter>
+       
       </Card>
     </div>
   );

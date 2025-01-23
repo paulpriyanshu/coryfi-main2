@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useCallback } from 'react'
+import useSWR from 'swr'
 import useEmblaCarousel from 'embla-carousel-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -9,53 +10,50 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { getUnconnectedUsers } from '@/app/api/actions/media'
 
+// Define the type for user data
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  userdp?: string;
+}
 
+// Custom fetcher function using the server action
+const fetcher = async (email: string) => {
+  if (!email) return null;
+  return await getUnconnectedUsers(email);
+}
 
-const ModernUserCarousel= ({userEmail}) => {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: 'start' })
-  const [prevBtnEnabled, setPrevBtnEnabled] = useState(false)
-  const [nextBtnEnabled, setNextBtnEnabled] = useState(false)
-  const [users,setUsers]=useState(null)
+const ModernUserCarousel = ({ userEmail }: { userEmail: string }) => {
+  // Embla Carousel setup
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    loop: false, 
+    align: 'start' 
+  });
 
-  const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi])
-  const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi])
+  // SWR hook for data fetching
+  const { 
+    data: users, 
+    error, 
+    isLoading 
+  } = useSWR(userEmail ? `unconnected-users-${userEmail}` : null, () => fetcher(userEmail));
 
-  const onSelect = useCallback(() => {
-    if (!emblaApi) return
-    setPrevBtnEnabled(emblaApi.canScrollPrev())
-    setNextBtnEnabled(emblaApi.canScrollNext())
-  }, [emblaApi])
-  const router=useRouter()
-  useEffect(() => {
-    if (!emblaApi) return
-    onSelect()
-    emblaApi.on('select', onSelect)
-    emblaApi.on('reInit', onSelect)
+  const router = useRouter();
 
-    return () => {
-      emblaApi.off('select', onSelect)
-      emblaApi.off('reInit', onSelect)
-    }
-  }, [emblaApi, onSelect])
+  // Scroll navigation callbacks
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
 
-   useEffect(()=>{
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
 
-      // console.log("prop email",userEmail)
-      const fetchUnconnectedUsers=async()=>{
-  
-         if (userEmail) {
-           const data=await getUnconnectedUsers(userEmail)
-          //  console.log("unconnected people",data)
-           setUsers(data)
-         } 
-      }
-      fetchUnconnectedUsers()
-     },[])
-     
-     
-     if(!userEmail || !users){
-      return null
-     }
+  // Early return states
+  if (!userEmail || isLoading) return null;
+  if (error) return <div>Failed to load users</div>;
+  if (!users || users.length === 0) return null;
+
   return (
     <div className="relative w-5/6 max-w-sm m-5">
       <div className="overflow-hidden" ref={emblaRef}>
@@ -94,27 +92,30 @@ const ModernUserCarousel= ({userEmail}) => {
           ))}
         </div>
       </div>
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 bg-white shadow-md"
-        onClick={scrollPrev}
-        disabled={!prevBtnEnabled}
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-white shadow-md"
-        onClick={scrollNext}
-        disabled={!nextBtnEnabled}
-      >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
+      {users && users.length > 1 && (
+        <>
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 bg-white shadow-md"
+            onClick={scrollPrev}
+            disabled={!emblaApi?.canScrollPrev()}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-white shadow-md"
+            onClick={scrollNext}
+            disabled={!emblaApi?.canScrollNext()}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </>
+      )}
     </div>
-  )
+  );
 }
 
-export default ModernUserCarousel
-
+export default ModernUserCarousel;

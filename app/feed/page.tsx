@@ -526,8 +526,15 @@ const handleSaveEditedImage = async (editedImage) => {
         </div>
            )}
         {posts.map((post, index) => (
-          <Posts key={post.id} post={post} session={session} handleLike={handleLike}/>
-        ))}
+        <React.Fragment key={post.id}>
+          <Posts post={post} session={session} handleLike={handleLike} />
+          {(index + 1) % 3 === 0 && (
+            <div className="md:hidden">
+              <ModernUserCarousel userEmail={Email ? Email : null} />
+            </div>
+          )}
+        </React.Fragment>
+      ))}
       </div>
 
             {loading && <p className="text-center text-black">Loading more posts...</p>}

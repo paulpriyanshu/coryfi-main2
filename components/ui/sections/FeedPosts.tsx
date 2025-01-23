@@ -25,11 +25,11 @@
 //             <Posts key={post.id} post={post} session={session} handleLike={handleLike}/>
 
 //             {/* Render the ModernUserCarousel after every 5 posts */}
-//             {(index + 1) % 3 === 0 && (
-//               <div className="md:hidden">
-//                 <ModernUserCarousel userEmail={Email ? Email : null} />
-//               </div>
-//             )}
+            // {(index + 1) % 3 === 0 && (
+            //   <div className="md:hidden">
+            //     <ModernUserCarousel userEmail={Email ? Email : null} />
+            //   </div>
+            // )}
 //           </React.Fragment>
 //         ))}
 
