@@ -199,6 +199,49 @@ export const fetchAllUsers=async()=>{
   return user
 
 }
+
+
+export async function searchUsers(searchTerm: string, page = 1, pageSize = 10) {
+  const offset = (page - 1) * pageSize
+
+  const users = await db.user.findMany({
+    where: {
+      OR: [
+        { name: { contains: searchTerm, mode: "insensitive" } },
+        { email: { contains: searchTerm, mode: "insensitive" } },
+      ],
+    },
+    take: pageSize,
+    skip: offset,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+   
+    },
+  })
+
+  const totalCount = await db.user.count({
+    where: {
+      OR: [
+        { name: { contains: searchTerm, mode: "insensitive" } },
+        { email: { contains: searchTerm, mode: "insensitive" } },
+      ],
+    },
+  })
+
+  const results = users.map((user) => ({
+    ...user,
+
+  }))
+
+  return {
+    results,
+    nextPage: page < Math.ceil(totalCount / pageSize) ? page + 1 : undefined,
+  }
+}
+
+
 export const fetchUserData = async (userId) => {
   const user = await db.user.findUnique({
     where: {

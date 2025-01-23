@@ -29,6 +29,25 @@ export default function SearchBar() {
   const searchRef = useRef<HTMLDivElement>(null)
   const { data: session } = useSession()
   const router = useRouter()
+  
+  // Memoize users to prevent repeated fetching
+  const [allUsers, setAllUsers] = useState([])
+
+  // Fetch users only once when component mounts
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        const resdata = await fetchAllUsers()
+        setAllUsers(resdata)
+      } catch (error) {
+        console.error("Error fetching users:", error)
+      }
+    }
+
+    if (session?.user?.email) {
+      loadUsers()
+    }
+  }, [session])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -43,20 +62,27 @@ export default function SearchBar() {
     }
   }, [])
 
+  const performSearch = useCallback((term: string) => {
+    if (term.length > 0) {
+      const filteredResults = allUsers.filter(
+        (user) => 
+          user.name.toLowerCase().includes(term.toLowerCase()) || 
+          user.email.toLowerCase().includes(term.toLowerCase())
+      )
+      setSearchResults(filteredResults)
+    } else {
+      setSearchResults([])
+    }
+  }, [allUsers])
+
   const debouncedSearch = useCallback(
-    debounce(async (term: string) => {
+    debounce((term: string) => {
       if (term.length > 0 && session?.user?.email) {
         setIsLoading(true)
         try {
-          const resdata = await fetchAllUsers()
-          const filteredResults = resdata.filter(
-            (user) => 
-              user.name.toLowerCase().includes(term.toLowerCase()) || 
-              user.email.toLowerCase().includes(term.toLowerCase())
-          )
-          setSearchResults(filteredResults)
+          performSearch(term)
         } catch (error) {
-          console.error("Error fetching search results:", error)
+          console.error("Error searching:", error)
           setSearchResults([])
         } finally {
           setIsLoading(false)
@@ -64,8 +90,8 @@ export default function SearchBar() {
       } else {
         setSearchResults([])
       }
-    }, 300),
-    [session],
+    }, 100), // Reduced delay to 100ms
+    [performSearch, session],
   )
 
   useEffect(() => {
@@ -78,7 +104,6 @@ export default function SearchBar() {
   }
 
   const handleUserRoute = async (id) => {
-    // console.log("this is id",id)
     router.push(`/userProfile/${id}`)
   }
 
