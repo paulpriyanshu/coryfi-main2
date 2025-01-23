@@ -1,38 +1,34 @@
-'use client'
+"use client"
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { Search, X, Clock, TrendingUp, User } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from "react"
+import { Search, X, Clock, TrendingUp, User } from "lucide-react"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import axios from 'axios'
-import { useAppDispatch, useAppSelector } from '@/app/libs/store/hooks'
-import { selectResponseData, setResponseData } from '@/app/libs/features/pathdata/pathSlice'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { fetchUserData, fetchUserId } from '@/app/api/actions/media'
+import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import { fetchAllUsers } from "@/app/api/actions/media"
 
 // This would typically come from your API or database
-const recentSearches = ['React', 'Next.js', 'Tailwind CSS', 'TypeScript']
-const trendingSearches = ['JavaScript', 'Node.js', 'GraphQL', 'Docker']
+const recentSearches = ["React", "Next.js", "Tailwind CSS", "TypeScript"]
+const trendingSearches = ["JavaScript", "Node.js", "GraphQL", "Docker"]
 
-
-interface SearchResult { 
-  email: string;
-  name: string;
+interface SearchResult {
+  id: string
+  email: string
+  name: string
+  attachments?: string[]
 }
 
 export default function SearchBar() {
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState("")
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
-  const [path, setPath] = useState({})
+  const [searchResults, setSearchResults] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
-  const { data: session, status } = useSession()
-  const dispatch = useAppDispatch()
-  const router=useRouter()
+  const { data: session } = useSession()
+  const router = useRouter()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -41,9 +37,9 @@ export default function SearchBar() {
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside)
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [])
 
@@ -52,20 +48,15 @@ export default function SearchBar() {
       if (term.length > 0 && session?.user?.email) {
         setIsLoading(true)
         try {
-          const response = await fetch('https://neo.coryfi.com/api/v1/search', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              searchTerm: term,
-              currentUsername: session.user.email
-            }),
-          })
-          const resdata = await response.json()
-          setSearchResults(resdata)
+          const resdata = await fetchAllUsers()
+          const filteredResults = resdata.filter(
+            (user) => 
+              user.name.toLowerCase().includes(term.toLowerCase()) || 
+              user.email.toLowerCase().includes(term.toLowerCase())
+          )
+          setSearchResults(filteredResults)
         } catch (error) {
-          console.error('Error fetching search results:', error)
+          console.error("Error fetching search results:", error)
           setSearchResults([])
         } finally {
           setIsLoading(false)
@@ -74,7 +65,7 @@ export default function SearchBar() {
         setSearchResults([])
       }
     }, 300),
-    [session]
+    [session],
   )
 
   useEffect(() => {
@@ -82,44 +73,17 @@ export default function SearchBar() {
   }, [searchTerm, debouncedSearch])
 
   const handleSearch = (term: string) => {
-    
-    // console.log(`Searching for: ${term}`)
     setSearchTerm(term)
     setShowSuggestions(false)
-    // router.push('/')
-    
   }
 
-  // const handleFindPath = async (email: string) => {
-  //   if (session?.user?.email) {
-  //     try {
-  //       const response = await axios.post("https://neo.coryfi.com/api/v1/getpathranking", {
-  //         targetEmail: email,
-  //         sourceEmail: session.user.email,
-  //         pathIndex:0
-  //       })
-  //       setPath(response.data.path)
-  //       // console.log("this is the prop data",response.data)
-  //       dispatch(setResponseData(response.data))
-  //       // console.log("this is connect data",response.data)
-  //     } catch (error) {
-  //       console.error('Error finding path:', error)
-  //     }
-  //   }
-  // }
-const handleUserRoute=async(email:string)=>{
-  const user=await fetchUserId(email)
-  // console.log("this is the userdata",user.id)
-  router.push(`/userProfile/${user.id}`)
-
-
-}
-  // useEffect(() => {
-  //   // console.log("this is path", path)
-  // }, [path])
+  const handleUserRoute = async (id) => {
+    // console.log("this is id",id)
+    router.push(`/userProfile/${id}`)
+  }
 
   const handleClearSearch = () => {
-    setSearchTerm('')
+    setSearchTerm("")
     setShowSuggestions(false)
     setSearchResults([])
   }
@@ -127,7 +91,13 @@ const handleUserRoute=async(email:string)=>{
   return (
     <div ref={searchRef} className="relative mb-6">
       <Card className="p-2 shadow-lg">
-        <form onSubmit={(e) => { e.preventDefault(); handleSearch(searchTerm); }} className="flex items-center gap-2">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            handleSearch(searchTerm)
+          }}
+          className="flex items-center gap-2"
+        >
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 md:h-4 md:w-4 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -154,7 +124,9 @@ const handleUserRoute=async(email:string)=>{
               </Button>
             )}
           </div>
-          <Button type="submit" className="bg-primary">Search</Button>
+          <Button type="submit" className="bg-primary">
+            Search
+          </Button>
         </form>
       </Card>
       {showSuggestions && (
@@ -169,9 +141,18 @@ const handleUserRoute=async(email:string)=>{
                   {searchResults.length > 0 && (
                     <CommandGroup heading="Search Results">
                       {searchResults.map((result) => (
-                        <CommandItem key={result.email} onSelect={(()=>handleUserRoute(result.email))}>
+                        <CommandItem key={result.id} onSelect={() => handleUserRoute(result.id)}>
                           <User className="mr-2 h-4 w-4" />
-                          {result.name} ({result.email})
+                          <div>
+                            <div>
+                              {result.name} ({result.email})
+                            </div>
+                            {result.attachments && result.attachments.length > 0 && (
+                              <div className="text-sm text-muted-foreground">
+                                Attachments: {result.attachments.join(", ")}
+                              </div>
+                            )}
+                          </div>
                         </CommandItem>
                       ))}
                     </CommandGroup>

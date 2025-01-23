@@ -26,20 +26,7 @@ export default function LeftSidebar({ userEmail }) {
     }
   );
 
-  const handleFindPath = async (email: string) => {
-    if (userEmail) {
-      try {
-        const response = await axios.post("https://neo.coryfi.com/api/v1/getpathranking", {
-          targetEmail: email,
-          sourceEmail: userEmail,
-          pathIndex: 0
-        })
-        dispatch(setResponseData(response.data))
-      } catch (error) {
-        console.error('Error finding path:', error)
-      }
-    }
-  }
+
 
   const handleUserRoute = (id) => {
     router.push(`/userProfile/${id}`)
@@ -81,7 +68,6 @@ export default function LeftSidebar({ userEmail }) {
                     variant="outline"
                     className="text-black border-black hover:bg-slate-400"
                     onClick={() => {
-                      handleFindPath(person.email);
                       handleUserRoute(person.id);
                     }}
                   >

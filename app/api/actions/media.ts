@@ -194,6 +194,11 @@ export const getImage = async (filename: string) => {
   }
 }
 
+export const fetchAllUsers=async()=>{
+  const user =await db.user.findMany()
+  return user
+
+}
 export const fetchUserData = async (userId) => {
   const user = await db.user.findUnique({
     where: {
