@@ -24,7 +24,7 @@ export function ClientWrapper({ userId, isConnected: initialIsConnected, userDat
   const router = useRouter()
   const pathData = useAppSelector(selectResponseData)
   const dispatch=useAppDispatch()
-  const [userEmail,setUserEmail]=useState("")
+  const [userEmail,setUserEmail]=useState("") // another person's email
   const [isLoading, setIsLoading] = useState(false)
 
 
@@ -86,31 +86,34 @@ export function ClientWrapper({ userId, isConnected: initialIsConnected, userDat
     }
     
     setIsLoading(true);
-  
-    try {
-      const response = await getPathRanking(0, session.user.email, email);
-      console.log("response of user",response)
-      if (!response || response.nodes.length === 0) {
-        // More specific error handling
-        toast.error('No connection path found. Please verify the user email or try again.');
-        return;
+    if(session.user.email){
+      try {
+     
+        const response = await getPathRanking(0, session.user.email, email);
+        console.log("response of user",response)
+        if (!response || response.nodes.length === 0) {
+          // More specific error handling
+          toast.error('No connection path found. Please verify the user email or try again.');
+          return;
+        }
+        
+        dispatch(setResponseData(response));
+        toast.success('Path data loaded successfully!');
+        router.push('/?tab=results&expand=true');
+      } catch (error) {
+        console.error('Error finding path:', error);
+        
+        // Provide more informative error messages
+        if (error) {
+          toast.error('User not found. Please check the email address.');
+        } else {
+          toast.error('Error finding path. Please try again or check your connection.');
+        }
+      } finally {
+        setIsLoading(false);
       }
-      
-      dispatch(setResponseData(response));
-      toast.success('Path data loaded successfully!');
-      router.push('/?tab=results&expand=true');
-    } catch (error) {
-      console.error('Error finding path:', error);
-      
-      // Provide more informative error messages
-      if (error) {
-        toast.error('User not found. Please check the email address.');
-      } else {
-        toast.error('Error finding path. Please try again or check your connection.');
-      }
-    } finally {
-      setIsLoading(false);
     }
+   
   }
 
 
