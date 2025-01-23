@@ -25,6 +25,8 @@ export function ClientWrapper({ userId, isConnected: initialIsConnected, userDat
   const pathData = useAppSelector(selectResponseData)
   const dispatch=useAppDispatch()
   const [userEmail,setUserEmail]=useState("")
+  const [isLoading, setIsLoading] = useState(false)
+
 
   useEffect(()=>{
     const userData=async()=>{
@@ -78,36 +80,51 @@ export function ClientWrapper({ userId, isConnected: initialIsConnected, userDat
     router.push(`/?tab=chats&expand=true&id=${id}`)
   }
   const handleFindPath = async (email: string) => {
-    if (session?.user?.email) {
-      try {
-       
-        toast.success('Redirecting to Find Path...')
-
-        console.log("redirecting to paths")
-        router.push('/?tab=results&expand=true')
-        const response = await getPathRanking(0,session?.user?.email,email)
-        
-        dispatch(setResponseData(response))
-     
-        
-        console.log("this is connect data",response)
-      } catch (error) {
-        console.error('Error finding path:', error)
-      }
+    if (!session?.user?.email) {
+      toast.error('Please sign in to find a path.')
+      return
+    }
+    setIsLoading(true)
+  
+    // Redirect immediately
+    toast.success('Redirecting to Find Path...')
+    router.push('/?tab=results&expand=true')
+  
+    // Perform the background API call
+    try {
+      // Perform the background API call
+      const response = await getPathRanking(0, session.user.email, email)
+      dispatch(setResponseData(response))
+      console.log('Find Path data:', response)
+      toast.success('Path data loaded successfully!')
+    } catch (error) {
+      console.error('Error finding path:', error)
+      toast.error('Error finding path. Please try again.')
+    } finally {
+      setIsLoading(false) // Reset loading state when the API call is finished
     }
   }
 
 
   return (
     <div className="flex space-x-2">
-      <Button 
-        className="bg-white hover:bg-slate-500 text-black transition-all duration-300 ease-in-out transform hover:scale-105"
-        onClick={()=>handleFindPath(userEmail)}
-        disabled={connectionStatus === 'Connecting' || isConnected || pathData?.path?.length === 0}
-      >
-        <img src='/icon.png' className="mr-2 h-6 w-6" alt="Path icon" />
-        <span className='hidden md:block'>Find Path</span>
-      </Button>
+<Button
+  className={`bg-white hover:bg-slate-500 text-black transition-all duration-300 ease-in-out transform hover:scale-105
+    ${isLoading ? 'cursor-not-allowed opacity-70' : ''}`}
+  onClick={() => handleFindPath(userEmail)}
+  disabled={isLoading || connectionStatus === 'Connecting' || isConnected || pathData?.path?.length === 0}
+>
+  {isLoading ? (
+    <div className="flex items-center justify-center">
+      <div className="animate-spin h-5 w-5 border-2 border-black border-t-transparent rounded-full"></div>
+    </div>
+  ) : (
+    <>
+      <img src="/icon.png" className="mr-2 h-6 w-6" alt="Path icon" />
+      <span className="hidden md:block">Find Path</span>
+    </>
+  )}
+</Button>
       
       <Button 
         className={`transition-all duration-300 ease-in-out transform hover:scale-105
