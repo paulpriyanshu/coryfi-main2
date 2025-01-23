@@ -87,23 +87,30 @@ export function ClientWrapper({ userId, isConnected: initialIsConnected, userDat
     setIsLoading(true)
   
     // Redirect immediately
-    toast.success('Redirecting to Find Path...')
-    router.push('/?tab=results&expand=true')
+    
   
     // Perform the background API call
     try {
       // Perform the background API call
-      const response = await getPathRanking(0, session.user.email, email)
-      dispatch(setResponseData(response))
-      console.log('Find Path data:', response)
-      toast.success('Path data loaded successfully!')
+      const response = await getPathRanking(0, session.user.email, email);
+    
+      if (!response) {
+        toast.error('No path data found. Please try again.');
+        return; // Stop execution if the response is null or undefined
+      }
+    
+      dispatch(setResponseData(response));
+      console.log('Find Path data:', response);
+      toast.success('Path data loaded successfully!');
+      toast.success('Redirecting to Find Path...');
+      router.push('/?tab=results&expand=true');
     } catch (error) {
-      console.error('Error finding path:', error)
-      toast.error('Error finding path. Please try again.')
+      console.error('Error finding path:', error);
+      toast.error('Error finding path. Please try again.');
     } finally {
-      setIsLoading(false) // Reset loading state when the API call is finished
+      setIsLoading(false); // Reset loading state when the API call is finished
     }
-  }
+}
 
 
   return (
