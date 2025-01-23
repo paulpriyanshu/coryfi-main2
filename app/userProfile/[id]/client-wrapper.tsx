@@ -2,13 +2,20 @@
 
 import { Button } from "@/components/ui/button"
 import { UserPlus, MessageCircle } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { RatingModal } from '@/components/ui/sections/RatingModal'
 import { connect_users } from "@/app/api/actions/network"
 import toast from 'react-hot-toast'
 import { useAppSelector } from '@/app/libs/store/hooks'
+import { useAppDispatch } from "@/app/libs/store/hooks"
 import { selectResponseData } from '@/app/libs/features/pathdata/pathSlice'
+import { setResponseData } from "@/app/libs/features/pathdata/pathSlice"
+import axios from "axios"
+import { fetchUserData } from "@/app/api/actions/media"
+import { getPathRanking } from "@/app/api/actions/pathActions"
+
+
 
 export function ClientWrapper({ userId, isConnected: initialIsConnected, userData, session }) {
   const [isConnected, setIsConnected] = useState(initialIsConnected)
@@ -16,6 +23,17 @@ export function ClientWrapper({ userId, isConnected: initialIsConnected, userDat
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false)
   const router = useRouter()
   const pathData = useAppSelector(selectResponseData)
+  const dispatch=useAppDispatch()
+  const [userEmail,setUserEmail]=useState("")
+
+  useEffect(()=>{
+    const userData=async()=>{
+      const user=await fetchUserData(userId)
+      setUserEmail(user.email)
+      
+    }
+    userData()
+  })
 
   const handleConnectClick = () => {
     if (!session?.user?.email) {
@@ -59,17 +77,32 @@ export function ClientWrapper({ userId, isConnected: initialIsConnected, userDat
   const goToChat = (id) => {
     router.push(`/?tab=chats&expand=true&id=${id}`)
   }
+  const handleFindPath = async (email: string) => {
+    if (session?.user?.email) {
+      try {
+       
+        toast.success('Redirecting to Find Path...')
 
-  const handleFindPath = () => {
-    router.push('/?tab=results&expand=true')
-    toast.success('Redirecting to Find Path...')
+        console.log("redirecting to paths")
+        router.push('/?tab=results&expand=true')
+        const response = await getPathRanking(0,session?.user?.email,email)
+        
+        dispatch(setResponseData(response))
+     
+        
+        console.log("this is connect data",response)
+      } catch (error) {
+        console.error('Error finding path:', error)
+      }
+    }
   }
+
 
   return (
     <div className="flex space-x-2">
       <Button 
         className="bg-white hover:bg-slate-500 text-black transition-all duration-300 ease-in-out transform hover:scale-105"
-        onClick={handleFindPath}
+        onClick={()=>handleFindPath(userEmail)}
         disabled={connectionStatus === 'Connecting' || isConnected || pathData?.path?.length === 0}
       >
         <img src='/icon.png' className="mr-2 h-6 w-6" alt="Path icon" />

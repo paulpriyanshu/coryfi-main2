@@ -18,15 +18,30 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import PostModal from "./PostModal";
 
-function Posts({ post, session, handleLike }) {
+
+function Posts({ post, session, handleLike,userId }) {
   const router = useRouter();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
+
+  const handleOpenModal = () => {
+    setSelectedPost(post);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedPost(null);
+  };
 
   return (
     <div>
       <Card
         className="bg-white shadow-lg cursor-pointer my-2 p-0"
-        onClick={() => console.log("Card clicked:", post)}
+        onClick={handleOpenModal}
       >
         <CardHeader>
           <div className="flex items-center space-x-2">
@@ -120,7 +135,22 @@ function Posts({ post, session, handleLike }) {
         </CardFooter>
        
       </Card>
+
+      {selectedPost && (
+
+            <PostModal
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            post={selectedPost}
+            userId={userId}
+            />
+)}
+
     </div>
+      
+      
+      
+
   );
 }
 

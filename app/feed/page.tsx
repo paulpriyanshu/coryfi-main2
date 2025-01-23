@@ -95,7 +95,7 @@ const [isProcessingQueue, setIsProcessingQueue] = useState(false)
 
        
        
-  console.log("email1",session?.user?.email)
+  // console.log("email1",session?.user?.email)
   useEffect(() => {
     if (session?.user?.email) {
       const fetchUserDetails = async () => {
@@ -138,7 +138,7 @@ const [isProcessingQueue, setIsProcessingQueue] = useState(false)
     }
   })
   useEffect(() => {
-    console.log("images",images)
+    // console.log("images",images)
     if (images) {
       setPosts(images); // Update posts with new images
       setIsInitialLoading(false)
@@ -389,7 +389,7 @@ const handleSaveEditedImage = async (editedImage) => {
   const handleLike = async (postId) => {
     try {
       if (!session?.user?.email) {
-        // showNotification('Please log in to like posts', 'error')
+        showNotification('Please log in to like posts', 'error')
         return
       }
 
@@ -527,7 +527,7 @@ const handleSaveEditedImage = async (editedImage) => {
            )}
         {posts.map((post, index) => (
         <React.Fragment key={post.id}>
-          <Posts post={post} session={session} handleLike={handleLike} />
+          <Posts post={post} session={session} handleLike={handleLike} userId={userId}/>
           {(index + 1) % 3 === 0 && (
             <div className="md:hidden">
               <ModernUserCarousel userEmail={Email ? Email : null} />
@@ -567,15 +567,7 @@ const handleSaveEditedImage = async (editedImage) => {
         />
       )}
 
-      {selectedPost && (
-
-          <PostModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        post={selectedPost}
-        userId={userId}
-      />
-      )}
+ 
     </div>
   )
 }

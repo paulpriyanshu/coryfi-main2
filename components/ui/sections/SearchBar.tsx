@@ -90,23 +90,23 @@ export default function SearchBar() {
     
   }
 
-  const handleFindPath = async (email: string) => {
-    if (session?.user?.email) {
-      try {
-        const response = await axios.post("https://neo.coryfi.com/api/v1/getpathranking", {
-          targetEmail: email,
-          sourceEmail: session.user.email,
-          pathIndex:0
-        })
-        setPath(response.data.path)
-        // console.log("this is the prop data",response.data)
-        dispatch(setResponseData(response.data))
-        // console.log("this is connect data",response.data)
-      } catch (error) {
-        console.error('Error finding path:', error)
-      }
-    }
-  }
+  // const handleFindPath = async (email: string) => {
+  //   if (session?.user?.email) {
+  //     try {
+  //       const response = await axios.post("https://neo.coryfi.com/api/v1/getpathranking", {
+  //         targetEmail: email,
+  //         sourceEmail: session.user.email,
+  //         pathIndex:0
+  //       })
+  //       setPath(response.data.path)
+  //       // console.log("this is the prop data",response.data)
+  //       dispatch(setResponseData(response.data))
+  //       // console.log("this is connect data",response.data)
+  //     } catch (error) {
+  //       console.error('Error finding path:', error)
+  //     }
+  //   }
+  // }
 const handleUserRoute=async(email:string)=>{
   const user=await fetchUserId(email)
   // console.log("this is the userdata",user.id)
@@ -114,9 +114,9 @@ const handleUserRoute=async(email:string)=>{
 
 
 }
-  useEffect(() => {
-    // console.log("this is path", path)
-  }, [path])
+  // useEffect(() => {
+  //   // console.log("this is path", path)
+  // }, [path])
 
   const handleClearSearch = () => {
     setSearchTerm('')
@@ -169,7 +169,7 @@ const handleUserRoute=async(email:string)=>{
                   {searchResults.length > 0 && (
                     <CommandGroup heading="Search Results">
                       {searchResults.map((result) => (
-                        <CommandItem key={result.email} onSelect={() => handleFindPath(result.email).then(()=>handleUserRoute(result.email))}>
+                        <CommandItem key={result.email} onSelect={(()=>handleUserRoute(result.email))}>
                           <User className="mr-2 h-4 w-4" />
                           {result.name} ({result.email})
                         </CommandItem>

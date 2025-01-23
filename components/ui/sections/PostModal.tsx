@@ -54,7 +54,7 @@ function ReplyInput({ postId, parentId, onAddReply, onCancel }) {
 function CommentItem({ comment, postId, onAddReply }) {
   const [isReplying, setIsReplying] = useState(false)
   const [showReplies, setShowReplies] = useState(false)
-  console.log("comment", comment)
+  // console.log("comment", comment)
   const hasReplies = comment.replies && comment.replies.length > 0
 
   return (
@@ -119,7 +119,7 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
     if (status === "authenticated" && session?.user?.email) {
       setUserEmail(String(session.user.email))
       setIsLiked(post?.likes?.includes(session.user.email))
-      console.log("post", post)
+      // console.log("post", post)
     }
   }, [session, status, post.likes])
 
@@ -287,7 +287,7 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
                         dangerouslySetInnerHTML={{ __html: post.content }}
                       />
                       </ScrollArea>
-                      
+
                     ))}
                 </DialogHeader>
 

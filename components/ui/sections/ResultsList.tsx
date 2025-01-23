@@ -89,7 +89,11 @@ export default function ResultsList() {
               </CardContent>
             </Card>
           ) : data ? (
-            <ResultCard key={index} index={index} path={data} />
+            <div key={index}>
+              <ResultCard  index={index} path={data} />
+            </div>
+
+            
           ) : null
         ))}
       </div>
