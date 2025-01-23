@@ -81,36 +81,37 @@ export function ClientWrapper({ userId, isConnected: initialIsConnected, userDat
   }
   const handleFindPath = async (email: string) => {
     if (!session?.user?.email) {
-      toast.error('Please sign in to find a path.')
-      return
+      toast.error('Please sign in to find a path.');
+      return;
     }
-    setIsLoading(true)
-  
-    // Redirect immediately
     
+    setIsLoading(true);
   
-    // Perform the background API call
     try {
-      // Perform the background API call
       const response = await getPathRanking(0, session.user.email, email);
-    
-      if (!response) {
-        toast.error('No path data found. Please try again.');
-        return; // Stop execution if the response is null or undefined
+      console.log("response of user",response)
+      if (!response || response.nodes.length === 0) {
+        // More specific error handling
+        toast.error('No connection path found. Please verify the user email or try again.');
+        return;
       }
-    
+      
       dispatch(setResponseData(response));
-      console.log('Find Path data:', response);
       toast.success('Path data loaded successfully!');
-      toast.success('Redirecting to Find Path...');
       router.push('/?tab=results&expand=true');
     } catch (error) {
       console.error('Error finding path:', error);
-      toast.error('Error finding path. Please try again.');
+      
+      // Provide more informative error messages
+      if (error) {
+        toast.error('User not found. Please check the email address.');
+      } else {
+        toast.error('Error finding path. Please try again or check your connection.');
+      }
     } finally {
-      setIsLoading(false); // Reset loading state when the API call is finished
+      setIsLoading(false);
     }
-}
+  }
 
 
   return (
