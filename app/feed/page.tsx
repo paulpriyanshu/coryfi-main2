@@ -334,30 +334,6 @@ const handleSaveEditedImage = async (editedImage) => {
     setIsModalOpen(false)
   }
 
-  const handleShare = async (e, postId) => {
-    e.stopPropagation(); // Prevent post modal from opening
-    const url = `https://connect.coryfi.com/p/${postId}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success('Link copied to clipboard', {
-        duration: 2000,
-        style: {
-          background: '#4CAF50',
-          color: '#fff',
-        },
-      });
-    } catch (error) {
-      console.error('Failed to copy:', error);
-      toast.error('Failed to copy link', {
-        duration: 2000,
-        style: {
-          background: '#EF4444',
-          color: '#fff',
-        },
-      });
-    }
-  };
-
 
 
   const RightSidebar = () => (

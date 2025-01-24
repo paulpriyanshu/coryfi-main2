@@ -20,7 +20,32 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import PostModal from "./PostModal";
+import toast from "react-hot-toast";
 
+
+  const handleShare = async (e, postId) => {
+    e.stopPropagation(); // Prevent post modal from opening
+    const url = `https://connect.coryfi.com/p/${postId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copied to clipboard', {
+        duration: 2000,
+        style: {
+          background: '#4CAF50',
+          color: '#fff',
+        },
+      });
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      toast.error('Failed to copy link', {
+        duration: 2000,
+        style: {
+          background: '#EF4444',
+          color: '#fff',
+        },
+      });
+    }
+  };
 
 function Posts({ post, session, handleLike,userId }) {
   const router = useRouter();
@@ -127,7 +152,7 @@ function Posts({ post, session, handleLike,userId }) {
             variant="ghost"
             size="sm"
             className="text-black hover:text-black hover:bg-slate-500"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => handleShare(e,post.id)}
           >
             <Share2 className="w-4 h-4 mr-2" />
             Share

@@ -723,6 +723,7 @@ export const fetchOnlyPost = async (id: number) => {
       select: {
         id: true,
         content: true,
+        likes:true,
         createdAt: true,
         updatedAt: true,
         imageUrl:true,
