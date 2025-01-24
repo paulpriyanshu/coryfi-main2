@@ -2,18 +2,12 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react"
 import { signIn, useSession } from "next-auth/react"
-import { MessageSquare, ThumbsUp, Share2, ChevronUp, ImageIcon, AlertCircle, X } from 'lucide-react'
+import { ChevronUp, ImageIcon, AlertCircle, X } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel"
+
 import SearchBar from "@/components/ui/sections/SearchBar"
 import axios from 'axios'
 import { fetchImages, fetchUserId, uploadPost } from "../api/actions/media"
@@ -21,7 +15,6 @@ import ImageEditModal from '@/components/ui/ImageEditModal'
 import { useRouter } from "next/navigation"
 import LeftSidebar from "@/components/ui/sections/LeftSideBar"
 import { likePost, dislikePost } from "../api/actions/media"
-import  PostModal  from "@/components/ui/sections/PostModal"
 import { Toaster, toast } from 'react-hot-toast'
 import ModernUserCarousel from "@/components/ui/sections/ModernUserCarousel"
 import dynamic from 'next/dynamic'
@@ -323,16 +316,16 @@ const handleSaveEditedImage = async (editedImage) => {
 
 
 
-  const handleOpenModal = (post) => {
-    // console.log("this is post",post)
-    setSelectedPost(post)
-    setIsModalOpen(true)
-  }
+  // const handleOpenModal = (post) => {
+  //   // console.log("this is post",post)
+  //   setSelectedPost(post)
+  //   setIsModalOpen(true)
+  // }
 
-  const handleCloseModal = () => {
-    setSelectedPost(null)
-    setIsModalOpen(false)
-  }
+  // const handleCloseModal = () => {
+  //   setSelectedPost(null)
+  //   setIsModalOpen(false)
+  // }
 
 
 

@@ -14,7 +14,7 @@ import { toast, Toaster } from "react-hot-toast"
 import { useMediaQuery } from "@/components/ui/sections/hooks/use-media-query"
 import { useParams } from "next/navigation"
 import { fetchComments, handleAddComment, handleReplyToComment } from "@/components/ui/sections/utils"
-import MobilePostModal from "@/components/ui/sections/mobile-post-modal"
+
 
 function ReplyInput({ postId, parentId, onAddReply, onCancel }) {
   const [newReply, setNewReply] = useState("")
