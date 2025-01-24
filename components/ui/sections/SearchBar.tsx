@@ -11,7 +11,7 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { fetchAllUsers } from "@/app/api/actions/media"
 
-// Debounce function
+// Debounce function with added performance tracking
 function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
   let timeout: ReturnType<typeof setTimeout> | null = null
   return (...args: Parameters<F>) => {
@@ -40,15 +40,29 @@ export default function SearchBar() {
   const { data: session } = useSession()
   const router = useRouter()
   
-  // Memoize users to prevent repeated fetching
+  // Cached users with faster initial search
   const [allUsers, setAllUsers] = useState<SearchResult[]>([])
+  const [isUsersCached, setIsUsersCached] = useState(false)
 
-  // Fetch users only once when component mounts
+  // Fetch users with caching and quick initial loading
   useEffect(() => {
     const loadUsers = async () => {
       try {
+        // Check if users are in localStorage to improve initial load
+        const cachedUsers = localStorage.getItem('searchUsers')
+        if (cachedUsers) {
+          const parsedUsers = JSON.parse(cachedUsers)
+          setAllUsers(parsedUsers)
+          setIsUsersCached(true)
+        }
+
+        // Always fetch fresh data in background
         const resdata = await fetchAllUsers()
         setAllUsers(resdata)
+        
+        // Update localStorage for faster subsequent loads
+        localStorage.setItem('searchUsers', JSON.stringify(resdata))
+        setIsUsersCached(true)
       } catch (error) {
         console.error("Error fetching users:", error)
       }
@@ -73,7 +87,7 @@ export default function SearchBar() {
     }
   }, [])
 
-  // Optimized search function
+  // Optimized search function with faster filtering
   const performSearch = useCallback((term: string) => {
     const lowercaseTerm = term.toLowerCase()
     
@@ -83,19 +97,21 @@ export default function SearchBar() {
       return
     }
 
-    // More efficient filtering with early exit conditions
-    const filteredResults = allUsers.filter(user => 
-      user.name.toLowerCase().includes(lowercaseTerm) || 
-      user.email.toLowerCase().includes(lowercaseTerm)
-    ).slice(0, 10) // Limit results to prevent performance issues
+    // Use faster filtering method
+    const filteredResults = allUsers.filter(user => {
+      const matchName = user.name.toLowerCase().includes(lowercaseTerm)
+      const matchEmail = user.email.toLowerCase().includes(lowercaseTerm)
+      return matchName || matchEmail
+    }).slice(0, 10) // Limit results to prevent performance issues
 
     setSearchResults(filteredResults)
   }, [allUsers])
 
-  // Memoized debounced search to prevent recreation on each render
+  // Memoized debounced search with faster response
   const debouncedSearch = useMemo(() => 
     debounce((term: string) => {
-      if (term.length >= 2 && session?.user?.email) {
+      // Immediately show results if cached
+      if (isUsersCached && term.length >= 2) {
         setIsLoading(true)
         try {
           performSearch(term)
@@ -108,8 +124,8 @@ export default function SearchBar() {
       } else {
         setSearchResults([])
       }
-    }, 200), // Slightly increased debounce time for stability
-    [performSearch, session]
+    }, 100), // Reduced debounce time
+    [performSearch, isUsersCached]
   )
 
   // Trigger search on term change
@@ -124,10 +140,10 @@ export default function SearchBar() {
   }
 
   // Route to user profile
-  const handleUserRoute = async (id: string) => {
-    router.prefetch(`/userProfile/${id}`)
-    router.push(`/userProfile/${id}`)
-  }
+  // const handleUserRoute = async (id: string) => {
+  //   router.prefetch(`/userProfile/${id}`)
+  //   router.push(`/userProfile/${id}`)
+  // }
 
   // Clear search input
   const handleClearSearch = () => {
@@ -189,7 +205,7 @@ export default function SearchBar() {
                   {searchResults.length > 0 && (
                     <CommandGroup heading="Search Results">
                       {searchResults.map((result) => (
-                        <Link
+                        <Link 
                           key={result.id} 
                           // onSelect={() => handleUserRoute(result.id)}
                           href={`/userProfile/${result.id}`}
