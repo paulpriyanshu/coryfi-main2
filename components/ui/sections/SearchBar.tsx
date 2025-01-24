@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Search, X, Clock, TrendingUp, User } from "lucide-react"
+import { Search, X, Clock, TrendingUp, User} from "lucide-react"
+import Link from "next/link"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -104,9 +105,11 @@ export default function SearchBar() {
   }
 
   const handleUserRoute = async (id) => {
+    router.prefetch(`/userProfile/${id}`)
     router.push(`/userProfile/${id}`)
   }
 
+  
   const handleClearSearch = () => {
     setSearchTerm("")
     setShowSuggestions(false)
@@ -167,7 +170,7 @@ export default function SearchBar() {
                   {searchResults.length > 0 && (
                     <CommandGroup heading="Search Results">
                       {searchResults.map((result) => (
-                        <CommandItem key={result.id} onSelect={() => handleUserRoute(result.id)}>
+                        <Link key={result.id} href={`/userProfile/${result.id}`}>
                           <User className="mr-2 h-4 w-4" />
                           <div>
                             <div>
@@ -179,7 +182,7 @@ export default function SearchBar() {
                               </div>
                             )}
                           </div>
-                        </CommandItem>
+                        </Link>
                       ))}
                     </CommandGroup>
                   )}

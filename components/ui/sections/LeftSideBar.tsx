@@ -7,14 +7,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
-import axios from 'axios'
 import { getUnconnectedUsers } from "@/app/api/actions/media"
 import { useRouter } from "next/navigation"
-import { useAppDispatch } from '@/app/libs/store/hooks'
-import { setResponseData } from '@/app/libs/features/pathdata/pathSlice'
+import Link from "next/link"
 
 export default function LeftSidebar({ userEmail }) {
-  const dispatch = useAppDispatch()
   const router = useRouter()
 
   const { data: people, isLoading } = useSWR(
@@ -26,11 +23,6 @@ export default function LeftSidebar({ userEmail }) {
     }
   );
 
-
-
-  const handleUserRoute = (id) => {
-    router.push(`/userProfile/${id}`)
-  }
 
   return (
     <Card className="bg-white shadow-lg sticky top-4">
@@ -63,16 +55,16 @@ export default function LeftSidebar({ userEmail }) {
                     </Avatar>
                     <p className="font-medium text-sm text-black">{person?.name}</p>
                   </div>
+                  <Link  href={`/userProfile/${person.id}`}>
                   <Button
                     size="sm"
                     variant="outline"
                     className="text-black border-black hover:bg-slate-400"
-                    onClick={() => {
-                      handleUserRoute(person.id);
-                    }}
+                   
                   >
                     View 
                   </Button>
+                  </Link>
                 </div>
               ))
             )}
