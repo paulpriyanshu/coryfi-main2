@@ -11,31 +11,30 @@ import { useAppSelector } from '@/app/libs/store/hooks'
 import { useAppDispatch } from "@/app/libs/store/hooks"
 import { selectResponseData } from '@/app/libs/features/pathdata/pathSlice'
 import { setResponseData } from "@/app/libs/features/pathdata/pathSlice"
-import axios from "axios"
 import { fetchUserData } from "@/app/api/actions/media"
 import { getPathRanking } from "@/app/api/actions/pathActions"
 
 
 
-export function ClientWrapper({ userId, isConnected: initialIsConnected, userData, session }) {
+export function ClientWrapper({ userId,userEmail, isConnected: initialIsConnected, userData, session }) {
   const [isConnected, setIsConnected] = useState(initialIsConnected)
   const [connectionStatus, setConnectionStatus] = useState(initialIsConnected ? 'Connected' : 'Connect')
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false)
   const router = useRouter()
   const pathData = useAppSelector(selectResponseData)
   const dispatch=useAppDispatch()
-  const [userEmail,setUserEmail]=useState("") // another person's email
+  // const [userEmail,setUserEmail]=useState("") // another person's email
   const [isLoading, setIsLoading] = useState(false)
 
 
-  useEffect(()=>{
-    const userData=async()=>{
-      const user=await fetchUserData(userId)
-      setUserEmail(user.email)
+  // useEffect(()=>{
+  //   const userData=async()=>{
+  //     const user=await fetchUserData(userId)
+  //     setUserEmail(user.email)
       
-    }
-    userData()
-  },[])
+  //   }
+  //   userData()
+  // },[])
 
   const handleConnectClick = () => {
     if (!session?.user?.email) {

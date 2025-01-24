@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { Search, X, Clock, TrendingUp, User} from "lucide-react"
 import Link from "next/link"
 import { Input } from "@/components/ui/Input"
@@ -10,6 +10,15 @@ import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { fetchAllUsers } from "@/app/api/actions/media"
+
+// Debounce function
+function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
+  let timeout: ReturnType<typeof setTimeout> | null = null
+  return (...args: Parameters<F>) => {
+    if (timeout) clearTimeout(timeout)
+    timeout = setTimeout(() => func(...args), wait)
+  }
+}
 
 // This would typically come from your API or database
 const recentSearches = ["React", "Next.js", "Tailwind CSS", "TypeScript"]
@@ -25,14 +34,14 @@ interface SearchResult {
 export default function SearchBar() {
   const [searchTerm, setSearchTerm] = useState("")
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const [searchResults, setSearchResults] = useState([])
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
   const { data: session } = useSession()
   const router = useRouter()
   
   // Memoize users to prevent repeated fetching
-  const [allUsers, setAllUsers] = useState([])
+  const [allUsers, setAllUsers] = useState<SearchResult[]>([])
 
   // Fetch users only once when component mounts
   useEffect(() => {
@@ -50,6 +59,7 @@ export default function SearchBar() {
     }
   }, [session])
 
+  // Click outside handler to close suggestions
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -63,22 +73,29 @@ export default function SearchBar() {
     }
   }, [])
 
+  // Optimized search function
   const performSearch = useCallback((term: string) => {
-    if (term.length > 0) {
-      const filteredResults = allUsers.filter(
-        (user) => 
-          user.name.toLowerCase().includes(term.toLowerCase()) || 
-          user.email.toLowerCase().includes(term.toLowerCase())
-      )
-      setSearchResults(filteredResults)
-    } else {
+    const lowercaseTerm = term.toLowerCase()
+    
+    // Early return if term is too short
+    if (lowercaseTerm.length < 2) {
       setSearchResults([])
+      return
     }
+
+    // More efficient filtering with early exit conditions
+    const filteredResults = allUsers.filter(user => 
+      user.name.toLowerCase().includes(lowercaseTerm) || 
+      user.email.toLowerCase().includes(lowercaseTerm)
+    ).slice(0, 10) // Limit results to prevent performance issues
+
+    setSearchResults(filteredResults)
   }, [allUsers])
 
-  const debouncedSearch = useCallback(
+  // Memoized debounced search to prevent recreation on each render
+  const debouncedSearch = useMemo(() => 
     debounce((term: string) => {
-      if (term.length > 0 && session?.user?.email) {
+      if (term.length >= 2 && session?.user?.email) {
         setIsLoading(true)
         try {
           performSearch(term)
@@ -91,25 +108,28 @@ export default function SearchBar() {
       } else {
         setSearchResults([])
       }
-    }, 100), // Reduced delay to 100ms
-    [performSearch, session],
+    }, 200), // Slightly increased debounce time for stability
+    [performSearch, session]
   )
 
+  // Trigger search on term change
   useEffect(() => {
     debouncedSearch(searchTerm)
   }, [searchTerm, debouncedSearch])
 
+  // Handle search submission
   const handleSearch = (term: string) => {
     setSearchTerm(term)
     setShowSuggestions(false)
   }
 
-  const handleUserRoute = async (id) => {
+  // Route to user profile
+  const handleUserRoute = async (id: string) => {
     router.prefetch(`/userProfile/${id}`)
     router.push(`/userProfile/${id}`)
   }
 
-  
+  // Clear search input
   const handleClearSearch = () => {
     setSearchTerm("")
     setShowSuggestions(false)
@@ -119,7 +139,6 @@ export default function SearchBar() {
   return (
     <div ref={searchRef} className="relative mb-6">
       <Card className="p-2 shadow-lg">
-
         <form
           onSubmit={(e) => {
             e.preventDefault()
@@ -170,7 +189,11 @@ export default function SearchBar() {
                   {searchResults.length > 0 && (
                     <CommandGroup heading="Search Results">
                       {searchResults.map((result) => (
-                        <Link key={result.id} href={`/userProfile/${result.id}`}>
+                        <Link
+                          key={result.id} 
+                          // onSelect={() => handleUserRoute(result.id)}
+                          href={`/userProfile/${result.id}`}
+                        >
                           <User className="mr-2 h-4 w-4" />
                           <div>
                             <div>
@@ -218,13 +241,4 @@ export default function SearchBar() {
       )}
     </div>
   )
-}
-
-// Debounce function
-function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
-  let timeout: ReturnType<typeof setTimeout> | null = null
-  return (...args: Parameters<F>) => {
-    if (timeout) clearTimeout(timeout)
-    timeout = setTimeout(() => func(...args), wait)
-  }
 }

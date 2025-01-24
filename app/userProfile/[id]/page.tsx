@@ -30,6 +30,7 @@ async function UserProfilePage({ params }: { params: { id: string } }) {
   if (!userData) {
     return <div className="flex justify-center items-center h-screen">User not found</div>
   }
+ 
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -81,6 +82,7 @@ async function UserProfilePage({ params }: { params: { id: string } }) {
 
             <ClientWrapper
               userId={userId}
+              userEmail={userData.email}
               isConnected={isConnected}
               userData={userData}
               session={session}
