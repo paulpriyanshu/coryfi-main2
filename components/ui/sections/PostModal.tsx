@@ -104,6 +104,13 @@ function CommentItem({ comment, postId, onAddReply }) {
   )
 }
 
+function countTotalComments(comments) {
+  return comments.reduce((total, comment) => {
+    console.log("inside the function")
+    return total + 1 + (comment.replies ? countTotalComments(comment.replies) : 0)
+  }, 0)
+}
+
 export default function PostModal({ post, userId, isOpen, onClose }) {
   const { data: session, status } = useSession()
   const [localComments, setLocalComments] = useState(post.comments || [])
@@ -112,6 +119,7 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
   const [isSaved, setIsSaved] = useState(false)
   const [userEmail, setUserEmail] = useState("")
   const [likesCount, setLikesCount] = useState(post?.likes?.length)
+  const [commentsCount,setCommentCount]=useState(null)
 
   const isMobile = useMediaQuery("(max-width: 640px)")
 
@@ -140,11 +148,33 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
       console.error("Error toggling like:", error)
     }
   }
+  function countComments(comments) {
+    let totalCount = 0;
+  
+    function countReplies(comment) {
+      // Increment count for the current comment
+      totalCount += 1;
+  
+      // If there are replies, recursively count them
+      if (comment.replies && comment.replies.length > 0) {
+        comment.replies.forEach(reply => countReplies(reply));
+      }
+    }
+  
+    // Loop through all top-level comments and count them
+    comments.forEach(comment => countReplies(comment));
+  
+    return totalCount;
+  }
+  
 
   useEffect(() => {
     const loadComments = async () => {
       if (isOpen) {
         const comments = await fetchComments(post.id)
+        console.log("post comments",comments)
+        setCommentCount(countComments(comments))
+
         setLocalComments(comments)
       }
     }
@@ -225,6 +255,7 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
           setIsSaved={setIsSaved}
           likesCount={likesCount}
           handleShare={handleShare}
+          commentsCount={commentsCount}
         />
       ) : (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -282,12 +313,11 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
                       </ScrollArea>
                     ) : (
                       <ScrollArea className="h-[200px] mt-2 px-4">
-                      <div
-                        className="mt-2 px-4 text-sm prose prose-sm max-w-none"
-                        dangerouslySetInnerHTML={{ __html: post.content }}
-                      />
+                        <div
+                          className="mt-2 px-4 text-sm prose prose-sm max-w-none"
+                          dangerouslySetInnerHTML={{ __html: post.content }}
+                        />
                       </ScrollArea>
-
                     ))}
                 </DialogHeader>
 
@@ -302,19 +332,20 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
                 <div className="border-t p-4 space-y-4 shrink-0">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <Button variant="ghost" size="icon" onClick={handleLikeToggle}>
+                      <Button variant="ghost" size="sm" onClick={handleLikeToggle} className="flex items-center gap-1">
                         <ThumbsUp className={`w-6 h-6 ${isLiked ? "fill-red-500 text-red-500" : ""}`} />
+                        <span>{likesCount}</span>
                       </Button>
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="sm" className="flex items-center gap-1">
                         <MessageCircle className="w-6 h-6" />
+                        <span>{countTotalComments(localComments)}</span>
                       </Button>
                       <Button variant="ghost" size="icon" onClick={(e) => handleShare(e, post.id)}>
                         <Share className="w-6 h-6" />
                       </Button>
                     </div>
                   </div>
-                  <p className="text-sm font-semibold">{likesCount} likes</p>
-
+                  {/* <p className="text-sm font-semibold">{likesCount} likes</p> */}
                   {userId ? (
                     <div className="flex items-center gap-2">
                       <Input

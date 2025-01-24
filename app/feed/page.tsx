@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState, useCallback } from "react"
-import { useSession } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 import { MessageSquare, ThumbsUp, Share2, ChevronUp, ImageIcon, AlertCircle, X } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
@@ -364,19 +364,31 @@ const handleSaveEditedImage = async (editedImage) => {
     <Card className="bg-white shadow-lg sticky top-4">
       <CardContent className="p-6">
         <h2 className="text-xl font-bold mb-4 text-black">Profile</h2>
-        <div className="flex items-center space-x-4 mb-4">
-          <Avatar className="w-16 h-16">
-            <AvatarImage src={user ? user.userdp : session?.user?.image} alt="Your Profile" />
-            <AvatarFallback>YP</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-bold text-black cursor-pointer" onClick={()=>router.push('/profile')}>{user ? user?.name : null}</p>
-            <Button variant="link" className="text-black p-0 h-auto" onClick={()=>router.push('/settings/profile')}>Edit Profile</Button>
+        {session ? (
+          <div className="flex items-center space-x-4 mb-4">
+            <Avatar className="w-16 h-16">
+              <AvatarImage src={user ? user.userdp : session?.user?.image} alt="Your Profile" />
+              <AvatarFallback>YP</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-bold text-black cursor-pointer" onClick={() => router.push('/profile')}>
+                {user ? user?.name : null}
+              </p>
+              <Button variant="link" className="text-black p-0 h-auto" onClick={() => router.push('/settings/profile')}>
+                Edit Profile
+              </Button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="text-center">
+            <Button  onClick={async() => await signIn("google")}>
+              Sign Up to view profile
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
-  )
+  );
   
 
   if (isInitialLoading) {

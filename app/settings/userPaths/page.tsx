@@ -2,7 +2,7 @@ import React from 'react'
 
 function userPaths() {
   return (
-    <div>userPaths</div>
+    <div></div>
   )
 }
 

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { Home, Compass, User, Zap, Users, Menu, Settings, LogOut, Sun, Moon, Laptop,Network} from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { useSession,signOut } from "next-auth/react"
+import { useSession,signOut, signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -66,8 +66,9 @@ export default function Component() {
   const [mode, setMode] = useState("normal")
   const [userDp,setUserDp]=useState("")
 
-  const handleClick = () => {
-    router.push('/signup')
+  const handleClick=async() => {
+    // router.push('/signup')
+    await signIn("google")
   }
 
   const handleLogout = async() => {
@@ -273,7 +274,7 @@ export default function Component() {
             ) : (
               <Button 
                 onClick={handleClick}
-                className="bg-slate-800 text-white font-bold hover:bg-slate-600"
+                className="bg-blue-600 text-white font-bold hover:bg-blue-400"
               >
                 Signup
               </Button>
