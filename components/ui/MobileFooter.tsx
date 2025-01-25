@@ -1,53 +1,53 @@
-"use client";
+"use client"
 
-import React, { useState, useEffect } from "react";
-import { Home, PlusSquare, Zap, User, Network } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
-import CreatePostModal from "./CreatePostModal";
-import DraftAlert from "./DraftAlert";
-import { useAppSelector } from "@/app/libs/store/hooks";
+import React, { useState, useEffect } from "react"
+import { Home, PlusSquare, Zap, User, Network } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
+import CreatePostModal from "./CreatePostModal"
+import DraftAlert from "./DraftAlert"
+import { useAppSelector } from "@/app/libs/store/hooks"
 
 export default function MobileFooter() {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [activePage, setActivePage] = useState("network");
-  const [hasDraft, setHasDraft] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
-  const router = useRouter();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [activePage, setActivePage] = useState("network")
+  const [hasDraft, setHasDraft] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
+  const router = useRouter()
 
   useEffect(() => {
-    const draft = localStorage.getItem("postDraft");
-    setHasDraft(!!draft);
-  }, []);
+    const draft = localStorage.getItem("postDraft")
+    setHasDraft(!!draft)
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
+      const currentScrollY = window.scrollY
       if (currentScrollY < lastScrollY) {
-        setIsVisible(true);
+        setIsVisible(true)
       } else if (currentScrollY > 50 && currentScrollY > lastScrollY) {
-        setIsVisible(false);
+        setIsVisible(false)
       }
-      setLastScrollY(currentScrollY);
-    };
+      setLastScrollY(currentScrollY)
+    }
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [lastScrollY])
 
   const handleCloseModal = () => {
-    setIsCreateModalOpen(false);
+    setIsCreateModalOpen(false)
     if (hasDraft) {
-      setHasDraft(true);
+      setHasDraft(true)
     }
-  };
+  }
 
-  const isMobileChatOpen = useAppSelector((state) => state.chat.isMobileChatOpen);
+  const isMobileChatOpen = useAppSelector((state) => state.chat.isMobileChatOpen)
 
   if (isMobileChatOpen) {
-    return null;
+    return null
   }
 
   function NavButton({ icon, label, isActive, onClick, href }) {
@@ -56,12 +56,12 @@ export default function MobileFooter() {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => {
-          onClick();
-          router.push(href);
+          onClick()
+          router.push(href)
         }}
         className={cn(
           "relative transition-colors flex items-center justify-center",
-          isActive ? "bg-slate-800 rounded-full p-2" : "text-gray-600"
+          isActive ? "bg-slate-800 rounded-full p-2" : "text-gray-600",
         )}
       >
         <div className={cn("w-5 h-5 flex items-center justify-center", isActive ? "text-white" : "text-gray-600")}>
@@ -78,7 +78,7 @@ export default function MobileFooter() {
           />
         )}
       </motion.button>
-    );
+    )
   }
 
   function CreateButton({ onClick }) {
@@ -92,7 +92,7 @@ export default function MobileFooter() {
         <PlusSquare className="h-5 w-5" />
         <span className="sr-only">Create</span>
       </motion.button>
-    );
+    )
   }
 
   return (
@@ -143,5 +143,6 @@ export default function MobileFooter() {
         </motion.div>
       )}
     </AnimatePresence>
-  );
+  )
 }
+
