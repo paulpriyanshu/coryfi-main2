@@ -10,7 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import SearchBar from "@/components/ui/sections/SearchBar"
 import axios from 'axios'
-import { fetchImages, fetchUserId, uploadPost } from "../api/actions/media"
+import { fetchImages, fetchUserId, onLikePost, uploadPost } from "../api/actions/media"
 import ImageEditModal from '@/components/ui/ImageEditModal'
 import { useRouter } from "next/navigation"
 import LeftSidebar from "@/components/ui/sections/LeftSideBar"
@@ -393,6 +393,7 @@ const handleSaveEditedImage = async (editedImage) => {
           post.id === postId ? { ...post, likes: updatedLikes } : post
         )
       )
+      await onLikePost(session?.user?.name,postId)
     } catch (error) {
       console.error('Error toggling like on post:', error)
       showNotification('Failed to update like status', 'error')
