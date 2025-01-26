@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { Search, X, Clock, TrendingUp, User, ArrowRight, FileText, Star } from "lucide-react"
 import Link from "next/link"
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
