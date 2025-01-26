@@ -153,7 +153,7 @@ export default function SearchBar() {
   }
 
   return (
-    <div ref={searchRef} className="relative mb-6">
+    <div ref={searchRef} className="hidden md:block relative mb-6">
       <Card className="p-2 shadow-lg">
         <form
           onSubmit={(e) => {

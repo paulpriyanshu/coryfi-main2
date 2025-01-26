@@ -195,7 +195,7 @@ export const getImage = async (filename: string) => {
 }
 
 export const fetchAllUsers=async()=>{
-  const user =await db.user.findMany()
+  const user=await db.user.findMany()
   return user
 
 }

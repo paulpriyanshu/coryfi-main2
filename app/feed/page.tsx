@@ -419,7 +419,7 @@ const handleSaveEditedImage = async (editedImage) => {
 
           <div className="md:col-span-2 space-y-5">
             <SearchBar />
-            <Card className="bg-white shadow-lg md:h-[200px]">
+            <Card className="hidden md:block bg-white shadow-lg md:h-[250px]">
               <CardContent className="p-3">
                 <div className="flex items-center space-x-2 mb-2">
                   <Avatar>
@@ -449,7 +449,7 @@ const handleSaveEditedImage = async (editedImage) => {
                           ['clean'],
                         ],
                       }}
-                      className="w-full"
+                      className="w-full h-1/3"
                     />
                 </div>
                 <div className="flex justify-between items-center">
@@ -502,11 +502,11 @@ const handleSaveEditedImage = async (editedImage) => {
 
             {/* Posts list */}
             <div>
-            {(
+            {/* {(
         <div className="md:hidden">
           <ModernUserCarousel userEmail={session?.user?.email ? session?.user?.email: null} />
         </div>
-           )}
+           )} */}
         {posts.map((post, index) => (
         <React.Fragment key={post.id}>
           <Posts post={post} session={session} handleLike={handleLike} userId={userId}/>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
-import { Home, Compass, User, Zap, Users, Menu, Settings, LogOut, Sun, Moon, Laptop,Network} from "lucide-react"
+import { Home, Compass, User, Zap, Users, Menu, Settings, LogOut, Sun, Moon, Laptop,Network, Search} from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useSession,signOut, signIn } from "next-auth/react"
@@ -227,7 +227,16 @@ export default function Component() {
             </AnimatePresence>
           </nav>
 
-          <div className="flex items-center space-x-5">
+          <div className="flex items-center space-x-1">
+          <div className="md:hidden">
+          <Link
+              href="/search"
+              className="mr-0 flex items-center gap-2 underline text-gray-800 hover:text-gray-600"
+            >
+              <Search className="h-4 w-4" />
+              <span className="sr-only">Search</span>
+            </Link>
+            </div>
             <Notifications/>
             {session ? (
               <DropdownMenu>
