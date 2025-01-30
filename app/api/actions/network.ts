@@ -1,8 +1,7 @@
 'use server';
 import axios from "axios";
-import { PrismaClient } from "@prisma/client";
-import db from "@/db"
-import { fetchUserId } from "./media";
+import db from "@/db/index"
+import { fetchAllUsers, fetchUserId } from "./media";
 import { createUserChat } from "@/components/ui/sections/api";
 import { getSession } from "next-auth/react";
 import AWS from 'aws-sdk'
@@ -371,7 +370,22 @@ export const connect_users = async (
         status: "PENDING", // Initial status
       },
     });
-    sendConnectionRequestEmail(recipientEmail,requesterName,requesterEmail,StrengthLevel);
+    // await notifyUserOnConnections(recipientId,requesterName,StrengthLevel)
+    console.log("creating random")
+    
+    console.log("created random")
+     await db.notification.create({
+      data: {
+        userId: recipientId,
+        senderName: requesterName,
+        senderId: requesterId,
+        senderMail:requesterEmail,
+        type: "Connection",
+        content: `${requesterName} ${StrengthLevel}`,
+        isRead: false
+      },
+    });
+    await sendConnectionRequestEmail(recipientEmail,requesterName,requesterEmail,StrengthLevel);
 
     return { success: true, connection };
   } catch (error) {
@@ -379,6 +393,26 @@ export const connect_users = async (
     return { success: false, error: error.message };
   }
 };  
+
+export const notifyUserOnConnections = async (recipientId: number, requesterName: string, strengthLevel: number) => {
+  try {
+    console.log(recipientId, requesterName, strengthLevel, "creating connection");
+
+    const notify = await db.notification.create({
+      data: {
+        userId: recipientId,
+        type: "Connection",
+        content: `${requesterName} ${strengthLevel}`,
+        isRead: false
+      },
+    });
+
+    return { success: true, notify };
+  } catch (error) {
+    console.error("Error creating notification:", error);
+    return { success: false, message: "Failed to create notification" };
+  }
+};
 
 const sendApprovalRequestEmail=async(requesterEmail:string,recipientName)=>{
   const subject = "Connection Request Accepted";
@@ -591,7 +625,7 @@ a[x-apple-data-detectors],
   return result;
 
 }
-export const approve_request = async (requesterEmail: string, recipientEmail: string,recipientName:string) => {
+export const approve_request = async (requesterEmail: string, recipientEmail: string,recipientName:string,notifyId:number) => {
     try {
       // Validate input
       if (!requesterEmail || !recipientEmail) {
@@ -644,6 +678,7 @@ export const approve_request = async (requesterEmail: string, recipientEmail: st
           status: 'APPROVED',
         },
       });
+      notification_read(notifyId,"accepted")
       sendApprovalRequestEmail(requesterEmail,recipientName)
   
       return { success: true, connection: updatedConnection };
@@ -652,7 +687,7 @@ export const approve_request = async (requesterEmail: string, recipientEmail: st
       return { success: false, error: error.message };
     }
   };
-  export const reject_request = async (requesterEmail: string, recipientEmail: string) => {
+  export const reject_request = async (requesterEmail: string, recipientEmail: string,notifyId:number) => {
     try {
       // Validate input
       if (!requesterEmail || !recipientEmail) {
@@ -705,6 +740,7 @@ export const approve_request = async (requesterEmail: string, recipientEmail: st
           status: 'REJECTED',
         },
       });
+      await notification_read(notifyId,"rejected")
   
       return { success: true, connection: updatedConnection };
     } catch (error) {
@@ -713,7 +749,46 @@ export const approve_request = async (requesterEmail: string, recipientEmail: st
     }
   };
   
+  export const notification_read=async(notifyId:number,status)=>{
+    await db.notification.update({
+      where : {
+          id:notifyId
+      },
+      data:{
+        isRead:true,
+        status
+      }
+    })
+    return 
+  }
   // Fetch all new connection requests for a user
+  export const get_requests = async (email: string) => {
+    const notifications = await db.notification.findMany({
+      where: {
+        user: {
+          email,
+        },
+        // OR: [
+        //   { isRead: false },  // Unread notifications
+        //   { isRead: true, status: "accepted" } // Read notifications with status "ACCEPTED"
+        //   {isRead:true, status }
+        // ],
+      },
+      select: {
+        id: true,
+        senderName: true,
+        senderMail: true,
+        senderId: true,
+        type: true,
+        content: true,
+        isRead: true,
+        status: true, // Ensure status is included
+        createdAt: true,
+      },
+    });
+  
+    return notifications;
+  };
   export const get_new_requests = async (email: string) => {
     try {
       // Validate input

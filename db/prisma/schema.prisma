@@ -9,22 +9,47 @@ datasource db {
 
 model User {
   id                        Int                     @id @default(autoincrement())
-  userdp                   String?
-  email                    String                  @unique
-  name                     String
-  posts                    Post[]                  @relation("UserPosts")
-  evaluationsStarted       Evaluation[]            @relation("EvaluationRequester")
-  evaluationsReceived      Evaluation[]            @relation("EvaluationRecipient")
-  intermediaryPaths        Path[]                  @relation("UserAsIntermediary")
-  connections              Connection[]            @relation("ConnectionRequester")
-  connectionsReceived      Connection[]            @relation("ConnectionRecipient")
-  evaluationApprovals      EvaluationApprovals[]   @relation("EvaluationApprovalsRequester")
+  userdp                    String?
+  email                     String                  @unique
+  name                      String
+  notifications             Notification[]          @relation("UserNotifications") // Added missing relation
+  posts                     Post[]                  @relation("UserPosts")
+  evaluationsStarted        Evaluation[]            @relation("EvaluationRequester")
+  evaluationsReceived       Evaluation[]            @relation("EvaluationRecipient")
+  intermediaryPaths         Path[]                  @relation("UserAsIntermediary")
+  connections               Connection[]            @relation("ConnectionRequester")
+  connectionsReceived       Connection[]            @relation("ConnectionRecipient")
+  evaluationApprovals       EvaluationApprovals[]   @relation("EvaluationApprovalsRequester")
   evaluationApprovalsReceived EvaluationApprovals[] @relation("EvaluationApprovalsRecipient")
-  comments                 Comment[]
-  userDetails              UserDetails?
-  createdAt                DateTime?                @default(now()) 
+  comments                  Comment[]
+  userDetails               UserDetails?
+  createdAt                 DateTime @default(now()) // Fixed nullable issue
 }
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation("UserNotifications",fields: [userId], references: [id]) // Fixed relation
+  senderName String?
+  senderMail String?
+  senderId   Int?
+  type      String   // e.g., "LIKE", "COMMENT", "FOLLOW", etc.
+  content   String   // Notification message
+  status    STATUS?   
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 
+  @@index([userId])  // Index for faster lookups
+}
+enum STATUS {
+    accepted
+    rejected
+    pending
+
+}
+model Random {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+}
 model UserDetails {
   id           Int      @id @default(autoincrement())
   bio          String?
