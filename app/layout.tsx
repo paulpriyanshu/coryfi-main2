@@ -38,7 +38,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-     <body className={`${geistSans.variable} ${geistMono.variable} antialiased text-base md:text-lg lg:text-xl`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Providers>
           <StoreProvider>
             <SocketProvider>

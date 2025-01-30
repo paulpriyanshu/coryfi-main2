@@ -216,7 +216,7 @@ export default function SearchBar() {
                               {result.name} ({result.email})
                             </div>
                             {result.attachments && result.attachments.length > 0 && (
-                              <div className="text-sm text-muted-foreground">
+                              <div className="text-xs text-muted-foreground">
                                 Attachments: {result.attachments.join(", ")}
                               </div>
                             )}
