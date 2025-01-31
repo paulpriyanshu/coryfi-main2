@@ -97,6 +97,7 @@ function CollabRequestCard({ request, onApprove, onDeny }: CollabRequestCardProp
     onApprove()
     setIsModalOpen(false)
   }
+  console.log("all requests",request)
 
   return (
     <Card className="w-full">

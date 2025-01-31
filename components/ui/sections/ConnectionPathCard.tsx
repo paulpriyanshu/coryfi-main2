@@ -7,7 +7,7 @@ export default function ConnectionPathCard({ path }) {
     const nodesToShow = path.nodes.length > 5 ? [...path.nodes.slice(2,5), '...', path.nodes[path.nodes.length - 1]] : path.nodes.slice(2,path.nodes.length);
     const hasEllipsis = path.nodes.length > 5;
     // console.log("nodes before show",path?.nodes)
-    // console.log("nodes to show",nodesToShow)
+    console.log("nodes to show",nodesToShow)
     return (
       <TooltipProvider>
         <div className="relative py-6">
@@ -20,7 +20,7 @@ export default function ConnectionPathCard({ path }) {
                   <TooltipTrigger asChild>
                     <div className="flex flex-col items-center relative">
                       <Avatar className={`w-12 h-12 relative z-10 ${index === 1 ? 'ring-4 ring-black/50 ring-offset-2' : ''}`}>
-                        <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${node.name}`} alt={node.name} />
+                        <AvatarImage src={ node.profilePicture} alt={node.name} />
                         <AvatarFallback>{node.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       {index === 1 && (

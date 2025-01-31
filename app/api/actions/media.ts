@@ -271,6 +271,17 @@ export const fetchUserId=async(email:string)=>{
 
 
   }
+  export const fetchUserDp=async(email:string)=>{
+    const user=await db.user.findFirst({
+        where:{
+            email
+        }
+    })
+    return user?.userdp || null
+
+
+  }
+
 export const fetchUserInfo=async(email?:string,id?:number)=>{
   if (id) {
     const user=await db.userDetails.findUnique({
