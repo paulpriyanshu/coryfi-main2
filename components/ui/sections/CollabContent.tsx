@@ -1,13 +1,12 @@
-'use client'
+"use client"
 
-import { useEffect, useState } from 'react'
-import { Session } from 'next-auth'
-import { useSession } from 'next-auth/react'
+import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ArrowRight, Loader2 } from 'lucide-react'
-import { toast, Toaster } from 'react-hot-toast'
+import { ArrowRight, Loader2 } from "lucide-react"
+import { toast, Toaster } from "react-hot-toast"
 import {
   Dialog,
   DialogContent,
@@ -16,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { fetchRequestsForIntermediary, handleApproval, handleRejection } from '@/app/api/actions/network'
+import { fetchRequestsForIntermediary, handleApproval, handleRejection } from "@/app/api/actions/network"
 
 interface User {
   id: number
@@ -29,7 +28,7 @@ interface CollaborationRequest {
   requester: User
   recipient: User
   status: string
-  createdAt: Date | string  // Updated to accept both Date and string
+  createdAt: Date | string
 }
 
 interface EvaluationModalProps {
@@ -55,10 +54,11 @@ function EvaluationModal({ isOpen, onClose, onConfirm, request }: EvaluationModa
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>  
+        <DialogHeader>
           <DialogTitle>Approve Path Request</DialogTitle>
           <DialogDescription>
-            Are you sure you want to approve the connection between {request.requester.name} and {request.recipient.name}?
+            Are you sure you want to approve the connection between {request.requester.name} and{" "}
+            {request.recipient.name}?
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center justify-between py-4">
@@ -73,12 +73,14 @@ function EvaluationModal({ isOpen, onClose, onConfirm, request }: EvaluationModa
           </div>
           <ArrowRight className="w-4 h-4" />
           <div className="text-center">
-            <p className="font-semibold">{request.recipient.name}</p>
+            <p className="font-semibold">{request.nextnode[0].intermediary.name}</p>
             <p className="text-sm text-muted-foreground">Recipient</p>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
           <Button onClick={onConfirm}>Confirm Approval</Button>
         </DialogFooter>
       </DialogContent>
@@ -97,7 +99,6 @@ function CollabRequestCard({ request, onApprove, onDeny }: CollabRequestCardProp
     onApprove()
     setIsModalOpen(false)
   }
-  console.log("all requests",request)
 
   return (
     <Card className="w-full">
@@ -105,7 +106,10 @@ function CollabRequestCard({ request, onApprove, onDeny }: CollabRequestCardProp
         <h3 className="text-sm font-semibold mb-2">Path Request</h3>
         <div className="flex items-center justify-between mb-4">
           <Avatar className="w-8 h-8">
-            <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${request.requester.name}`} alt={request.requester.name} />
+            <AvatarImage
+              src={`https://api.dicebear.com/6.x/initials/svg?seed=${request.requester.name}`}
+              alt={request.requester.name}
+            />
             <AvatarFallback>{request.requester.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <ArrowRight className="w-4 h-4 text-muted-foreground" />
@@ -115,27 +119,21 @@ function CollabRequestCard({ request, onApprove, onDeny }: CollabRequestCardProp
           </Avatar>
           <ArrowRight className="w-4 h-4 text-muted-foreground" />
           <Avatar className="w-8 h-8">
-            <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${request.recipient.name}`} alt={request.recipient.name} />
-            <AvatarFallback>{request.recipient.name.charAt(0)}</AvatarFallback>
+            <AvatarImage
+              src={`https://api.dicebear.com/6.x/initials/svg?seed=${request.nextnode[0].intermediary.name}`}
+              alt={request.nextnode[0].intermediary.name}
+            />
+            <AvatarFallback>{request.nextnode[0].intermediary.name.charAt(0)}</AvatarFallback>
           </Avatar>
         </div>
         <p className="text-xs text-muted-foreground mb-4 text-center">
-          {request.requester.name} → You → {request.recipient.name}
+          {request.requester.name} → You → {request.nextnode[0].intermediary.name}
         </p>
         <div className="flex justify-between space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="w-full"
-            onClick={onDeny}
-          >
+          <Button variant="outline" size="sm" className="w-full" onClick={onDeny}>
             Deny
           </Button>
-          <Button 
-            size="sm"
-            className="w-full"
-            onClick={handleApproveClick}
-          >
+          <Button size="sm" className="w-full" onClick={handleApproveClick}>
             Approve
           </Button>
         </div>
@@ -150,6 +148,14 @@ function CollabRequestCard({ request, onApprove, onDeny }: CollabRequestCardProp
   )
 }
 
+// import { useSession } from "next-auth/react"
+// import { useState, useEffect } from "react"
+// import type { CollaborationRequest } from "@/types/collaboration"
+// import { fetchRequestsForIntermediary, handleApproval, handleRejection } from "@/services/collaboration"
+// import { Toaster, toast } from "react-hot-toast"
+// import Loader2 from "@/components/Loader2"
+// import CollabRequestCard from "@/components/CollabRequestCard"
+
 export default function CollabContent() {
   const { data: session, status } = useSession()
   const [collab, setCollab] = useState<CollaborationRequest[]>([])
@@ -159,11 +165,11 @@ export default function CollabContent() {
     const fetchRequests = async () => {
       if (session?.user?.email) {
         setIsLoading(true)
-        
+
         try {
           const result = await fetchRequestsForIntermediary(session.user.email)
           if (result.success && result.data) {
-            console.log("this is next user list",result.data)
+            console.log("results",result.data)
             setCollab(result.data)
           }
         } finally {
@@ -186,7 +192,7 @@ export default function CollabContent() {
       const result = await handleApproval(request.evaluationId, session.user.email)
       if (result.success) {
         toast.success("Request approved successfully.")
-        setCollab(prevCollab => prevCollab.filter(item => item.evaluationId !== request.evaluationId))
+        setCollab((prevCollab) => prevCollab.filter((item) => item.evaluationId !== request.evaluationId))
       } else {
         throw new Error(result.error || "Failed to approve request")
       }
@@ -206,7 +212,7 @@ export default function CollabContent() {
       const result = await handleRejection(request.evaluationId, session.user.email)
       if (result.success) {
         toast.success("Request rejected successfully.")
-        setCollab(prevCollab => prevCollab.filter(item => item.evaluationId !== request.evaluationId))
+        setCollab((prevCollab) => prevCollab.filter((item) => item.evaluationId !== request.evaluationId))
       } else {
         throw new Error(result.error || "Failed to reject request")
       }
@@ -237,9 +243,9 @@ export default function CollabContent() {
           <div className="text-center p-4 text-sm">No oncoming paths at the moment.</div>
         ) : (
           collab.map((request) => (
-            <CollabRequestCard 
-              key={request.evaluationId} 
-              request={request} 
+            <CollabRequestCard
+              key={request.id}
+              request={request}
               onApprove={() => handleApprove(request)}
               onDeny={() => handleReject(request)}
             />
@@ -249,3 +255,4 @@ export default function CollabContent() {
     </>
   )
 }
+

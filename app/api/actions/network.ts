@@ -1301,14 +1301,13 @@ export const handleApproval = async (
       // })
       // console.log("this is pre request",pre_requests)
       // Query the database to find evaluations where the given email is the first intermediary
-      
       const requests = await db.path.findMany({
         where: {
           intermediary: {
             email: intermediaryEmail,
           },
           new_order: 1, // Ensures the intermediary is the first in the chain
-          approved:"FALSE"
+          approved: "FALSE",
         },
         include: {
           evaluation: {
@@ -1318,6 +1317,16 @@ export const handleApproval = async (
               },
               recipient: {
                 select: { id: true, email: true, name: true },
+              },
+              paths: {
+                where: {
+                  order: 2, // Fetch intermediary where order is 2
+                },
+                select: {
+                  intermediary: {
+                    select: { email: true, name: true },
+                  },
+                },
               },
             },
           },
@@ -1330,11 +1339,12 @@ export const handleApproval = async (
         evaluationId: path.evaluationId,
         requester: path.evaluation.requester,
         recipient: path.evaluation.recipient,
+        nextnode:path.evaluation.paths,
         status: path.evaluation.status,
         createdAt: path.createdAt,
       }));
       console.log("these formatted Requests",formattedRequests)
-      return { success: true, data: formattedRequests };
+      return { success: true, data: formattedRequests , requests};
     } catch (error) {
       console.error('Error fetching requests for intermediary:', error);
       return { success: false, error: error.message };
