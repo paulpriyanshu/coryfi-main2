@@ -169,7 +169,7 @@ export default function CollabContent() {
         try {
           const result = await fetchRequestsForIntermediary(session.user.email)
           if (result.success && result.data) {
-            console.log("results",result.data)
+            // console.log("results",result.data)
             setCollab(result.data)
           }
         } finally {
