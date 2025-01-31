@@ -1284,72 +1284,81 @@ export const handleApproval = async (
     return { success: false, error: error.message };
   }
 };
-  export async function fetchRequestsForIntermediary(intermediaryEmail: string) {
-    try {
-      console.log("fetching requests from",intermediaryEmail)
-      // Input validation
-      if (!intermediaryEmail) {
-        throw new Error('Intermediary email is required and must be a string.');
-      }
-      // const pre_requests = await db.path.findMany({
-      //   where:{
-      //     intermediary:{
-      //       email:intermediaryEmail
-      //     }
+export async function fetchRequestsForIntermediary(intermediaryEmail: string) {
+  try {
+    console.log("Fetching requests for", intermediaryEmail);
 
-      //   }
-      // })
-      // console.log("this is pre request",pre_requests)
-      // Query the database to find evaluations where the given email is the first intermediary
-      const requests = await db.path.findMany({
-        where: {
-          intermediary: {
-            email: intermediaryEmail,
-          },
-          new_order: 1, // Ensures the intermediary is the first in the chain
-          approved: "FALSE",
+    // Input validation
+    if (!intermediaryEmail) {
+      throw new Error('Intermediary email is required and must be a string.');
+    }
+
+    const requests = await db.path.findMany({
+      where: {
+        intermediary: {
+          email: intermediaryEmail,
         },
-        include: {
-          evaluation: {
-            include: {
-              requester: {
-                select: { id: true, email: true, name: true },
-              },
-              recipient: {
-                select: { id: true, email: true, name: true },
-              },
-              paths: {
-                where: {
-                  order: 2, // Fetch intermediary where order is 2
-                },
-                select: {
-                  intermediary: {
-                    select: { email: true, name: true },
-                  },
+        new_order: 1, // Ensures the intermediary is the first in the chain
+        approved: "FALSE",
+      },
+      include: {
+        evaluation: {
+          include: {
+            requester: {
+              select: { id: true, email: true, name: true },
+            },
+            recipient: {
+              select: { id: true, email: true, name: true },
+            },
+            paths: {
+              select: {
+                id: true,
+                new_order: true,
+                intermediary: {
+                  select: { email: true, name: true },
                 },
               },
             },
           },
         },
-      });
-      console.log("these are raw requests",requests)
-  
-      // Format the response
-      const formattedRequests = requests.map((path) => ({
-        evaluationId: path.evaluationId,
-        requester: path.evaluation.requester,
-        recipient: path.evaluation.recipient,
-        nextnode:path.evaluation.paths,
-        status: path.evaluation.status,
-        createdAt: path.createdAt,
-      }));
-      console.log("these formatted Requests",formattedRequests)
-      return { success: true, data: formattedRequests , requests};
-    } catch (error) {
-      console.error('Error fetching requests for intermediary:', error);
-      return { success: false, error: error.message };
-    }
+      },
+    });
+
+    console.log("Raw requests:", requests);
+
+    // Fetch immediate next intermediary (new_order + 1) for each evaluation
+    const formattedRequests = await Promise.all(
+      requests.map(async (path) => {
+        const nextNode = await db.path.findFirst({
+          where: {
+            evaluationId: path.evaluationId,
+            order: path.order + 1, // Next intermediary in the sequence
+          },
+          select: {
+            intermediary: {
+              select: { email: true, name: true },
+            },
+          },
+        });
+
+        return {
+          evaluationId: path.evaluationId,
+          requester: path.evaluation.requester,
+          recipient: path.evaluation.recipient,
+          nextNode: nextNode ? nextNode.intermediary : null,
+          status: path.evaluation.status,
+          createdAt: path.createdAt,
+        };
+      })
+    );
+
+    console.log("Formatted Requests:", formattedRequests);
+    return { success: true, data: formattedRequests };
+  } catch (error) {
+    console.error("Error fetching requests for intermediary:", error);
+    return { success: false, error: error.message };
   }
+}
   
   // Simulated waitForApproval function
   // async function waitForApproval(email: string): Promise<boolean> {
