@@ -1,9 +1,8 @@
 "use client"
-
+import Link from "next/link"
 import React, { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { Home, Compass, User, Zap, Users, Menu, Settings, LogOut, Sun, Moon, Laptop,Network, Search} from "lucide-react"
-import Link from "next/link"
 import Image from "next/image"
 import { useSession,signOut, signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
@@ -24,6 +23,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/Label"
 import { fetchUserId } from "@/app/api/actions/media"
+import { DashboardIcon } from "@radix-ui/react-icons"
 
 interface NavItemProps {
   icon: React.ReactNode
@@ -247,6 +247,8 @@ export default function Component() {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
+
+
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
@@ -255,10 +257,18 @@ export default function Component() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={()=>router.push("/profile")}>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
+                  <Link href="/profile" passHref>
+                    <DropdownMenuItem>
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/dashboard" passHref>
+                    <DropdownMenuItem>
+                      <DashboardIcon className="mr-2 h-4 w-4" />
+                      <span>Dashboard</span>
+                    </DropdownMenuItem>
+                  </Link>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onSelect={() => setMode("normal")}>
                     Normal Mode
@@ -270,10 +280,12 @@ export default function Component() {
                     Business Mode
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => router.push('/settings/profile')}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
+                  <Link href="/settings/profile" passHref>
+                    <DropdownMenuItem>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                  </Link>
                   <DropdownMenuItem onSelect={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
