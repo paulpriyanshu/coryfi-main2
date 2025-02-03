@@ -94,7 +94,7 @@ const sendMessage = (chatId: string, content: string, attachments: File[],userId
     formData.append("attachments", file);
   });
   console.log("form",formData)
-  return axios.post(`http://localhost:8080/api/v1/chat-app/messages/${chatId}/${userId}`, formData);
+  return axios.post(`https://connect.coryfi.com/api/v1/chat-app/messages/${chatId}/${userId}`, formData);
 };
 
 const deleteMessage = (chatId: string, messageId: string) => {
