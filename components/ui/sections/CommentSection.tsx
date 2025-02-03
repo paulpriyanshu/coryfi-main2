@@ -10,7 +10,7 @@ interface CommentItemProps {
   onAddReply: (parentId: number, content: string) => Promise<void>
 }
 
-export default function CommentItem ({ comment, postId, onAddReply }) {
+export default function CommentItem({ comment, postId, onAddReply }: CommentItemProps) {
   const [isReplying, setIsReplying] = useState(false)
   const [showReplies, setShowReplies] = useState(false)
   const [newReply, setNewReply] = useState('')
@@ -24,6 +24,12 @@ export default function CommentItem ({ comment, postId, onAddReply }) {
     }
   }
 
+  const makeLinksClickable = (text: string) => {
+    // Regular expression to match URLs (http, https, ftp, etc.)
+    const urlRegex = /(https?:\/\/[^\s]+)/g
+    return text.replace(urlRegex, (url) => `<a href="${url}" target="_blank" class="text-blue-500 hover:underline">${url}</a>`)
+  }
+
   return (
     <div className="space-y-2">
       <div className="flex items-start space-x-2">
@@ -31,9 +37,9 @@ export default function CommentItem ({ comment, postId, onAddReply }) {
           <AvatarImage src={comment?.user?.avatar || "/placeholder.svg?height=24&width=24"} alt={comment?.user?.name} />
           <AvatarFallback>{comment?.user?.name[0]}</AvatarFallback>
         </Avatar>
-        <div className="flex-grow min-w-0"> 
+        <div className="flex-grow min-w-0">
           <p className="text-sm font-semibold">{comment?.user?.name}</p>
-          <p className="text-sm break-words">{comment?.content}</p>
+          <p className="text-sm break-words" dangerouslySetInnerHTML={{ __html: makeLinksClickable(comment?.content) }} />
           <div className="flex flex-wrap items-center gap-2 mt-1">
             <button
               className="text-xs hover:underline"
@@ -96,4 +102,3 @@ export default function CommentItem ({ comment, postId, onAddReply }) {
     </div>
   )
 }
-

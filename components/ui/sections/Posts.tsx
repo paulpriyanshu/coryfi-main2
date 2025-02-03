@@ -30,6 +30,12 @@ export default function Posts({ post, session, userId }: PostProps) {
   const isLongContent = post.content.length > MAX_LENGTH
   const displayedContent = post.content.substring(0, MAX_LENGTH)
 
+  const makeLinksClickable = (text: string) => {
+    // Regular expression to match URLs (http, https, ftp, etc.)
+    const urlRegex = /(https?:\/\/[^\s]+)/g
+    return text.replace(urlRegex, (url) => `<a href="${url}" target="_blank" class="text-blue-500 hover:underline">${url}</a>`)
+  }
+
   const postContent = (
     <>
       <div className="mb-2 p-2">
@@ -50,7 +56,7 @@ export default function Posts({ post, session, userId }: PostProps) {
       </div>
       <div className="mb-4 p-2">
         <div className="prose">
-          <div dangerouslySetInnerHTML={{ __html: displayedContent }} />
+          <div dangerouslySetInnerHTML={{ __html: makeLinksClickable(displayedContent) }} />
           {isLongContent && <ShowMoreButton />}
         </div>
 
@@ -69,4 +75,3 @@ export default function Posts({ post, session, userId }: PostProps) {
     </ClickablePostWrapper>
   )
 }
-

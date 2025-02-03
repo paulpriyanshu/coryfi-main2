@@ -1,6 +1,4 @@
-"use client"
-
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
@@ -17,8 +15,14 @@ import { useMediaQuery } from "./hooks/use-media-query"
 import DOMPurify from "dompurify"
 import { DialogClose } from "@radix-ui/react-dialog"
 
-function sanitizeHtml(html: string): string {
-  return DOMPurify.sanitize(html)
+// Function to sanitize and make URLs clickable
+function sanitizeHtmlWithLinks(html: string): string {
+  // Use DOMPurify to sanitize the HTML
+  const sanitizedHtml = DOMPurify.sanitize(html)
+
+  // Regular expression to match URLs (http, https, ftp, etc.)
+  const urlRegex = /(https?:\/\/[^\s]+)/g
+  return sanitizedHtml.replace(urlRegex, (url) => `<a href="${url}" target="_blank" class="text-blue-500 hover:underline">${url}</a>`)
 }
 
 function ReplyInput({ postId, parentId, onAddReply, onCancel }) {
@@ -65,7 +69,12 @@ function CommentItem({ comment, postId, onAddReply }) {
         </Avatar>
         <div className="flex-grow min-w-0">
           <span className="text-sm font-semibold">{comment?.user?.name}</span>
-          <span className="text-sm ml-2">{comment.content}</span>
+          <span
+            className="text-sm ml-2"
+            dangerouslySetInnerHTML={{
+              __html: sanitizeHtmlWithLinks(comment.content),
+            }}
+          />
           <div className="flex flex-wrap items-center gap-2 mt-1">
             <button className="text-xs text-gray-500 hover:text-gray-700" onClick={() => setIsReplying(!isReplying)}>
               Reply
@@ -101,12 +110,6 @@ function CommentItem({ comment, postId, onAddReply }) {
       )}
     </div>
   )
-}
-
-function countTotalComments(comments) {
-  return comments.reduce((total, comment) => {
-    return total + 1 + (comment.replies ? countTotalComments(comment.replies) : 0)
-  }, 0)
 }
 
 export default function PostModal({ post, userId, isOpen, onClose }) {
@@ -146,30 +149,16 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
     }
   }
 
-  function countComments(comments) {
-    let totalCount = 0
-
-    function countReplies(comment) {
-      totalCount += 1
-      if (comment.replies && comment.replies.length > 0) {
-        comment.replies.forEach((reply) => countReplies(reply))
-      }
-    }
-
-    comments.forEach((comment) => countReplies(comment))
-    return totalCount
-  }
-
   useEffect(() => {
     const loadComments = async () => {
       if (isOpen) {
         const comments = await fetchComments(post.id)
-        setCommentCount(countComments(comments))
+        setCommentCount(comments.length)
         setLocalComments(comments)
       }
     }
     loadComments()
-  }, [isOpen, post.id, countComments]) // Added countComments to dependencies
+  }, [isOpen, post.id])
 
   const handleAddNewComment = async () => {
     if (!newComment.trim() || !userId) return
@@ -246,14 +235,13 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
           commentsCount={commentsCount}
         />
       ) : (
-        <Dialog open={isOpen}  onOpenChange={(open) => {
+        <Dialog open={isOpen} onOpenChange={(open) => {
           if (!open) {
             onClose()
           }
         }}>
           <DialogContent className="sm:max-w-[425px] md:max-w-[890px] lg:max-w-[940px] p-0">
             <DialogTitle className="sr-only">Post Details</DialogTitle>
-            {/* <DialogClose onClick={onClose} /> */}
             <DialogDescription className="sr-only">View and interact with this post</DialogDescription>
             <div className="flex flex-col md:flex-row w-full h-[80vh]">
               {post.imageUrl?.length > 0 && (
@@ -294,26 +282,24 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
                         <span className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleString()}</span>
                       </div>
                     </div>
-                    <Button className="bg-white hover:bg-white"  onClick={(e) => {
+                    <Button className="bg-white hover:bg-white" onClick={(e) => {
                       e.stopPropagation(); // Prevent event bubbling
                       onClose(); // Explicitly call onClose
-                    }}>
-
-                    </Button>
+                    }} />
                   </div>
                   {post.content &&
                     (post.imageUrl?.length === 0 ? (
                       <ScrollArea className="h-[200px] mt-2 px-4">
                         <div
                           className="text-sm prose prose-sm max-w-none"
-                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeHtmlWithLinks(post.content) }}
                         />
                       </ScrollArea>
                     ) : (
                       <ScrollArea className="h-[200px] mt-2 px-4">
                         <div
                           className="mt-2 px-4 text-sm prose prose-sm max-w-none"
-                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeHtmlWithLinks(post.content) }}
                         />
                       </ScrollArea>
                     ))}
@@ -336,7 +322,7 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
                       </Button>
                       <Button variant="ghost" size="sm" className="flex items-center gap-1">
                         <MessageCircle className="w-6 h-6" />
-                        <span>{countTotalComments(localComments)}</span>
+                        <span>{commentsCount}</span>
                       </Button>
                       <Button variant="ghost" size="icon" onClick={(e) => handleShare(e, post.id)}>
                         <Share className="w-6 h-6" />
@@ -367,4 +353,3 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
     </>
   )
 }
-

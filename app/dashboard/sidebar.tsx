@@ -35,17 +35,24 @@ const menuItems = [
 
 export default function ModernSidebar() {
   const pathname = usePathname()
-  const [isCollapsed, setIsCollapsed] = React.useState(false)
+  const [isCollapsed, setIsCollapsed] = React.useState(true)
+
+  // Handle hover events to expand the sidebar
+  const handleMouseEnter = () => setIsCollapsed(false)
+  const handleMouseLeave = () => setIsCollapsed(true)
 
   return (
-    <div className="relative flex h-screen">
+    <div
+      className="relative flex h-screen"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <div
         className={`transition-all duration-300 ease-in-out ${
           isCollapsed ? "w-16" : "w-64"
         } bg-white border-r border-gray-200 flex flex-col min-h-screen`}
       >
         <div className={`flex-1 ${isCollapsed ? "px-2 py-4" : "p-6"}`}>
-          {!isCollapsed && <h2 className="text-2xl font-bold mb-8 text-gray-800">Dashboard</h2>}
           <nav>
             <ul className="space-y-2">
               {menuItems.map((item) => (
@@ -53,7 +60,7 @@ export default function ModernSidebar() {
                   {item.subItems && !isCollapsed ? (
                     <DropdownMenuItem item={item} pathname={pathname} />
                   ) : (
-                    <Link href={item.href} className="block">
+                    <Link href={item.href} className="block" >
                       <button
                         className={`flex items-center gap-3 p-3 rounded-lg transition-all w-full ${
                           pathname === item.href ? "bg-blue-50 text-blue-600 shadow-sm" : "text-gray-600 hover:bg-gray-50"
