@@ -3,6 +3,7 @@ import Link from "next/link"
 import PostActions from "./PostActions"
 import ImageCarousel from "./ImageCarousel"
 import ClickablePostWrapper from "./ClickablePostWrapper"
+import { ShowMoreButton } from "./ShowMoreButton"
 
 interface PostProps {
   post: {
@@ -50,7 +51,7 @@ export default function Posts({ post, session, userId }: PostProps) {
       <div className="mb-4 p-2">
         <div className="prose">
           <div dangerouslySetInnerHTML={{ __html: displayedContent }} />
-          {isLongContent && <PostActions.ShowMoreButton />}
+          {isLongContent && <ShowMoreButton />}
         </div>
 
         {(post.imageUrl?.length > 0 || post.videoUrl?.length > 0) && (
