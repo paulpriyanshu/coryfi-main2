@@ -11,6 +11,8 @@ import { Loader2, PaperclipIcon, SendIcon, Trash2 } from 'lucide-react'
 import { getChatMessages, sendMessage, deleteMessage } from './api'
 import { toast } from 'react-hot-toast'
 import { format } from 'date-fns'
+import { messagesent } from '@/app/api/actions/network'
+import { useSession } from 'next-auth/react'
 
 const TYPING_EVENT = "typing"
 const STOP_TYPING_EVENT = "stopTyping"
@@ -26,6 +28,8 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
   const [isTyping, setIsTyping] = useState(false)
   const scrollAreaRef = useRef(null)
   const typingTimeoutRef = useRef(null)
+  const {data:session,status}=useSession()
+  const [sending,setSending]=useState(false)
   const { socket } = useSocket()
 
   const fetchMessages = useCallback(async () => {
@@ -107,7 +111,9 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
       }
     }
   }
-
+  useEffect(()=>{
+    console.log("inside chat")
+  })
   const handleMessageDelete = ({ chatId, messageId }) => {
     if (chatId === chat._id) {
       setMessages(prevMessages => 
@@ -116,15 +122,22 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
       onChatUpdated()
     }
   }
-
+  
   const handleSendMessage = async () => {
     if (newMessage.trim() || attachments.length > 0) {
+      setSending(true)
       try {
         if (socket) {
           socket.emit(STOP_TYPING_EVENT, chat._id)
         }
+        const participant = chat.participants.find(p => p.username !== chat.name);
+        const recipientEmail = participant ? participant.email : null;
 
+        console.log(recipientEmail);
         const response = await sendMessage(chat._id, newMessage, attachments, currentUserId)
+        console.log(session?.user?.name,recipientEmail)
+        await messagesent(session?.user?.name,recipientEmail)
+
         setNewMessage('')
         setAttachments([])
 
@@ -136,6 +149,7 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
         }
 
         setMessages(prevMessages => [...prevMessages, response.data])
+        setSending(false)
         onChatUpdated()
       } catch (error) {
         console.error('Error sending message:', error)
@@ -305,9 +319,9 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
             className="hidden"
             onChange={handleFileChange}
           />
-          <Button onClick={handleSendMessage}>
-            <SendIcon className="h-4 w-4" />
-          </Button>
+         <Button onClick={handleSendMessage} disabled={sending}>
+      {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <SendIcon className="h-4 w-4" />}
+        </Button>
         </div>
       </div>
     </Card>

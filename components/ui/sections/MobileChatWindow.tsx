@@ -11,6 +11,9 @@ import { getChatMessages, sendMessage, deleteMessage } from './api'
 import { toast } from 'react-hot-toast'
 import { format } from 'date-fns'
 import { ChevronDoubleDownIcon } from '@heroicons/react/20/solid'
+import { messagesent } from '@/app/api/actions/network'
+import { useToast } from '@/hooks/use-toast'
+import { useSession } from 'next-auth/react'
 
 const TYPING_EVENT = "typing"
 const STOP_TYPING_EVENT = "stopTyping"
@@ -21,11 +24,14 @@ const MESSAGE_DELETE_EVENT = "messageDeleted"
 export function MobileChatWindow({ chat,currentUserId, onClose, onChatUpdated, refetchMessages, onMessagesFetched }) {
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
+  const [attachments,setAttachments]=useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isTyping, setIsTyping] = useState(false)
   const scrollAreaRef = useRef(null)
   const typingTimeoutRef = useRef(null)
   const { socket } = useSocket()
+  const {data:session,status}=useSession()
+  const [sending,setSending]=useState(false)
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -108,14 +114,21 @@ export function MobileChatWindow({ chat,currentUserId, onClose, onChatUpdated, r
   }
 
   const handleSendMessage = async () => {
-    if (newMessage.trim()) {
+    if (newMessage.trim() || attachments.length>0) {
+      setSending(true)
       try {
         if (socket) {
           socket.emit(STOP_TYPING_EVENT, chat._id)
         }
 
-        const response = await sendMessage(chat._id, newMessage, [], currentUserId)
+              const participant = chat.participants.find(p => p.username !== chat.name);
+              const recipientEmail = participant ? participant.email : null;
+      
+              const response = await sendMessage(chat._id, newMessage, attachments, currentUserId)
+              console.log(session?.user?.name,recipientEmail)
+              await messagesent(session?.user?.name,recipientEmail)
         setNewMessage('')
+        console.log(chat)
 
         if (socket) {
           socket.emit(MESSAGE_RECEIVED_EVENT, {
@@ -125,6 +138,7 @@ export function MobileChatWindow({ chat,currentUserId, onClose, onChatUpdated, r
         }
 
         setMessages(prevMessages => [...prevMessages, response.data])
+        setSending(false)
         onChatUpdated()
       } catch (error) {
         console.error('Error sending message:', error)
@@ -294,8 +308,10 @@ export function MobileChatWindow({ chat,currentUserId, onClose, onChatUpdated, r
             className="rounded-full"
             disabled={!newMessage.trim()}
           >
-            <SendIcon className="h-4 w-4" />
-          </Button>
+
+      {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <SendIcon className="h-4 w-4" />}
+        </Button>
+
 
         </div>
         <div className='flex justify-center w-full p-2'>
