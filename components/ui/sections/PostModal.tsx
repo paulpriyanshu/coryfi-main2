@@ -14,8 +14,8 @@ import { likePost, dislikePost } from "@/app/api/actions/media"
 import { toast, Toaster } from "react-hot-toast"
 import MobilePostModal from "./mobile-post-modal"
 import { useMediaQuery } from "./hooks/use-media-query"
-// import { sanitizeHtml } from './utils/sanitizeHtml'
 import DOMPurify from "dompurify"
+import { DialogClose } from "@radix-ui/react-dialog"
 
 function sanitizeHtml(html: string): string {
   return DOMPurify.sanitize(html)
@@ -54,7 +54,6 @@ function ReplyInput({ postId, parentId, onAddReply, onCancel }) {
 function CommentItem({ comment, postId, onAddReply }) {
   const [isReplying, setIsReplying] = useState(false)
   const [showReplies, setShowReplies] = useState(false)
-  // console.log("comment", comment)
   const hasReplies = comment.replies && comment.replies.length > 0
 
   return (
@@ -106,7 +105,6 @@ function CommentItem({ comment, postId, onAddReply }) {
 
 function countTotalComments(comments) {
   return comments.reduce((total, comment) => {
-    console.log("inside the function")
     return total + 1 + (comment.replies ? countTotalComments(comment.replies) : 0)
   }, 0)
 }
@@ -119,7 +117,7 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
   const [isSaved, setIsSaved] = useState(false)
   const [userEmail, setUserEmail] = useState("")
   const [likesCount, setLikesCount] = useState(post?.likes?.length)
-  const [commentsCount,setCommentCount]=useState(null)
+  const [commentsCount, setCommentCount] = useState(null)
 
   const isMobile = useMediaQuery("(max-width: 640px)")
 
@@ -127,7 +125,6 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
     if (status === "authenticated" && session?.user?.email) {
       setUserEmail(String(session.user.email))
       setIsLiked(post?.likes?.includes(session.user.email))
-      // console.log("post", post)
     }
   }, [session, status, post.likes])
 
@@ -148,42 +145,34 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
       console.error("Error toggling like:", error)
     }
   }
+
   function countComments(comments) {
-    let totalCount = 0;
-  
+    let totalCount = 0
+
     function countReplies(comment) {
-      // Increment count for the current comment
-      totalCount += 1;
-  
-      // If there are replies, recursively count them
+      totalCount += 1
       if (comment.replies && comment.replies.length > 0) {
-        comment.replies.forEach(reply => countReplies(reply));
+        comment.replies.forEach((reply) => countReplies(reply))
       }
     }
-  
-    // Loop through all top-level comments and count them
-    comments.forEach(comment => countReplies(comment));
-  
-    return totalCount;
+
+    comments.forEach((comment) => countReplies(comment))
+    return totalCount
   }
-  
 
   useEffect(() => {
     const loadComments = async () => {
       if (isOpen) {
         const comments = await fetchComments(post.id)
-        console.log("post comments",comments)
         setCommentCount(countComments(comments))
-
         setLocalComments(comments)
       }
     }
     loadComments()
-  }, [isOpen, post.id])
+  }, [isOpen, post.id, countComments]) // Added countComments to dependencies
 
   const handleAddNewComment = async () => {
     if (!newComment.trim() || !userId) return
-    console.log("user id",userId)
 
     const comment = await handleAddComment(post.id, userId, newComment)
     if (comment) {
@@ -217,7 +206,7 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
   }
 
   const handleShare = async (e, postId) => {
-    e.stopPropagation() // Prevent post modal from opening
+    e.stopPropagation()
     const url = `https://connect.coryfi.com/p/${postId}`
     try {
       await navigator.clipboard.writeText(url)
@@ -233,8 +222,6 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
       })
     }
   }
-
-  // const post.content = sanitizeHtml(post.content)
 
   return (
     <>
@@ -259,9 +246,14 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
           commentsCount={commentsCount}
         />
       ) : (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog open={isOpen}  onOpenChange={(open) => {
+          if (!open) {
+            onClose()
+          }
+        }}>
           <DialogContent className="sm:max-w-[425px] md:max-w-[890px] lg:max-w-[940px] p-0">
             <DialogTitle className="sr-only">Post Details</DialogTitle>
+            {/* <DialogClose onClick={onClose} /> */}
             <DialogDescription className="sr-only">View and interact with this post</DialogDescription>
             <div className="flex flex-col md:flex-row w-full h-[80vh]">
               {post.imageUrl?.length > 0 && (
@@ -302,21 +294,26 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
                         <span className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleString()}</span>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={onClose} />
+                    <Button className="bg-white hover:bg-white"  onClick={(e) => {
+                      e.stopPropagation(); // Prevent event bubbling
+                      onClose(); // Explicitly call onClose
+                    }}>
+
+                    </Button>
                   </div>
                   {post.content &&
                     (post.imageUrl?.length === 0 ? (
                       <ScrollArea className="h-[200px] mt-2 px-4">
                         <div
                           className="text-sm prose prose-sm max-w-none"
-                          dangerouslySetInnerHTML={{ __html: post.content }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
                         />
                       </ScrollArea>
                     ) : (
                       <ScrollArea className="h-[200px] mt-2 px-4">
                         <div
                           className="mt-2 px-4 text-sm prose prose-sm max-w-none"
-                          dangerouslySetInnerHTML={{ __html: post.content }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
                         />
                       </ScrollArea>
                     ))}
@@ -346,7 +343,6 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
                       </Button>
                     </div>
                   </div>
-                  {/* <p className="text-sm font-semibold">{likesCount} likes</p> */}
                   {userId ? (
                     <div className="flex items-center gap-2">
                       <Input

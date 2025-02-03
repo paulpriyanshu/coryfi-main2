@@ -213,7 +213,10 @@ export default function MobilePostModal({
                   </Avatar>
                   <span className="text-sm font-semibold">{post.user?.name}</span>
                 </div>
-                <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
+                <Button variant="ghost" size="icon" onClick={(e) => {
+                      e.stopPropagation(); // Prevent event bubbling
+                      onClose(); // Explicitly call onClose
+                    }} className="rounded-full">
                   <X className="w-5 h-5" />
                 </Button>
               </SheetTitle>
@@ -280,7 +283,10 @@ export default function MobilePostModal({
               </div>
             </ScrollArea>
           </div>
-          <div className="p-4 border-t flex justify-center" onClick={onClose}>
+          <div className="p-4 border-t flex justify-center" onClick={(e) => {
+                      e.stopPropagation(); // Prevent event bubbling
+                      onClose(); // Explicitly call onClose
+                    }}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <ChevronDown className="w-10 h-10" />
             </Button>

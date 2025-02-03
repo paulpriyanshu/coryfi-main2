@@ -5,7 +5,6 @@ import { MessageSquare, ThumbsUp, Share2 } from "lucide-react"
 import { handleLike } from "@/app/feed/action"
 import toast from "react-hot-toast"
 import PostModal from "./PostModal"
-// import { ShowMoreButton } from "./ShowMoreButton"
 
 interface PostActionsProps {
   post: {
@@ -53,6 +52,10 @@ export default function PostActions({ post, session, userId }: PostActionsProps)
     }
   }
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+  }
+
   return (
     <>
       <div className="flex justify-between">
@@ -82,25 +85,14 @@ export default function PostActions({ post, session, userId }: PostActionsProps)
       </div>
 
       {isModalOpen && (
-        <PostModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} post={post} userId={userId.id} />
-      )}
+  <PostModal 
+    isOpen={isModalOpen} 
+    onClose={() => setIsModalOpen(false)} 
+    post={post} 
+    userId={userId.id} 
+  />
+)}
     </>
   )
 }
-
-// export function ShowMoreButton() {
-//     const [showFullContent, setShowFullContent] = useState(false)
-  
-//     return (
-//       <button
-//         className="text-blue-500 font-semibold hover:underline ml-2"
-//         onClick={(e) => {
-//           e.stopPropagation()
-//           setShowFullContent(!showFullContent)
-//         }}
-//       >
-//         {showFullContent ? "Show less" : "...more"}
-//       </button>
-//     )
-//   }
 
