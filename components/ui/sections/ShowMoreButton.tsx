@@ -6,10 +6,10 @@ export function ShowMoreButton() {
     return (
       <button
         className="text-blue-500 font-semibold hover:underline ml-2"
-        onClick={(e) => {
-          e.stopPropagation()
-          setShowFullContent(!showFullContent)
-        }}
+        // onClick={(e) => {
+        //   e.stopPropagation()
+        //   setShowFullContent(!showFullContent)
+        // }}
       >
         {showFullContent ? "Show less" : "...more"}
       </button>
