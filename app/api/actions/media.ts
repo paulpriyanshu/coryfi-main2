@@ -857,23 +857,25 @@ a[x-apple-data-detectors],
     }
   };
   export const fetchImages = async () => {
-    // Fetch post data with related user and comment data
     const data = await db.post.findMany({
+      orderBy: {
+        createdAt: 'desc', // Newest posts first
+      },
       include: {
         user: {
           select: {
-            id: true, // Fetch the user ID
-            name: true, // Fetch the user name
-            email: true, // Fetch the user email
-            userdp: true, // Fetch the user profile picture
+            id: true,
+            name: true,
+            email: true,
+            userdp: true,
           },
         },
         comments: {
           select: {
-            id: true, // Comment ID
-            content: true, // Comment content
-            createdAt: true, // When the comment was created
-            user: { // Assuming you want user info for the comment
+            id: true,
+            content: true,
+            createdAt: true,
+            user: {
               select: {
                 id: true,
                 name: true,
@@ -885,13 +887,6 @@ a[x-apple-data-detectors],
       },
     });
   
-    // Fisher-Yates shuffle algorithm to randomize the posts
-    for (let i = data.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [data[i], data[j]] = [data[j], data[i]]; // Swap elements
-    }
-  
-    // Return the randomized data
     return data;
   };
 

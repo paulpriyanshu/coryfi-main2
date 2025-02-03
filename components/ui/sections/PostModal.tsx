@@ -183,6 +183,7 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
 
   const handleAddNewComment = async () => {
     if (!newComment.trim() || !userId) return
+    console.log("user id",userId)
 
     const comment = await handleAddComment(post.id, userId, newComment)
     if (comment) {

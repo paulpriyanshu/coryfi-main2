@@ -113,7 +113,7 @@ export default function Component() {
       initial={{ opacity: 0, y: -50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`sticky top-0 z-50 w-full transition-all duration-200 ${isScrolled ? 'bg-white/80 backdrop-blur-md shadow-md' : 'bg-white'}`}
+      className={`sticky top-0 z-50  w-full transition-all duration-200 ${isScrolled ? 'bg-white/80 backdrop-blur-md shadow-md' : 'bg-white'}`}
     >
       <div className="container mx-auto px-4">
         <div className="flex h-12 md:h-16 items-center justify-between">

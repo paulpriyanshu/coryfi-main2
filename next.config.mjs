@@ -28,7 +28,7 @@ const nextConfig = {
         ignoreDuringBuilds: true,
       },
     images:{
-        domains:['example.com','prac2.priyanshu-paul003.workers.dev','drive.google.com','i.imgur.com','cdn.pixabay.com','images.unsplash.com','en.wikipedia.org','assets.aceternity.com'],
+        domains:['coryfi-images.s3.ap-south-1.amazonaws.com','example.com','prac2.priyanshu-paul003.workers.dev','drive.google.com','i.imgur.com','cdn.pixabay.com','images.unsplash.com','en.wikipedia.org','assets.aceternity.com'],
 
     },
     // output:"export"
