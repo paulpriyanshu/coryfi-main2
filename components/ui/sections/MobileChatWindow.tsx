@@ -10,7 +10,7 @@ import { Loader2, SendIcon, Trash2, X } from 'lucide-react'
 import { getChatMessages, sendMessage, deleteMessage } from './api'
 import { toast } from 'react-hot-toast'
 import { format } from 'date-fns'
-import { ChevronDoubleDownIcon } from '@heroicons/react/20/solid'
+import { ChatBubbleLeftEllipsisIcon, ChevronDoubleDownIcon } from '@heroicons/react/20/solid'
 import { messagesent } from '@/app/api/actions/network'
 import { useToast } from '@/hooks/use-toast'
 import { useSession } from 'next-auth/react'
@@ -120,15 +120,15 @@ export function MobileChatWindow({ chat,currentUserId, onClose, onChatUpdated, r
         if (socket) {
           socket.emit(STOP_TYPING_EVENT, chat._id)
         }
-
+              console.log(chat)
               const participant = chat.participants.find(p => p.username !== chat.name);
               const recipientEmail = participant ? participant.email : null;
-      
+
               const response = await sendMessage(chat._id, newMessage, attachments, currentUserId)
               console.log(session?.user?.name,recipientEmail)
               await messagesent(session?.user?.name,recipientEmail)
         setNewMessage('')
-        console.log(chat)
+        // console.log(chat)
 
         if (socket) {
           socket.emit(MESSAGE_RECEIVED_EVENT, {
