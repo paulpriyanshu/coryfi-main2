@@ -1,40 +1,45 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import Link from "next/link"
-import PostActions from "./PostActions"
-import ImageCarousel from "./ImageCarousel"
-import ClickablePostWrapper from "./ClickablePostWrapper"
-import { ShowMoreButton } from "./ShowMoreButton"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from "next/link";
+import PostActions from "./PostActions";
+import ImageCarousel from "./ImageCarousel";
+import ClickablePostWrapper from "./ClickablePostWrapper";
+import { ShowMoreButton } from "./ShowMoreButton";
 
 interface PostProps {
   post: {
-    id: string
-    content: string
-    imageUrl?: string[]
-    videoUrl?: string[]
-    likes: string[]
-    comments: any[]
-    createdAt: string
+    id: string;
+    content: string;
+    imageUrl?: string[];
+    videoUrl?: string[];
+    likes: string[];
+    comments: any[];
+    createdAt: string;
     user: {
-      id: string
-      name: string
-      userdp: string
-    }
-  }
-  session: any
-  userId: { id: string }
+      id: string;
+      name: string;
+      userdp: string;
+    };
+  };
+  session: any;
+  userId: { id: string };
 }
 
 export default function Posts({ post, session, userId }: PostProps) {
   // Limit content length
-  const MAX_LENGTH = 200
-  const isLongContent = post.content.length > MAX_LENGTH
-  const displayedContent = post.content.substring(0, MAX_LENGTH)
+  const MAX_LENGTH = 200;
+  const isLongContent = post.content.length > MAX_LENGTH;
+  const displayedContent = post.content.substring(0, MAX_LENGTH);
 
   const makeLinksClickable = (text: string) => {
     // Regular expression to match URLs (http, https, ftp, etc.)
-    const urlRegex = /(https?:\/\/[^\s]+)/g
-    return text.replace(urlRegex, (url) => `<a href="${url}" target="_blank" class="text-blue-500 hover:underline">${url}</a>`)
-  }
+    const urlRegex = /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/g;
+
+    // Replace the URLs with anchor tags and ensure there are no stray tags
+    return text.replace(urlRegex, (url) => {
+      const cleanedUrl = url.replace(/[.,!?;]$/, ''); // Remove trailing punctuation
+      return `<a href="${cleanedUrl}" target="_blank" class="text-blue-500 hover:underline">${cleanedUrl}</a>`;
+    });
+  };
 
   const postContent = (
     <>
@@ -56,7 +61,11 @@ export default function Posts({ post, session, userId }: PostProps) {
       </div>
       <div className="mb-4 p-2">
         <div className="prose">
-          <div dangerouslySetInnerHTML={{ __html: makeLinksClickable(displayedContent) }} />
+          <div
+            dangerouslySetInnerHTML={{
+              __html: makeLinksClickable(displayedContent),
+            }}
+          />
           {isLongContent && <ShowMoreButton />}
         </div>
 
@@ -67,11 +76,11 @@ export default function Posts({ post, session, userId }: PostProps) {
 
       <PostActions post={post} session={session} userId={userId} />
     </>
-  )
+  );
 
   return (
     <ClickablePostWrapper post={post} userId={userId}>
       {postContent}
     </ClickablePostWrapper>
-  )
+  );
 }
