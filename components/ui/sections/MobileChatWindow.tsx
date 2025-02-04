@@ -121,7 +121,7 @@ export function MobileChatWindow({ chat,currentUserId, onClose, onChatUpdated, r
           socket.emit(STOP_TYPING_EVENT, chat._id)
         }
               console.log(chat)
-              const participant = chat.participants.find(p => p.username !== chat.name);
+              const participant = chat.participants.find(p => p.username !== session?.user?.name);
               const recipientEmail = participant ? participant.email : null;
 
               const response = await sendMessage(chat._id, newMessage, attachments, currentUserId)

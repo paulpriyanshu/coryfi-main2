@@ -130,7 +130,7 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
         if (socket) {
           socket.emit(STOP_TYPING_EVENT, chat._id)
         }
-        const participant = chat.participants.find(p => p.username !== chat.name);
+        const participant = chat.participants.find(p => p.username !== session?.user?.name);
         const recipientEmail = participant ? participant.email : null;
 
         console.log(recipientEmail);
