@@ -22,15 +22,13 @@ interface UsersListProps {
   findPath: (email: string) => Promise<any>;
 }
 
-export default function UsersList({ users, findPath }: UsersListProps) {
+export default function UsersList({ users }) {
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
   const dispatch = useAppDispatch();
 
   const handleUserClick = async (user: User) => {
     try {
-      const pathData = await findPath(user.email);
-      dispatch(setResponseData(pathData));
       router.push(`/userProfile/${user.id}`);
     } catch (error) {
       console.error("Error handling user click:", error);
