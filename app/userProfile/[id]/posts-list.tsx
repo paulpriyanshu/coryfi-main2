@@ -37,10 +37,10 @@ export function PostsList({ initialPosts, userId }) {
                 </div>  
               )}
               {post?.content && (
-                <div 
-                  className="mt-2 px-4 text-sm prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: post.content }}
-                />
+            <div 
+            className="mt-2 px-4 text-sm prose prose-sm max-w-none h-16 overflow-hidden text-ellipsis"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
               )}
               <div className="flex justify-between items-center text-sm text-muted-foreground">
                 <div>
