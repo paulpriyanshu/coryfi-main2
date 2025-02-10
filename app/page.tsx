@@ -22,6 +22,7 @@ import { MessageCircleIcon as ChatBubbleIcon } from 'lucide-react';
 import { ChevronDoubleLeftIcon } from '@heroicons/react/24/outline';
 import { Badge } from "@/components/ui/badge";
 import { fetchRequestsForIntermediary } from '@/app/api/actions/network';
+import SignupComponent from './signup/SignupComponent';
 
 type FilterType = 'results' | 'collab' | 'recents' | 'chats';
 
@@ -119,8 +120,13 @@ function Component() {
     if (session?.user?.email) {
       getUser();
     }
+    
   }, [activeFilter, searchParams, session?.user?.email]); 
-
+  if(!session){
+    return (
+      <SignupComponent/>
+    )
+  }
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <div className="h-screen w-screen bg-background relative overflow-hidden">
