@@ -1,7 +1,7 @@
 'use server';
 import axios from "axios";
 import db from "@/db/index"
-import { fetchAllUsers, fetchUserId } from "./media";
+import { fetchAllUsers, fetchUserData, fetchUserId } from "./media";
 import { createUserChat } from "@/components/ui/sections/api";
 import { getSession } from "next-auth/react";
 import AWS from 'aws-sdk'
@@ -943,6 +943,87 @@ export const createConnectionRequest = async (
     return { success: false, error: error.message };
   }
 };
+
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+export async function getOngoingEvaluations(email:string) {
+  try {
+    // Fetch all ongoing evaluations for the user (either requester or recipient)
+    const userId=await fetchUserId(email)
+    const user=await fetchUserData(userId.id)
+    const ongoingEvaluations = await prisma.evaluation.findMany({
+      where: {
+        OR: [{ requesterId: userId.id }],
+        status: "ONGOING",
+      },
+      include: {
+        paths: {
+          include: {
+            intermediary: true, // Fetch intermediary details
+          },
+        },
+      },
+    });
+
+    // Filter evaluations that are not completed
+    const incompleteEvaluations = ongoingEvaluations.filter(
+      (evaluation) => evaluation.status !== "COMPLETED"
+    );
+
+    // Extract intermediaries from incomplete evaluations
+    const intermediaries = incompleteEvaluations.flatMap((evaluation) =>
+      evaluation.paths.map((path) => ({
+      
+        evaluationId: evaluation.id,
+        intermediaryId: path.intermediaryId,
+        intermediaryName: path.intermediary.name,
+        approved: path.approved,
+        order: path.order,
+      }))
+    );
+
+    // Fetch evaluations by specific evaluation IDs
+    // const evaluationsById = await prisma.evaluation.findMany({
+    //   where: {
+    //     id: { in: incompleteEvaluations.id },
+    //     status: "ONGOING",
+    //   },
+    //   include: {
+    //     paths: {
+    //       include: {
+    //         intermediary: true,
+    //       },
+    //     },
+    //   },
+    // });
+
+    // Get pending approvals where the user is the recipient
+    // const pendingApprovals = await prisma.evaluationApprovals.findMany({
+    //   where: {
+    //     recipientId: userId,
+    //     status: "PENDING",
+    //   },
+    //   include: {
+    //     requester: true,
+    //     recipient: true,
+    //   },
+    // });
+
+    return {
+      userData:user,
+      ongoingEvaluations,
+      incompleteEvaluations,
+      intermediaries,
+      // evaluationsById
+    };
+  } catch (error) {
+    console.error("Error fetching evaluations:", error);
+    return null;
+  }
+}
+
 export const handleRejection = async (
   evaluationId: number,
   rejectingUserEmail: string

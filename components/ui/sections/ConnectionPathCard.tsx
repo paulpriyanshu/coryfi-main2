@@ -4,15 +4,15 @@ import { ArrowUp } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 export default function ConnectionPathCard({ path }) {
-    const nodesToShow = path.nodes.length > 5 ? [...path.nodes.slice(2,5), '...', path.nodes[path.nodes.length - 1]] : path.nodes.slice(2,path.nodes.length);
-    const hasEllipsis = path.nodes.length > 5;
+    const nodesToShow = path?.nodes?.length > 5 ? [...path.nodes.slice(2,5), '...', path.nodes[path.nodes.length - 1]] : path?.nodes?.slice(2,path.nodes.length);
+    const hasEllipsis = path?.nodes?.length > 5;
     // console.log("nodes before show",path?.nodes)
     console.log("nodes to show",nodesToShow)
     return (
       <TooltipProvider>
         <div className="relative py-6">
           <div className="flex items-center justify-between">
-            {nodesToShow.map((node, index) => (
+            {nodesToShow?.map((node, index) => (
               node === '...' ? (
                 <div key="ellipsis" className="text-gray-500">...</div> 
               ) : (

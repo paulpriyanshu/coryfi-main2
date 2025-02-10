@@ -18,6 +18,7 @@ export default async function Page() {
   const initialPosts = await fetchImages()
   const userId = session.user.email ? await fetchUserId(session.user.email) : null
 
+
   return (
     <div className="min-h-screen bg-slate-100">
       <div className="max-w-[1440px] mx-auto py-4 px-3 sm:px-4 lg:px-5">

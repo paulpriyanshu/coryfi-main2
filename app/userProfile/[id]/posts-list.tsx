@@ -38,7 +38,7 @@ export function PostsList({ initialPosts, userId }) {
               )}
               {post?.content && (
             <div 
-            className="mt-2 px-4 text-sm prose prose-sm max-w-none h-16 overflow-hidden text-ellipsis"
+            className="mt-2 px-4 text-sm prose prose-sm max-w-none max-h-56 overflow-hidden text-ellipsis"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
               )}

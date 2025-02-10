@@ -33,7 +33,7 @@ interface Request {
 
 export default function ConnectionRequestsDropdown() {
   const { data: session } = useSession()
-  const [requests, setRequests] = useState<Request[]>([])
+  const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [showTooltip, setShowTooltip] = useState(false)
   const [open, setOpen] = useState(false)

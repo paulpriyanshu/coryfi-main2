@@ -8,6 +8,7 @@ import { setResponseData } from '@/app/libs/features/pathdata/pathSlice'
 import CollaborativeEvaluationModal from './CollaborativeEvaluationModal'
 import ConnectionPathCard from './ConnectionPathCard'
 import { fetchUserDp } from '@/app/api/actions/media'
+import { useRouter } from 'next/navigation'
 
 // Function to fetch user display picture
 // export const fetchUserDp = async (email: string) => {
@@ -21,6 +22,7 @@ export default function ResultCard({ index, path }: { index: number; path }) {
   const dispatch = useAppDispatch()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [userDisplayPictures, setUserDisplayPictures] = useState<{[email: string]: string}>({})
+  const router=useRouter()
 
   // Fetch display pictures for all nodes
   useEffect(() => {
@@ -53,6 +55,9 @@ export default function ResultCard({ index, path }: { index: number; path }) {
   const handleCollaborativeEvaluation = (e: React.MouseEvent) => {
     e.stopPropagation()
     setIsModalOpen(true)
+   
+    
+    
   }
 useEffect(()=>{
   console.log("dp arrays",userDisplayPictures)

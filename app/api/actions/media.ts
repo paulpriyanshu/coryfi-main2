@@ -94,6 +94,7 @@ export const getUnconnectedUsers = async (email: string) => {
     throw new Error("Failed to fetch unconnected users");
   }
 };
+
 export const getAllUnconnectedUsers = async (email: string) => {
   try {
     if (!email) {

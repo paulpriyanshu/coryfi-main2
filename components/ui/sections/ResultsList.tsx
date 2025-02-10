@@ -41,7 +41,7 @@ export default function ResultsList() {
   const startEmail = structuredData.nodes[0]?.email;
   const endEmail = structuredData.nodes[1]?.email;
 
-  const pathRequests = Array.from({ length: pathCount }, (_, index) => {
+  const  pathRequests = Array.from({ length: pathCount }, (_, index) => {
     const { data, error, isLoading } = useSWR(
       startEmail && endEmail ? ['pathRanking', index, startEmail, endEmail] : null,
       () => fetcher(index, startEmail, endEmail),

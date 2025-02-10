@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Merchant" ALTER COLUMN "ownerPhoneNumber" SET DATA TYPE BIGINT,
+ALTER COLUMN "adharNumber" SET DATA TYPE BIGINT,
+ALTER COLUMN "adharRegisteredNumber" SET DATA TYPE BIGINT;

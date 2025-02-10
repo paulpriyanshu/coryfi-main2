@@ -18,7 +18,7 @@ export default function EnhancedInfiniteScrollNetwork({ initialPosts, session, u
     <>
       <Toaster position="top-center" />
       <div className="hidden md:block">
-      <PostCreator  userId={userId.id} />
+      <PostCreator  userId={userId?.id} />
 
 
       </div>

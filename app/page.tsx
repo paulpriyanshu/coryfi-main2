@@ -130,7 +130,7 @@ function Component() {
 
         <div
           className={`absolute left-0 top-0 h-full bg-slate-50  rounded-xl backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex  ${
-            isExpanded ? (isMobile ? 'w-[340px]' : 'w-[450px]') : 'w-10 md:w-16'
+            isExpanded ? (isMobile ? 'w-full' : 'w-[450px]') : 'w-10 md:w-16'
           }`}
         >
           <Tabs
@@ -198,13 +198,14 @@ function Component() {
           </Tabs>
 
           <Button
-            variant="secondary"
-            size="icon"
-            className="absolute -right-6 top-1/2 transform -translate-y-1/2 h-24 w-6 rounded-l-none rounded-r-lg shadow-lg border-l-0 flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors"
-            onClick={toggleSidebar}
-          >
-            {isExpanded ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          </Button>
+          variant="secondary"
+          size="icon"
+          className={`absolute -right-6 top-1/2 transform -translate-y-1/2 h-24 w-6 rounded-l-none rounded-r-lg shadow-lg border-l-0 flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors
+          ${isExpanded ? "hidden sm:flex" : ""}`}
+          onClick={toggleSidebar}
+        >
+          {isExpanded ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        </Button>
         </div>
 
         <SignInDialog
@@ -224,12 +225,3 @@ export default function Page() {
   );
 }
 
-// import React from 'react'
-
-// function page() {
-//   return (
-//     <div>page</div>
-//   )
-// }
-
-// export default page

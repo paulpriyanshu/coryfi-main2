@@ -7,6 +7,8 @@ import { createConnectionRequest, intermediaryUserList } from '@/app/api/actions
 import { useSession } from 'next-auth/react'
 import toast, { Toaster } from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
+import { useDispatch } from 'react-redux'
+import { setResponseData } from '@/app/libs/features/pathdata/pathSlice'
 
 type PathNode = {
   id: number
@@ -33,6 +35,7 @@ export default function CollaborativeEvaluationModal({ isOpen, onClose, path }) 
   const [evaluationId, setEvaluationId] = useState(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const { data: session, status } = useSession()
+  const dispatch=useDispatch()
   const router=useRouter()
 
   const handleConfirm = async () => {
@@ -54,6 +57,8 @@ export default function CollaborativeEvaluationModal({ isOpen, onClose, path }) 
       })
 
       onClose()
+      dispatch(setResponseData(path))
+
      router.push(`/?tab=chats&expand=true`)
       
     } catch (error) {

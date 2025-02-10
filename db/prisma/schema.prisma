@@ -22,6 +22,7 @@ model User {
   evaluationApprovals       EvaluationApprovals[]   @relation("EvaluationApprovalsRequester")
   evaluationApprovalsReceived EvaluationApprovals[] @relation("EvaluationApprovalsRecipient")
   comments                  Comment[]
+  merchants                 Merchant[]
   userDetails               UserDetails?
   createdAt                 DateTime @default(now()) // Fixed nullable issue
 }
@@ -127,6 +128,8 @@ model Post {
   likes           String[]     @default([])
   shares          Int[]     @default([])
   comments        Comment[]
+  businessId      Int?
+  business        Business? @relation(fields: [businessId], references: [id])
   reports         Int[]     @default([])
   reportReasons   String[]  @default([])
 
@@ -148,3 +151,170 @@ model Comment {
 
   // Optionally, you can add other fields like likes, shares, etc.
 }
+model Merchant {
+  id                              Int        @id @default(autoincrement()) // Primary key
+  userId                          Int        @unique  // Foreign key reference to User table
+  user                            User       @relation(fields: [userId], references: [id])
+  Merchant_Id                     String     @unique  @default(uuid())
+  Name                            String
+  MobileNumber                    String?
+  AlternativeMobileNumber         String?
+  UPI_ID                          String?
+  Email                           String?
+  PermanentAdress                 String?
+  AadharNumber                    String?    @unique
+  PAN                             String?
+  businesses                      Business[] // A merchant can own multiple businesses
+  additionalFields                Json?     // JSONB field for extra flexibility
+  createdAt                       DateTime  @default(now())
+  updatedAt                       DateTime  @updatedAt
+}
+
+model Business {
+  id                             Int       @id @default(autoincrement()) // Primary key
+  merchantId                     String       // Foreign key reference to Merchant (One business → One owner)
+  merchant                       Merchant  @relation(fields: [merchantId], references: [Merchant_Id])
+  Business_Id                    String    @unique  @default(uuid())
+  Business_Name                  String
+  Business_Email                 String?   @unique
+  Business_Address               String?
+  Entity                         String?    //(Ex - Sole Proprietorship, Partnership, LLP, Pvt Ltd etc.)
+  Operational_Since              DateTime?
+  Sector                         String?    //(Ex - Retail, Manufacturing, Services etc.)
+  GSTIN                          String?   @unique
+  Business_Mobile_Number         String?   @unique
+  Alternate_Mobile_Number        String?
+  Udyam_Registration_Number      String?
+  Business_UPI_ID                String?   @unique
+  Bank_Account_Number            String?
+  IFSC_CODE                      String?
+
+  posts                          Post[]    // A business can have multiple posts
+  products                       Product[]
+  offers                         Offer[]
+
+  createdAt                      DateTime  @default(now())
+  updatedAt                      DateTime  @updatedAt
+
+  @@index([merchantId])  // Index for better querying
+  @@index([id]) 
+}
+model Offer {
+  id              Int        @id @default(autoincrement())
+  businessId      Int        // The user who created the offer
+  business        Business       @relation(fields: [businessId], references: [id])
+
+  title           String     // Offer title (e.g., "Diwali Sale 50% Off")
+  description     String?    // Optional details about the offer
+  image          String?    // Offer banner or image
+  discountType    DiscountType // Can be FLAT or PERCENTAGE
+  discountValue   Float      // The discount value (amount or percentage)
+  
+  applicableCategories Category[] @relation("OfferCategories") // Offer applies to these categories
+  applicableProducts  Product[]  @relation("OfferProducts")  // Offer applies to these products
+  
+  startDate       DateTime  // When the offer starts
+  endDate         DateTime  // When the offer expires
+  isActive        Boolean   @default(true) // Whether the offer is currently active
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+enum DiscountType {
+  FLAT        // Flat amount discount (e.g., ₹500 off)
+  PERCENTAGE  // Percentage discount (e.g., 20% off)
+}
+model Category {
+  id               Int       @id @default(autoincrement())
+  name             String    @unique
+  parentCategoryId Int?      // Nullable parent category
+  parentCategory   Category? @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id])
+  subcategories    Category[] @relation("CategoryHierarchy") // Subcategories
+
+  products         Product[] // Products in this category
+  offers           Offer[] @relation("OfferCategories") // Offers on this category
+  images           String[]  // Category images (banners, thumbnails)
+  categoryCarouselId Int?
+  categoryCarousel CategoryCarousel? @relation(fields: [categoryCarouselId],references: [id],onDelete: Cascade)
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now())
+}
+
+model Product {
+  id              Int       @id @default(autoincrement())
+  businessId      Int?      // Nullable: Product may belong to a business
+  business        Business? @relation(fields: [businessId], references: [id])  
+
+  name            String
+  description     String?
+  categoryId      Int?      // Nullable: Product may or may not belong to a category
+  category        Category? @relation(fields: [categoryId], references: [id])
+
+  basePrice       Float?    // Nullable: A product may have a price, or only its variants may have prices
+  discountedPrice Float?
+  stock          Int        @default(0)
+  
+  variants        Variant[] // A product may or may not have variants
+  images          String[]  // Product images (general)
+  offers          Offer[] @relation("OfferProducts") // Offers applicable on this product
+  categoryCarouselId Int?
+  categoryCarousel CategoryCarousel? @relation(fields: [categoryCarouselId],references: [id],onDelete: Cascade)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Variant {
+  id              Int       @id @default(autoincrement())
+  productId       Int       // Foreign key reference to Product
+  product         Product   @relation(fields: [productId], references: [id])
+
+  name            String    // Variant name (e.g., "Red", "XL", etc.)
+  price           Float?    // Nullable: If null, product basePrice is used
+  stock           Int       @default(0)
+
+  images          String[]  // Variant-specific images
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model BusinessPageLayout {
+  id              Int      @id @default(autoincrement())
+  name            String
+  description     String?
+  bannerImageUrls  String[]   // URL for the banner image
+  dpImageUrl      String?   // URL for the display picture (DP)
+  categories      CategoryCarousel[]
+}
+
+model CategoryCarousel {
+  id          Int     @id @default(autoincrement())
+  name        String
+  imageUrl    String  
+  businessId  Int
+  business    BusinessPageLayout @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  categories  Category[]
+  products    Product[]
+}
+
+// model CategoryCarouselCategory {
+//   id          Int @id @default(autoincrement())
+//   categoryId  Int
+//   category    Category @relation(fields: [categoryId], references: [id])
+  
+//   carouselId  Int
+//   carousel    CategoryCarousel @relation(fields: [carouselId], references: [id])
+// }
+
+// model CategoryCarouselProduct {
+//   id          Int @id @default(autoincrement())
+//   productId   Int
+//   product     Product @relation(fields: [productId], references: [id])
+  
+//   carouselId  Int
+//   carousel    CategoryCarousel @relation(fields: [carouselId], references: [id])
+// }
