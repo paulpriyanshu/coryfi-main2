@@ -137,6 +137,7 @@ export default function Page() {
                     <CardContent className="p-4">
                       {post?.imageUrl && post.imageUrl.length > 0 && (
                         <div className="mb-4">
+                          
                           <img
                             src={post.imageUrl[0]} 
                             alt="Post image" 
