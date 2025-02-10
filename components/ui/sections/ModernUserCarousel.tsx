@@ -3,11 +3,11 @@
 import React, { useCallback } from 'react'
 import useSWR from 'swr'
 import useEmblaCarousel from 'embla-carousel-react'
+import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { getUnconnectedUsers } from '@/app/api/actions/media'
 
 // Define the type for user data
@@ -37,8 +37,6 @@ const ModernUserCarousel = ({ userEmail }: { userEmail: string }) => {
     error, 
     isLoading 
   } = useSWR(userEmail ? `unconnected-users-${userEmail}` : null, () => fetcher(userEmail));
-
-  const router = useRouter();
 
   // Scroll navigation callbacks
   const scrollPrev = useCallback(() => {
@@ -71,20 +69,16 @@ const ModernUserCarousel = ({ userEmail }: { userEmail: string }) => {
                       <h2 className="text-xl font-bold text-black">{user.name}</h2>
                       <p className="text-sm text-gray-500">{user.email}</p>
                     </div>
-                    <Button
-                      variant="outline"
-                      className="w-full mt-4"
-                      onClick={() => router.push(`/userProfile/${user.id}`)}
-                    >
-                      View Profile
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full mt-4"
-                      onClick={() => router.push(`/users`)}
-                    >
-                      Show More
-                    </Button>
+                    <Link href={`/userProfile/${user.id}`} passHref>
+                      <Button variant="outline" className="w-full mt-4">
+                        View Profile
+                      </Button>
+                    </Link>
+                    <Link href="/users" passHref>
+                      <Button variant="outline" className="w-full mt-4">
+                        Show More
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
