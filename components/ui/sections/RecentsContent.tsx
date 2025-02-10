@@ -17,6 +17,7 @@ export default function EvaluationPaths() {
     async function loadData() {
       const data = await getOngoingEvaluations(session?.user?.email)
       if (data) {
+        console.log("new data",data)
         setEvaluationsData(data)
       }
     }

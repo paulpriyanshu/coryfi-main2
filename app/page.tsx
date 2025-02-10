@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Search, Users, Clock, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
+import { Search, Users, Clock, ChevronLeft, ChevronRight, Menu, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -21,7 +21,7 @@ import { SignInDialog } from '@/components/ui/sections/SigninDialog';
 import { MessageCircleIcon as ChatBubbleIcon } from 'lucide-react';
 import { ChevronDoubleLeftIcon } from '@heroicons/react/24/outline';
 import { Badge } from "@/components/ui/badge";
-import { fetchRequestsForIntermediary } from '@/app/api/actions/network';
+import { fetchRequestsForIntermediary, getOngoingEvaluations } from '@/app/api/actions/network';
 import SignupComponent from './signup/SignupComponent';
 
 type FilterType = 'results' | 'collab' | 'recents' | 'chats';
@@ -46,6 +46,7 @@ function Component() {
   const { data: session, status } = useSession();
   const [isSignInDialogOpen, setIsSignInDialogOpen] = useState(false);
   const [collabCount, setCollabCount] = useState(0);
+  const [evaluationCount, setEvaluationCount] = useState(0);
   const router = useRouter();
   const searchParams = useSearchParams();
   const data = useAppSelector(selectResponseData);
@@ -78,6 +79,15 @@ function Component() {
         }
       }
     }
+    async function EvaluationCount() {
+      if (session?.user?.email) {
+        const collabData = await getOngoingEvaluations(session.user.email);
+        if (collabData?.ongoingEvaluations?.length>0) {
+            setEvaluationCount(collabData?.ongoingEvaluations?.length);
+        }
+      }
+    }
+    EvaluationCount()
 
     fetchCollabCount();
     const intervalId = setInterval(fetchCollabCount, 5 * 60 * 1000); // Refresh every 5 minutes
@@ -149,17 +159,36 @@ function Component() {
               <TabsTrigger value="results" className="w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Search className="md:w-8 md:h-8 w-4 h-4" />
               </TabsTrigger>
-              <TabsTrigger value="collab" className="w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground relative">
-                <Users className="w-4 h-4 md:w-8 md:h-8" />
-                {collabCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 md:w-8 md:h-8 p-1flex items-center justify-center text-[10px]" variant="destructive">
-                    {collabCount}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="recents" className="w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Clock className="w-4 h-4 md:w-8 md:h-8" />
-              </TabsTrigger>
+              <TabsTrigger
+                  value="collab"
+                  className="relative w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <User className="w-4 h-4 md:w-8 md:h-8" />
+                  
+                  {collabCount > 0 && (
+                    <Badge 
+                      className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 flex items-center justify-center text-[10px]"
+                      variant="destructive"
+                    >
+                      {collabCount}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              <TabsTrigger
+                  value="recents"
+                  className="relative w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <Clock className="w-4 h-4 md:w-8 md:h-8" />
+                  
+                  {evaluationCount > 0 && (
+                    <Badge 
+                      className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 flex items-center justify-center text-[10px]"
+                      variant="destructive"
+                    >
+                      {evaluationCount}
+                    </Badge>
+                  )}
+                </TabsTrigger>
               <TabsTrigger value="chats" className="w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <ChatBubbleIcon className="w-4 h-4 md:w-8 md:h-8" />
               </TabsTrigger>
