@@ -1,7 +1,8 @@
 "use server"
 import db from "@/db"
 
-export const addProduct=async({businessId,name,description,categoryId,images,stock,basePrice,discountedPrice})=>{
+export const addProduct=async({businessId,name,description,categoryId,images,stock,basePrice,BeforeDiscountPrice,SKU})=>{
+  
    try {
      const data=await db.product.create({
          data:{
@@ -12,7 +13,8 @@ export const addProduct=async({businessId,name,description,categoryId,images,sto
              images,
              stock,
              basePrice,
-             discountedPrice,
+             BeforeDiscountPrice,
+             SKU
              
          }
  
@@ -24,4 +26,14 @@ export const addProduct=async({businessId,name,description,categoryId,images,sto
     
    }
 
+}
+
+
+export const getAllProducts=async(businessId:number)=>{
+  const data=await db.product.findMany({
+    where:{
+      businessId
+    }
+  })
+  return data
 }

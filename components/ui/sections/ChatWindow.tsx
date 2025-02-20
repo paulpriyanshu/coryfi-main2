@@ -111,9 +111,9 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
       }
     }
   }
-  useEffect(()=>{
-    console.log("inside chat")
-  })
+  // useEffect(()=>{
+  //   // console.log("inside chat",chat)
+  // })
   const handleMessageDelete = ({ chatId, messageId }) => {
     if (chatId === chat._id) {
       setMessages(prevMessages => 
@@ -124,18 +124,20 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
   }
   
   const handleSendMessage = async () => {
+    // console.log("send message chat",chat)
     if (newMessage.trim() || attachments.length > 0) {
       setSending(true)
       try {
         if (socket) {
           socket.emit(STOP_TYPING_EVENT, chat._id)
         }
-        const participant = chat.participants.find(p => p.username !== session?.user?.name);
+        const participant = chat?.participants?.find(p => p.email !== session?.user?.email);
+        // console.log("participants",participant)
         const recipientEmail = participant ? participant.email : null;
 
-        console.log(recipientEmail);
+        // console.log(recipientEmail);
         const response = await sendMessage(chat._id, newMessage, attachments, currentUserId)
-        console.log(session?.user?.name,recipientEmail)
+        // console.log("chat data",session?.user?.name,recipientEmail)
         await messagesent(session?.user?.name,recipientEmail)
 
         setNewMessage('')
@@ -215,7 +217,7 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
     const files = Array.from(e.target.files || [])
     setAttachments(files)
   }
-  console.log("chats",chat)
+  // console.log("chats",chat)
   return (
     <Card className="flex flex-col h-full w-full">
       <CardHeader className="px-4 py-2">

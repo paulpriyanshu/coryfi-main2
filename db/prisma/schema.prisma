@@ -179,7 +179,6 @@ model Business {
   Business_Email                 String?   @unique
   Business_Address               String?
   Entity                         String?    //(Ex - Sole Proprietorship, Partnership, LLP, Pvt Ltd etc.)
-  Operational_Since              DateTime?
   Sector                         String?    //(Ex - Retail, Manufacturing, Services etc.)
   GSTIN                          String?   @unique
   Business_Mobile_Number         String?   @unique
@@ -253,9 +252,10 @@ model Product {
   category        Category? @relation(fields: [categoryId], references: [id])
 
   basePrice       Float?    // Nullable: A product may have a price, or only its variants may have prices
-  discountedPrice Float?
-  stock          Int        @default(0)
-  
+  BeforeDiscountPrice Float?
+  Sales             Int?
+  stock           Int?        @default(0)
+  SKU             String? 
   variants        Variant[] // A product may or may not have variants
   images          String[]  // Product images (general)
   offers          Offer[] @relation("OfferProducts") // Offers applicable on this product

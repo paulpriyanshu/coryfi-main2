@@ -5,6 +5,7 @@ import { fetchAllUsers, fetchUserData, fetchUserId } from "./media";
 import { createUserChat } from "@/components/ui/sections/api";
 import { getSession } from "next-auth/react";
 import AWS from 'aws-sdk'
+import nodemailer from "nodemailer"
 
 
 export const check_connection=async(requesterEmail:string,recipientEmail:string)=>{
@@ -57,41 +58,75 @@ AWS.config.update({
 });
 
 const ses = new AWS.SES();
-
-// Email sending function
-const sendEmail = async (recipientEmail,subject, bodyText, bodyHtml) => {
-  const params = {
-    Source: process.env.SENDER,
-    Destination: {
-      ToAddresses: [recipientEmail]
-    },
-    Message: {
-      Subject: {
-        Data: subject,
-        Charset: CHARSET
-      },
-      Body: {
-        Text: {
-          Data: bodyText,
-          Charset: CHARSET
-        },
-        Html: {
-          Data: bodyHtml,
-          Charset: CHARSET
-        }
-      }
-    }
-  };
-
+const sendEmail = async (
+  to: string,
+  subject: string,
+  bodyText: string,
+  bodyHtml: string
+) => {
   try {
-    const data = await ses.sendEmail(params).promise();
-    console.log("Email sent! Message ID: ", data.MessageId);
-    return { success: true, messageId: data.MessageId };
-  } catch (err) {
-    console.error("Error sending email: ", err);
-    return { success: false, error: err.message };
+    // Configure Nodemailer with Gmail SMTP
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_USER, // Your Gmail address
+        pass: process.env.GMAIL_APP_PASSWORD, // Use an App Password
+      },
+    });
+
+    // Email options
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to,
+      subject,
+      text: bodyText,
+      html: bodyHtml,
+    };
+
+    // Send email
+    await transporter.sendMail(mailOptions);
+
+    console.log(`Email sent to ${to}`);
+    return true;
+  } catch (error) {
+    console.error(`Error sending email to ${to}:`, error);
+    throw error;
   }
 };
+// Email sending function
+// const sendEmail = async (recipientEmail,subject, bodyText, bodyHtml) => {
+//   const params = {
+//     Source: process.env.SENDER,
+//     Destination: {
+//       ToAddresses: [recipientEmail]
+//     },
+//     Message: {
+//       Subject: {
+//         Data: subject,
+//         Charset: CHARSET
+//       },
+//       Body: {
+//         Text: {
+//           Data: bodyText,
+//           Charset: CHARSET
+//         },
+//         Html: {
+//           Data: bodyHtml,
+//           Charset: CHARSET
+//         }
+//       }
+//     }
+//   };
+
+//   try {
+//     const data = await ses.sendEmail(params).promise();
+//     console.log("Email sent! Message ID: ", data.MessageId);
+//     return { success: true, messageId: data.MessageId };
+//   } catch (err) {
+//     console.error("Error sending email: ", err);
+//     return { success: false, error: err.message };
+//   }
+// };
 
 // Usage Example
 const sendConnectionRequestEmail = async (recipientEmail,requesterName,requesterEmail,strengthLevel) => {
@@ -279,11 +314,10 @@ a[x-apple-data-detectors],
                           <td align="center" valign="top" width="33.33%" class="bc" style="Margin:0;border:0;padding-top:5px;padding-right:5px;padding-bottom:5px;padding-left:5px">
                            <div style="vertical-align:middle;display:block"><a target="_blank" href="https://connect.coryfi.com" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Visit Us </a>
                            </div></td>
-                          <td align="center" valign="top" width="33.33%" class="bc" style="Margin:0;border:0;padding-top:5px;padding-right:5px;padding-bottom:5px;padding-left:5px;border-left:1px solid #ffffff">
-                           <div style="vertical-align:middle;display:block"><a target="_blank" href="https://drive.google.com/file/d/1rOu9NfpS6kG3Glj4uM3sftEWwCzH5HTZ/view?usp=drive_link" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Privacy Policy</a>
+                         <div style="vertical-align:middle;display:block"><a target="_blank" href="https://drive.google.com/file/d/1CcHDnfP2VRRnuQhM9m-FRGMW5TTmema2/view?usp=sharing" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Privacy Policy</a>
                            </div></td>
                           <td align="center" valign="top" width="33.33%" class="bc" style="Margin:0;border:0;padding-top:5px;padding-right:5px;padding-bottom:5px;padding-left:5px;border-left:1px solid #ffffff">
-                           <div style="vertical-align:middle;display:block"><a target="_blank" href="https://drive.google.com/file/d/1m99JCl8X2eEAlQejePDemZPr4Xi-zi-g/view?usp=drive_link" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Terms of Use</a>
+                           <div style="vertical-align:middle;display:block"><a target="_blank" href="https://drive.google.com/file/d/1VjIZUwH1Jrgrk6Y8AssPNDjRjfr-Ab9p/view?usp=sharing" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Terms of Use</a>
                            </div></td>
                          </tr>
                        </table></td>
@@ -296,6 +330,12 @@ a[x-apple-data-detectors],
          </tr>
        </table></td>
      </tr>
+     <tr>
+                  <td align="center" style="padding:20px;Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;font-size:12px;color:#999999">
+                    <p>If you no longer wish to receive these emails, you can <a href="https://connect.coryfi.com/unsubscribe?email={{USER_EMAIL}}" style="color:#1376C8;text-decoration:underline;">unsubscribe here</a>.</p>
+                    <p>Coryfi Connect Pvt Ltd, 123 Street, City, Country</p>
+                  </td>
+                </tr>
    </table>
   </div>
  </body>
@@ -596,11 +636,10 @@ a[x-apple-data-detectors],
                           <td align="center" valign="top" width="33.33%" class="bc" style="Margin:0;border:0;padding-top:5px;padding-right:5px;padding-bottom:5px;padding-left:5px">
                            <div style="vertical-align:middle;display:block"><a target="_blank" href="https://connect.coryfi.com" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Visit Us </a>
                            </div></td>
-                          <td align="center" valign="top" width="33.33%" class="bc" style="Margin:0;border:0;padding-top:5px;padding-right:5px;padding-bottom:5px;padding-left:5px;border-left:1px solid #ffffff">
-                           <div style="vertical-align:middle;display:block"><a target="_blank" href="https://drive.google.com/file/d/1rOu9NfpS6kG3Glj4uM3sftEWwCzH5HTZ/view?usp=drive_link" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Privacy Policy</a>
+                         <div style="vertical-align:middle;display:block"><a target="_blank" href="https://drive.google.com/file/d/1CcHDnfP2VRRnuQhM9m-FRGMW5TTmema2/view?usp=sharing" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Privacy Policy</a>
                            </div></td>
                           <td align="center" valign="top" width="33.33%" class="bc" style="Margin:0;border:0;padding-top:5px;padding-right:5px;padding-bottom:5px;padding-left:5px;border-left:1px solid #ffffff">
-                           <div style="vertical-align:middle;display:block"><a target="_blank" href="https://drive.google.com/file/d/1m99JCl8X2eEAlQejePDemZPr4Xi-zi-g/view?usp=drive_link" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Terms of Use</a>
+                           <div style="vertical-align:middle;display:block"><a target="_blank" href="https://drive.google.com/file/d/1VjIZUwH1Jrgrk6Y8AssPNDjRjfr-Ab9p/view?usp=sharing" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Terms of Use</a>
                            </div></td>
                          </tr>
                        </table></td>
@@ -611,6 +650,12 @@ a[x-apple-data-detectors],
              </tr>
            </table></td>
          </tr>
+          <tr>
+                  <td align="center" style="padding:20px;Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;font-size:12px;color:#999999">
+                    <p>If you no longer wish to receive these emails, you can <a href="https://connect.coryfi.com/unsubscribe?email={{USER_EMAIL}}" style="color:#1376C8;text-decoration:underline;">unsubscribe here</a>.</p>
+                    <p>Coryfi Connect Pvt Ltd, 123 Street, City, Country</p>
+                  </td>
+                </tr>
        </table></td>
      </tr>
    </table>
@@ -1442,6 +1487,7 @@ export async function fetchRequestsForIntermediary(intermediaryEmail: string) {
 }
 
 export const messagesent=async(senderName:string,recipientEmail:string)=>{
+  console.log("reciever email",recipientEmail)
   const subject = "New Message";
   const bodyText = `${senderName} has sent you a message.`;
   const bodyHtml = `
@@ -1625,10 +1671,10 @@ a[x-apple-data-detectors],
                            <div style="vertical-align:middle;display:block"><a target="_blank" href="https://connect.coryfi.com" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Visit Us </a>
                            </div></td>
                           <td align="center" valign="top" width="33.33%" class="bc" style="Margin:0;border:0;padding-top:5px;padding-right:5px;padding-bottom:5px;padding-left:5px;border-left:1px solid #ffffff">
-                           <div style="vertical-align:middle;display:block"><a target="_blank" href="https://drive.google.com/file/d/1rOu9NfpS6kG3Glj4uM3sftEWwCzH5HTZ/view?usp=drive_link" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Privacy Policy</a>
+                           <div style="vertical-align:middle;display:block"><a target="_blank" href="https://drive.google.com/file/d/1CcHDnfP2VRRnuQhM9m-FRGMW5TTmema2/view?usp=sharing" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Privacy Policy</a>
                            </div></td>
                           <td align="center" valign="top" width="33.33%" class="bc" style="Margin:0;border:0;padding-top:5px;padding-right:5px;padding-bottom:5px;padding-left:5px;border-left:1px solid #ffffff">
-                           <div style="vertical-align:middle;display:block"><a target="_blank" href="https://drive.google.com/file/d/1m99JCl8X2eEAlQejePDemZPr4Xi-zi-g/view?usp=drive_link" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Terms of Use</a>
+                           <div style="vertical-align:middle;display:block"><a target="_blank" href="https://drive.google.com/file/d/1VjIZUwH1Jrgrk6Y8AssPNDjRjfr-Ab9p/view?usp=sharing" style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#999999;font-size:12px">Terms of Use</a>
                            </div></td>
                          </tr>
                        </table></td>
@@ -1641,6 +1687,12 @@ a[x-apple-data-detectors],
          </tr>
        </table></td>
      </tr>
+     <tr>
+                  <td align="center" style="padding:20px;Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;font-size:12px;color:#999999">
+                    <p>If you no longer wish to receive these emails, you can <a href="https://connect.coryfi.com/unsubscribe?email={{USER_EMAIL}}" style="color:#1376C8;text-decoration:underline;">unsubscribe here</a>.</p>
+                    <p>Coryfi Connect Pvt Ltd, 123 Street, City, Country</p>
+                  </td>
+                </tr>
    </table>
   </div>
  </body>
