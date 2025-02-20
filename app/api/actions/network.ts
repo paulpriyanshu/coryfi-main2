@@ -58,75 +58,75 @@ AWS.config.update({
 });
 
 const ses = new AWS.SES();
-const sendEmail = async (
-  to: string,
-  subject: string,
-  bodyText: string,
-  bodyHtml: string
-) => {
-  try {
-    // Configure Nodemailer with Gmail SMTP
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.GMAIL_USER, // Your Gmail address
-        pass: process.env.GMAIL_APP_PASSWORD, // Use an App Password
-      },
-    });
-
-    // Email options
-    const mailOptions = {
-      from: process.env.GMAIL_USER,
-      to,
-      subject,
-      text: bodyText,
-      html: bodyHtml,
-    };
-
-    // Send email
-    await transporter.sendMail(mailOptions);
-
-    console.log(`Email sent to ${to}`);
-    return true;
-  } catch (error) {
-    console.error(`Error sending email to ${to}:`, error);
-    throw error;
-  }
-};
-// Email sending function
-// const sendEmail = async (recipientEmail,subject, bodyText, bodyHtml) => {
-//   const params = {
-//     Source: process.env.SENDER,
-//     Destination: {
-//       ToAddresses: [recipientEmail]
-//     },
-//     Message: {
-//       Subject: {
-//         Data: subject,
-//         Charset: CHARSET
-//       },
-//       Body: {
-//         Text: {
-//           Data: bodyText,
-//           Charset: CHARSET
-//         },
-//         Html: {
-//           Data: bodyHtml,
-//           Charset: CHARSET
-//         }
-//       }
-//     }
-//   };
-
+// const sendEmail = async (
+//   to: string,
+//   subject: string,
+//   bodyText: string,
+//   bodyHtml: string
+// ) => {
 //   try {
-//     const data = await ses.sendEmail(params).promise();
-//     console.log("Email sent! Message ID: ", data.MessageId);
-//     return { success: true, messageId: data.MessageId };
-//   } catch (err) {
-//     console.error("Error sending email: ", err);
-//     return { success: false, error: err.message };
+//     // Configure Nodemailer with Gmail SMTP
+//     const transporter = nodemailer.createTransport({
+//       service: "gmail",
+//       auth: {
+//         user: process.env.GMAIL_USER, // Your Gmail address
+//         pass: process.env.GMAIL_APP_PASSWORD, // Use an App Password
+//       },
+//     });
+
+//     // Email options
+//     const mailOptions = {
+//       from: process.env.GMAIL_USER,
+//       to,
+//       subject,
+//       text: bodyText,
+//       html: bodyHtml,
+//     };
+
+//     // Send email
+//     await transporter.sendMail(mailOptions);
+
+//     console.log(`Email sent to ${to}`);
+//     return true;
+//   } catch (error) {
+//     console.error(`Error sending email to ${to}:`, error);
+//     throw error;
 //   }
 // };
+
+const sendEmail = async (recipientEmail,subject, bodyText, bodyHtml) => {
+  const params = {
+    Source: process.env.SENDER,
+    Destination: {
+      ToAddresses: [recipientEmail]
+    },
+    Message: {
+      Subject: {
+        Data: subject,
+        Charset: CHARSET
+      },
+      Body: {
+        Text: {
+          Data: bodyText,
+          Charset: CHARSET
+        },
+        Html: {
+          Data: bodyHtml,
+          Charset: CHARSET
+        }
+      }
+    }
+  };
+
+  try {
+    const data = await ses.sendEmail(params).promise();
+    console.log("Email sent! Message ID: ", data.MessageId);
+    return { success: true, messageId: data.MessageId };
+  } catch (err) {
+    console.error("Error sending email: ", err);
+    return { success: false, error: err.message };
+  }
+};
 
 // Usage Example
 const sendConnectionRequestEmail = async (recipientEmail,requesterName,requesterEmail,strengthLevel) => {
@@ -333,7 +333,6 @@ a[x-apple-data-detectors],
      <tr>
                   <td align="center" style="padding:20px;Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;font-size:12px;color:#999999">
                     <p>If you no longer wish to receive these emails, you can <a href="https://connect.coryfi.com/unsubscribe?email={{USER_EMAIL}}" style="color:#1376C8;text-decoration:underline;">unsubscribe here</a>.</p>
-                    <p>Coryfi Connect Pvt Ltd, 123 Street, City, Country</p>
                   </td>
                 </tr>
    </table>
@@ -653,7 +652,6 @@ a[x-apple-data-detectors],
           <tr>
                   <td align="center" style="padding:20px;Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;font-size:12px;color:#999999">
                     <p>If you no longer wish to receive these emails, you can <a href="https://connect.coryfi.com/unsubscribe?email={{USER_EMAIL}}" style="color:#1376C8;text-decoration:underline;">unsubscribe here</a>.</p>
-                    <p>Coryfi Connect Pvt Ltd, 123 Street, City, Country</p>
                   </td>
                 </tr>
        </table></td>
@@ -1690,7 +1688,6 @@ a[x-apple-data-detectors],
      <tr>
                   <td align="center" style="padding:20px;Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;font-size:12px;color:#999999">
                     <p>If you no longer wish to receive these emails, you can <a href="https://connect.coryfi.com/unsubscribe?email={{USER_EMAIL}}" style="color:#1376C8;text-decoration:underline;">unsubscribe here</a>.</p>
-                    <p>Coryfi Connect Pvt Ltd, 123 Street, City, Country</p>
                   </td>
                 </tr>
    </table>

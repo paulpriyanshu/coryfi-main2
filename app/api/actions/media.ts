@@ -635,7 +635,7 @@ export const notifyUsersOnNewPost = async (name: string) => {
                <tr>
                   <td align="center" style="padding:20px;Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;font-size:12px;color:#999999">
                     <p>If you no longer wish to receive these emails, you can <a href="https://connect.coryfi.com/unsubscribe?email={{USER_EMAIL}}" style="color:#1376C8;text-decoration:underline;">unsubscribe here</a>.</p>
-                    <p>Coryfi Connect Pvt Ltd, 123 Street, City, Country</p>
+                   
                   </td>
                 </tr>
              </table>
@@ -863,7 +863,7 @@ a[x-apple-data-detectors],
      <tr>
                   <td align="center" style="padding:20px;Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;font-size:12px;color:#999999">
                     <p>If you no longer wish to receive these emails, you can <a href="https://connect.coryfi.com/unsubscribe?email={{USER_EMAIL}}" style="color:#1376C8;text-decoration:underline;">unsubscribe here</a>.</p>
-                    <p>Coryfi Connect Pvt Ltd, 123 Street, City, Country</p>
+                   
                   </td>
                 </tr>
    </table>
