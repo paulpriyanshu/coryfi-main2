@@ -1,12 +1,13 @@
-import Image from "next/image"
+
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import CategoryNavigation from "./category-navigation"
 import BusinessCard from "./business-card"
 // import SearchBar from "./search-bar"
 import SearchBar from "@/components/ui/sections/SearchBar"
 import { getAllPages } from "../api/business/business"
-import { json } from "d3"
+
+export const dynamic='force-dynamic';
+export const revalidate=0;
 
 export default async function MarketplacePage() {
 
