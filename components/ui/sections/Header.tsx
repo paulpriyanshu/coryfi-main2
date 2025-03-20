@@ -124,6 +124,7 @@ export default function Component() {
     
       if (verify && verify.data && verify.data.Merchant_Id) {
         await fetchBusinessData(verify.data.Merchant_Id);
+        
       } else {
         // Ensure we mark as not a merchant if verification fails
         setIsMerchant(false);
