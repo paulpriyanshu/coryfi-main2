@@ -11,7 +11,7 @@ import { json } from "d3"
 export default async function MarketplacePage() {
 
   const data=await getAllPages()
-  console.log("pages",JSON.stringify(data,null,2))
+  // console.log("pages",JSON.stringify(data,null,2))
 
   //  const Alldata=JSON.stringify(data,null,2)
    const allBusinesses=data.pageData
