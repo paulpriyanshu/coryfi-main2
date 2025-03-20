@@ -699,7 +699,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                 <div>
                   <label htmlFor="business-name" className="block text-xs sm:text-sm font-medium mb-1">
                     Business Name
-                  </label>
+                  </Label>
                   <Input
                     id="business-name"
                     placeholder="Enter your business name"
@@ -711,7 +711,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                 <div>
                   <label htmlFor="business-description" className="block text-xs sm:text-sm font-medium mb-1">
                     Business Description
-                  </label>
+                  </Label>
                   <Textarea
                     id="business-description"
                     placeholder="Describe your business"
@@ -751,7 +751,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                 <div className="flex flex-col gap-2">
                   <label htmlFor="category-select" className="text-sm font-medium">
                     Select from existing categories
-                  </label>
+                  </Label>
                   <div className="flex gap-2">
                     <select
                       id="category-select"
@@ -853,7 +853,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
             <div className="space-y-2">
               <label htmlFor="page-name" className="text-sm font-medium">
                 Page Name
-              </label>
+              </Label>
               <Input
                 id="page-name"
                 placeholder="Enter page name"
@@ -864,7 +864,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
             <div className="space-y-2">
               <label htmlFor="page-description" className="text-sm font-medium">
                 Page Description
-              </label>
+              </Label>
               <Textarea
                 id="page-description"
                 placeholder="Enter page description"

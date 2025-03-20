@@ -313,7 +313,7 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
           />
           {/* <label htmlFor="file-upload" className="cursor-pointer">
             <PaperclipIcon className="h-6 w-6" />
-          </label> */}
+          </Label> */}
           <input
             id="file-upload"
             type="file"

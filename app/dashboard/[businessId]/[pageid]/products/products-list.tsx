@@ -2,7 +2,7 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { Search, Plus, Package, Edit, Trash2, ChevronRight, GripVertical } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
@@ -457,7 +457,7 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
                   multiple
                   disabled={localEditedProduct.images.length >= 5}
                 />
-              </label>
+              </Label>
             </div>
           )}
           {isUploading && (
