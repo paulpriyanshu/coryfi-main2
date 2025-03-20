@@ -39,9 +39,11 @@ export default function BusinessForm({ merchantData, onBack }) {
   
     try {
       const result = await createMerchantAndBusiness(merchantData, businessData)
+     
       
       if (result.success) {
-        router.replace("/dashboard") // Redirect on success
+        router.replace(`/dashboard/${result.business.Business_Id}/${result.businessPage.pageId}`) // Redirect on success
+        console.log("result",result)
       } else {
         console.error("Failed to create merchant and business:", result)
       }

@@ -268,10 +268,16 @@ export const fetchUserId=async(email:string)=>{
             email
         }
     })
+    if (!user) {
+      console.log("No user found for this email");
+      return null;
+  }
+    console.log("user",user)
     return user
 
 
   }
+
   export const fetchUserDp=async(email:string)=>{
     const user=await db.user.findFirst({
         where:{
@@ -935,7 +941,7 @@ a[x-apple-data-detectors],
             userdp: true,
           },
         },
-        comments: {
+        comments: { 
           select: {
             id: true,
             content: true,

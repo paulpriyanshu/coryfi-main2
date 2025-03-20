@@ -128,8 +128,8 @@ model Post {
   likes           String[]     @default([])
   shares          Int[]     @default([])
   comments        Comment[]
-  businessId      Int?
-  business        Business? @relation(fields: [businessId], references: [id])
+  // businessPageId  Int?
+  // business        BusinessPageLayout? @relation(fields: [businessPageId], references: [id])
   reports         Int[]     @default([])
   reportReasons   String[]  @default([])
 
@@ -183,14 +183,13 @@ model Business {
   GSTIN                          String?   @unique
   Business_Mobile_Number         String?   @unique
   Alternate_Mobile_Number        String?
-  Udyam_Registration_Number      String?
+  Udyam_Registration_Number      String?        
   Business_UPI_ID                String?   @unique
   Bank_Account_Number            String?
   IFSC_CODE                      String?
+  businessPageLayout             BusinessPageLayout[]
+   // Foreign key reference to BusinessPageLayout
 
-  posts                          Post[]    // A business can have multiple posts
-  products                       Product[]
-  offers                         Offer[]
 
   createdAt                      DateTime  @default(now())
   updatedAt                      DateTime  @updatedAt
@@ -200,8 +199,8 @@ model Business {
 }
 model Offer {
   id              Int        @id @default(autoincrement())
-  businessId      Int        // The user who created the offer
-  business        Business       @relation(fields: [businessId], references: [id])
+  businessPageId  String        // The user who created the offer
+  business        BusinessPageLayout       @relation(fields: [businessPageId], references: [pageId])
 
   title           String     // Offer title (e.g., "Diwali Sale 50% Off")
   description     String?    // Optional details about the offer
@@ -226,7 +225,9 @@ enum DiscountType {
 }
 model Category {
   id               Int       @id @default(autoincrement())
-  name             String    @unique
+  name             String    
+  businessPageId   String?
+  business         BusinessPageLayout? @relation(fields: [businessPageId], references: [pageId])  
   parentCategoryId Int?      // Nullable parent category
   parentCategory   Category? @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id])
   subcategories    Category[] @relation("CategoryHierarchy") // Subcategories
@@ -236,69 +237,93 @@ model Category {
   images           String[]  // Category images (banners, thumbnails)
   categoryCarouselId Int?
   categoryCarousel CategoryCarousel? @relation(fields: [categoryCarouselId],references: [id],onDelete: Cascade)
-
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @default(now())
 }
 
 model Product {
   id              Int       @id @default(autoincrement())
-  businessId      Int?      // Nullable: Product may belong to a business
-  business        Business? @relation(fields: [businessId], references: [id])  
-
+  businessPageId  String?      
+  business        BusinessPageLayout? @relation(fields: [businessPageId], references: [pageId])  
   name            String
   description     String?
-  categoryId      Int?      // Nullable: Product may or may not belong to a category
-  category        Category? @relation(fields: [categoryId], references: [id])
-
-  basePrice       Float?    // Nullable: A product may have a price, or only its variants may have prices
+  categoryId      Int?      
+  category        Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  basePrice       Float?    
   BeforeDiscountPrice Float?
-  Sales             Int?
-  stock           Int?        @default(0)
+  Sales           Int?
+  stock           Int?       @default(0)
   SKU             String? 
-  variants        Variant[] // A product may or may not have variants
-  images          String[]  // Product images (general)
-  offers          Offer[] @relation("OfferProducts") // Offers applicable on this product
+  images          String[]  
+  offers          Offer[] @relation("OfferProducts") 
   categoryCarouselId Int?
-  categoryCarousel CategoryCarousel? @relation(fields: [categoryCarouselId],references: [id],onDelete: Cascade)
+  categoryCarousel CategoryCarousel? @relation(fields: [categoryCarouselId], references: [id], onDelete: Cascade)
+  fields Fields[]
+
+  // Symmetric many-to-many self-relation
+  variants ProductVariant[] @relation("ProductToVariant_A")
+  variantOf ProductVariant[] @relation("ProductToVariant_B")
 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
 
-model Variant {
-  id              Int       @id @default(autoincrement())
-  productId       Int       // Foreign key reference to Product
-  product         Product   @relation(fields: [productId], references: [id])
 
-  name            String    // Variant name (e.g., "Red", "XL", etc.)
-  price           Float?    // Nullable: If null, product basePrice is used
-  stock           Int       @default(0)
 
-  images          String[]  // Variant-specific images
+model ProductVariant {
+  id         Int     @id @default(autoincrement())
+  productA   Product @relation("ProductToVariant_A", fields: [productAId], references: [id], onDelete: Cascade)
+  productAId Int
+  productB   Product @relation("ProductToVariant_B", fields: [productBId], references: [id], onDelete: Cascade)
+  productBId Int
+  
+  // Relation type (color, storage, size, etc.)
+  relationType String?
+  
+  // Optional description for the relationship
+  description String?
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  // @@unique([productAId, productBId, relationType])
 }
 
 model BusinessPageLayout {
-  id              Int      @id @default(autoincrement())
-  name            String
-  description     String?
-  bannerImageUrls  String[]   // URL for the banner image
-  dpImageUrl      String?   // URL for the display picture (DP)
-  categories      CategoryCarousel[]
+  id                  Int                 @id @default(autoincrement())
+  businessId          String  
+  business           Business             @relation(fields: [businessId], references: [Business_Id])
+  name                String              @default("Page Name")
+  pageId              String              @unique  @default(uuid())
+  description         String?  
+  bannerImageUrls     String[]  
+  dpImageUrl          String?   
+  categoryCarousel    CategoryCarousel?   @relation(name: "BusinessPageLayoutToCategoryCarousel") // No fields/references here
+  products            Product[]
+  categories          Category[]
+  offers              Offer[]
+  category            String?
+  location            String?
+  // posts               Post[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 }
 
 model CategoryCarousel {
-  id          Int     @id @default(autoincrement())
-  name        String
-  imageUrl    String  
-  businessId  Int
-  business    BusinessPageLayout @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  id                 Int                 @id @default(autoincrement())
+  name               String?
+  imageUrl           String? 
+  businessPageId     String?                @unique
+  business          BusinessPageLayout?   @relation(name: "BusinessPageLayoutToCategoryCarousel", fields: [businessPageId], references: [pageId], onDelete: Cascade) // Define fields/references here
+  categories         Category[]
+  products           Product[]
+}
 
-  categories  Category[]
-  products    Product[]
+model Fields {
+  id        Int      @id @default(autoincrement())
+  key       String   
+  value     String[]
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+
+
 }
 
 // model CategoryCarouselCategory {

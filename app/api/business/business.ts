@@ -80,8 +80,13 @@ export async function createMerchantAndBusiness(merchantData: any, businessData:
           IFSC_CODE: validatedBusinessData.IFSC_CODE,
         },
       });
+      const businessPage=await tx.businessPageLayout.create({
+        data:{
+          businessId:business.Business_Id
+        }
+      })
 
-      return { success: true, merchant, business };
+      return { success: true, merchant, business,businessPage };
     });
   } catch (error) {
     console.error("Transaction failed:", error);
@@ -90,7 +95,7 @@ export async function createMerchantAndBusiness(merchantData: any, businessData:
 }
 export async function createMerchant(data: any) {
   try {
-    console.log("data",data)
+    // console.log("data",data)
     // Validate input
     const validatedData = merchantSchema.parse(data);
     
@@ -164,16 +169,24 @@ export async function createBusiness(data: any, merchantId: string) {
 
 export const verifyMerchant=async(userId:number)=>{
  try {
-        console.log("finding merchant with id",userId)
+        // console.log("finding merchant with id",userId)
        const isMerchant=await db.merchant.findFirst({
            where:{
                userId
            },
+           include:{
+            businesses:{
+              include:{
+                businessPageLayout:true
+              }
+            }
+
+           }
            
        })
 
        if(isMerchant){
-        return true
+        return {success:true,data:isMerchant}
        }
        return false
  } catch (error) {
@@ -182,3 +195,212 @@ export const verifyMerchant=async(userId:number)=>{
  }
 
 }
+
+export const getBusiness = async (merchantId: string) => {
+  try {
+    // console.log("Fetching business for merchant ID:", merchantId);
+
+    const business = await db.business.findFirst({
+      where: { merchantId },
+    });
+
+    if (business) {
+      return { success: true, business };
+    }
+
+    return { success: false, business: null, message: "Business not found" };
+  } catch (error) {
+    console.error("Error fetching business:", error);
+    return { success: false, error };
+  }
+};
+
+
+export const createBusinessPage=async({name,description,businessId})=>{
+  // console.log("new page",name,description,businessId)
+  try {
+      const page=await db.businessPageLayout.create({
+      data: {
+        businessId,
+        name,
+        description
+      }
+      })
+      return page
+  } catch (error) {
+    console.error("Error creating page",error)
+  }
+
+}
+
+
+export async function updateBusinessPageLayout(
+  pageId: string,
+  updates: Partial<{
+    name: string;
+    description: string | null;
+    bannerImageUrls: string[];
+    dpImageUrl: string | null;
+  }>
+) {
+  try {
+    const updatedPageLayout = await db.businessPageLayout.update({
+      where: { pageId },
+      data: {
+        name: updates.name,
+        description: updates.description,
+        bannerImageUrls: updates.bannerImageUrls,
+        dpImageUrl: updates.dpImageUrl,
+      
+      },
+    });
+
+    return updatedPageLayout;
+  } catch (error) {
+    console.error("Error updating BusinessPageLayout:", error);
+    throw new Error("Failed to update BusinessPageLayout.");
+  }
+}
+
+
+
+export const getAllBusinessPage=async(businessId)=>{
+  try {
+    const pageData=await db.businessPageLayout.findMany({
+      where:{
+        businessId
+      },
+  
+     })
+    if(pageData) {
+      return {success:true,pageData}
+    }
+    return { success: false, business: null, message: "Page not found" };
+  } catch (error) {
+    console.error("Error fetching Business Page",error);
+    return { success: false, error};
+    
+  }
+
+}
+
+export const getAllPages=async()=>{
+  try {
+    const pageData=await db.businessPageLayout.findMany({
+      include:{
+        business:{
+          select:{
+            Business_Id:true,
+            Business_Name:true,
+            Entity:true,
+
+          }
+        }
+      }
+      
+     })
+    if(pageData) {
+      return {success:true,pageData}
+    }
+    return { success: false, business: null, message: "Page not found" };
+  } catch (error) {
+    console.error("Error fetching Business Page",error);
+    return { success: false, error};
+    
+  }
+
+}
+
+export const getBusinessPageDetails=async(pageId)=>{
+  try {
+    const pageData=await db.businessPageLayout.findUnique({
+      where:{
+        pageId
+      },
+      include:{
+        categories:true,
+        products:true
+      }
+    })
+    if(pageData) {
+      return {success:true,pageData}
+    }
+    return { success: false, business: null, message: "Page not found" };
+  } catch (error) {
+    console.error("Error finding page",error)
+    
+  }
+
+
+}
+
+export const getBusinessPage=async(businessId)=>{
+  try {
+    const pageData=await db.businessPageLayout.findFirst({
+      where:{
+        businessId
+      }
+     })
+    if(pageData) {
+      return {success:true,pageData}
+    }
+    return { success: false, business: null, message: "Page not found" };
+  } catch (error) {
+    console.error("Error fetching Business Page",error);
+    return { success: false, error};
+    
+  }
+
+}
+
+export const getBusinessPageData=async(pageId)=>{
+  try {
+    const pageData=await db.businessPageLayout.findFirst({
+      where:{
+        pageId
+      },
+      include:{
+        categories:true,
+        categoryCarousel:{
+          select:{
+            categories:true,
+            products:true,
+          }
+        },
+        products:true
+      }
+     })
+    if(pageData) {
+      return {success:true,pageData}
+    }
+    return { success: false, business: null, message: "Page not found" };
+  } catch (error) {
+    console.error("Error fetching Business Page",error);
+    return { success: false, error};
+    
+  }
+
+}
+
+export const DeleteBusinessPage=async(pageId)=>{
+  try {
+    const pageData=await db.businessPageLayout.delete({
+      where:{
+        pageId
+      },
+     })
+    if(pageData) {
+      return {success:true,pageData}
+    }
+    return { success: false, business: null, message: "Page not found" };
+  } catch (error) {
+    console.error("Error fetching Business Page",error);
+    return { success: false, error};
+    
+  }
+
+}
+
+
+
+
