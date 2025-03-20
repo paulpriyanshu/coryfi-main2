@@ -20,7 +20,7 @@ import { ChatListItemInterface } from "./interfaces/chat";
 import { UserInterface } from "./interfaces/user";
 import { requestHandler } from "./utils";
 import Button from "./Button";
-import Input from "./Input";
+import Input from "./input";
 import Select from "./Select";
 
 const GroupChatDetailsModal: React.FC<{

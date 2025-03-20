@@ -457,7 +457,7 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
                   multiple
                   disabled={localEditedProduct.images.length >= 5}
                 />
-              </Label>
+              </label>
             </div>
           )}
           {isUploading && (

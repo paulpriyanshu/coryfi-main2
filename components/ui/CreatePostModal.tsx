@@ -211,7 +211,7 @@ export default function CreatePostModal({ isOpen, onClose }: { isOpen: boolean; 
                     />
                     <ImageIcon className="w-6 h-6 text-gray-500" />
                     <span className="text-gray-700">Add Photos</span>
-                  </Label>
+                  </label>
                   <span className="text-sm text-gray-500">{newPostContent.images.length} / 10</span>
                 </div>
 
