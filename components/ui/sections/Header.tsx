@@ -187,7 +187,7 @@ export default function Component() {
   const navItems = [
     { icon: <Home className="h-5 w-5" />, href: "/feed", tooltip: "Home" },
     { icon: <Network className="h-5 w-5" />, href: "/", tooltip: "Network" },
-    { icon: <Store className="h-5 w-5" />, href: "/explore", tooltip: "Explore" },
+    { icon: <Store className="h-5 w-5" />, href: "/explore", tooltip: "Businesses" },
     
 
   ]
@@ -232,7 +232,7 @@ export default function Component() {
                       </motion.div>
                     ))}
                   </nav>
-                  <div className="mt-8">
+                  {/* <div className="mt-8">
                     <h3 className="text-lg font-semibold mb-4">Mode Selection</h3>
                     <RadioGroup value={mode} onValueChange={setMode} className="grid gap-4">
                       {[
@@ -253,7 +253,7 @@ export default function Component() {
                         </Label>
                       ))}
                     </RadioGroup>
-                  </div>
+                  </div> */}
                   <Button
                     variant="outline"
                     className="w-full mt-8"
@@ -359,17 +359,7 @@ export default function Component() {
                       <span>{isLoading ? "Loading..." : "Dashboard"}</span>
                     </DropdownMenuItem>
                   </Link>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => setMode("normal")}>
-                    Normal Mode
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => setMode("professional")}>
-                    Professional Mode
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => setMode("business")}>
-                    Business Mode
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+               
                   <Link href="/settings/profile" passHref>
                     <DropdownMenuItem>
                       <Settings className="mr-2 h-4 w-4" />

@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { Home, PlusSquare, Zap, User, Network } from "lucide-react"
+import { Home, PlusSquare, Zap, User, Network, Store } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
@@ -123,11 +123,11 @@ export default function MobileFooter() {
               />
               <CreateButton onClick={() => setIsCreateModalOpen(true)} />
               <NavButton
-                icon={<Zap />}
-                label="Flash"
-                isActive={activePage === "flash"}
-                onClick={() => setActivePage("flash")}
-                href="/flash"
+                icon={<Store/>}
+                label="Explore"
+                isActive={activePage === "explore"}
+                onClick={() => setActivePage("explore")}
+                href="/explore"
               />
               <NavButton
                 icon={<User />}

@@ -8,15 +8,21 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import React from "react"
 
-function Product({ product }) {
+function Product({ product ,productId}) {
   const [quantity, setQuantity] = useState(1)
   const [currentImage, setCurrentImage] = useState(0)
   const [selectedVariant, setSelectedVariant] = useState(0)
   const [selectedFields, setSelectedFields] = useState({})
   const router = useRouter()
+  const pathname=usePathname()
+  const handleProductClick = (newProductId: string) => {
+    const newURL = pathname.replace(/[^/]+$/, newProductId); // Replace last segment
+    router.replace(newURL); // Update URL without reloading
+  };
+
 
   // Default values for rating and reviews since they're not in the data structure
   const rating = 4.5
@@ -181,7 +187,7 @@ function Product({ product }) {
                         index === selectedVariant ? "border-primary ring-1 ring-primary" : "border-muted"
                       } ${variant.product.stock <= 0 ? "opacity-50" : ""}`}
                     >
-                      <div className="flex items-center gap-2" onClick={() => router.push(`/${variant.product.id}`)}>
+                      <div className="flex items-center gap-2" onClick={() => handleProductClick(variant.product.id)}>
                         <div className="relative h-16 w-16 overflow-hidden rounded-md">
                           <Image
                             src={variant.product.images?.[0] || "/placeholder.svg"}

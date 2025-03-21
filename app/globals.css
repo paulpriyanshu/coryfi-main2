@@ -155,3 +155,12 @@
   scrollbar-width: none; /* Firefox */
 }
 
+html {
+  font-size: 16px; /* Default for desktops */
+}
+
+@media (max-width: 640px) {
+  html {
+    font-size: 14px; /* Smaller text on mobile */
+  }
+}

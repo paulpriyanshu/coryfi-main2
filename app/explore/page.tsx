@@ -43,14 +43,14 @@ export default async function MarketplacePage() {
       <div className="w-1/2 flex justify-center">
         <SearchBar />
       </div>
-      <div className="w-1/4 flex justify-end">
+      {/* <div className="w-1/4 flex justify-end">
         <Button className="bg-primary hover:bg-primary/90 text-white font-medium">
           <a href="/add-business">Add Business</a>
         </Button>
-      </div>
+      </div> */}
     </div>
   
-    <main className="flex-1 container mx-auto">
+    <main className="flex-1 container px-2">
       {/* Category Navigation */}
       <CategoryNavigation categories={categories} />
   

@@ -11,7 +11,7 @@ export default async function ProductPage({params}) {
 return (
   
     <>
-    <Product product={data}/>
+    <Product product={data} productId={params.productId}/>
     </>
 
   )
