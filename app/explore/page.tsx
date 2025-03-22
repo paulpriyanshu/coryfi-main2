@@ -5,11 +5,15 @@ import BusinessCard from "./business-card"
 // import SearchBar from "./search-bar"
 import SearchBar from "@/components/ui/sections/SearchBar"
 import { getAllPages } from "../api/business/business"
+import { getServerSession } from "next-auth"
+import { authOptions } from "../api/auth/[...nextauth]/route"
+import SignupComponent from "../signup/SignupComponent"
 
 export const dynamic='force-dynamic';
 export const revalidate=0;
 
 export default async function MarketplacePage() {
+  const session=await getServerSession(authOptions)
 
   const data=await getAllPages()
   // console.log("pages",JSON.stringify(data,null,2))
@@ -34,6 +38,10 @@ export default async function MarketplacePage() {
       ...category,
       businesses: allBusinesses.filter((business) => business.category === category.id),
     }))
+
+    if(!session){
+      return <SignupComponent/>
+    }
 
   return (
     <div className="flex min-h-screen flex-col bg-background w-full">

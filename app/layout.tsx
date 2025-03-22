@@ -1,4 +1,3 @@
-
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Script from "next/script";
@@ -6,11 +5,12 @@ import "./globals.css";
 import Header from "@/components/ui/sections/Header";
 import { Providers } from "./providers";
 import MobileFooter from "@/components/ui/MobileFooter";
-import MobileHeader from "@/components/ui/MobileHeader";
-import { Provider } from "react-redux";
 import { store } from "./libs/store/store";
 import StoreProvider from "./StoreProvider";
 import { SocketProvider } from "@/components/ui/sections/context/SocketContext";
+import { getServerSession } from "next-auth";
+import { authOptions } from "./api/auth/[...nextauth]/route";
+import SignupComponent from "./signup/SignupComponent";
 
 // Import local fonts
 const geistSans = localFont({
@@ -31,15 +31,17 @@ export const metadata: Metadata = {
 };
 
 // Root layout component
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en">
       <head>
-      <Script
+        <Script
           async
           src="https://www.googletagmanager.com/gtag/js?id=G-R4DL6ZME5M"
           strategy="afterInteractive"
@@ -57,25 +59,24 @@ export default function RootLayout({
         <Providers>
           <StoreProvider>
             <SocketProvider>
-          {/* Desktop Header - Visible only on medium and larger screens */}
+              {/* Show SignupComponent if user is not logged in */}
+              {!session ? (
+                <SignupComponent />
+              ) : (
+                <>
+                  {/* Desktop Header */}
+                  <Header />
 
-            <Header /> 
+                  {/* Page-specific content */}
+                  {children}
 
-          
-          {/* Mobile Header - Visible only on small screens */}
-          {/* <div className="block md:hidden">
-            <MobileHeader/>
-          </div> */}
-
-          {/* Page-specific content */}
-          {children}
-          </SocketProvider>
-
-
-          {/* Mobile Footer - Visible only on small screens */}
-          <div className="md:hidden">
-            <MobileFooter/>
-          </div>
+                  {/* Mobile Footer - Visible only on small screens */}
+                  <div className="md:hidden">
+                    <MobileFooter />
+                  </div>
+                </>
+              )}
+            </SocketProvider>
           </StoreProvider>
         </Providers>
       </body>
