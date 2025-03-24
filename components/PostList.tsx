@@ -17,11 +17,11 @@ export default function PostList({ initialPosts, session, userId }) {
           <Posts post={post} session={session} userId={userId}  />
         </div>
       ))}
-      {<div className="md:hidden"> 
+      {/* {<div className="md:hidden"> 
         <ModernUserCarousel userEmail={session?.user?.email ? session?.user?.email : null}/>
         </div>
         
-      }
+      } */}
     </div>
   )
 }

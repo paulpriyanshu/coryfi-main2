@@ -1,13 +1,11 @@
 'use client'
 
-import React, { useCallback } from 'react'
+import React from 'react'
 import useSWR from 'swr'
 import useEmblaCarousel from 'embla-carousel-react'
 import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 import { getUnconnectedUsers } from '@/app/api/actions/media'
 
 // Define the type for user data
@@ -20,17 +18,20 @@ interface User {
 
 // Custom fetcher function using the server action
 const fetcher = async (email: string) => {
-  if (!email) return null;
+  if (!email) return [];
   return await getUnconnectedUsers(email);
 }
 
-const ModernUserCarousel = ({ userEmail }: { userEmail: string }) => {
-  // Embla Carousel setup
-  const [emblaRef, emblaApi] = useEmblaCarousel({ 
-    loop: false, 
-    align: 'start' 
+const CircularUserCarousel = ({ userEmail }: { userEmail: string }) => {
+  // Embla Carousel setup with enhanced swipe settings
+  const [emblaRef] = useEmblaCarousel({ 
+    loop: true,
+    align: 'start',
+    dragFree: true,
+    containScroll: 'trimSnaps',
+    slidesToScroll: 1
   });
-
+  
   // SWR hook for data fetching
   const { 
     data: users, 
@@ -38,78 +39,59 @@ const ModernUserCarousel = ({ userEmail }: { userEmail: string }) => {
     isLoading 
   } = useSWR(userEmail ? `unconnected-users-${userEmail}` : null, () => fetcher(userEmail));
 
-  // Scroll navigation callbacks
-  const scrollPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
-  }, [emblaApi]);
-
-  const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
-  }, [emblaApi]);
-
-  // Early return states
-  if (!userEmail || isLoading) return null;
-  if (error) return <div>Failed to load users</div>;
-  if (!users || users.length === 0) return null;
-
-  return (
-    <div className="relative w-5/6 max-w-sm m-5">
-      <div className="overflow-hidden" ref={emblaRef}>
-        <div className="flex">
-          {users?.map((user) => (
-            <div key={user.id} className="flex-[0_0_100%] min-w-0 pl-4 relative">
-              <Card className="bg-white shadow-lg">
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center space-y-4">
-                    <Avatar className="w-24 h-24">
-                      <AvatarImage src={user.userdp} alt={user.name} />
-                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="text-center">
-                      <h2 className="text-xl font-bold text-black">{user.name}</h2>
-                      <p className="text-sm text-gray-500">{user.email}</p>
-                    </div>
-                    <Link href={`/userProfile/${user.id}`} passHref>
-                      <Button variant="outline" className="w-full mt-4">
-                        View Profile
-                      </Button>
-                    </Link>
-                    <Link href="/users" passHref>
-                      <Button variant="outline" className="w-full mt-4">
-                        Show More
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <div className="w-full overflow-hidden">
+        <div className="flex gap-6 px-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex-none">
+              <Skeleton className="w-20 h-20 rounded-full" />
+              <Skeleton className="w-16 h-4 mt-2 mx-auto" />
             </div>
           ))}
         </div>
       </div>
-      {users && users.length > 1 && (
-        <>
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 bg-white shadow-md"
-            onClick={scrollPrev}
-            disabled={!emblaApi?.canScrollPrev()}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-white shadow-md"
-            onClick={scrollNext}
-            disabled={!emblaApi?.canScrollNext()}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </>
-      )}
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="text-center text-red-500 my-2">
+        Failed to load users
+      </div>
+    );
+  }
+
+  // Empty state
+  if (!users || users.length === 0) {
+    return (
+      <div className="text-center text-muted-foreground my-2">
+        No users to display
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full overflow-hidden" ref={emblaRef}>
+      <div className="flex">
+        {users.map((user) => (
+          <div key={user.id} className="flex-none min-w-0 px-4">
+            <Link href={`/userProfile/${user.id}`}>
+              <div className="flex flex-col items-center space-y-2">
+                <Avatar className="w-20 h-20 border-2 border-primary">
+                  <AvatarImage src={user.userdp} alt={user.name} />
+                  <AvatarFallback className="text-lg">{user.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium text-center truncate max-w-[80px]">{user.name}</span>
+              </div>
+            </Link>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-export default ModernUserCarousel;
+export default CircularUserCarousel;
