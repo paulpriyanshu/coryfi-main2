@@ -54,7 +54,7 @@ export const getUnconnectedUsers = async (email: string) => {
                     some: {
                       AND: [
                         { requesterId: currentUser.id },
-                        { status: "APPROVED" },
+                        { status: {in:["APPROVED","PENDING"]} },
                       ],
                     },
                   },
@@ -64,7 +64,7 @@ export const getUnconnectedUsers = async (email: string) => {
                     some: {
                       AND: [
                         { recipientId: currentUser.id },
-                        { status: "APPROVED" },
+                        { status: {in:["APPROVED","PENDING"]} },
                       ],
                     },
                   },
@@ -74,7 +74,7 @@ export const getUnconnectedUsers = async (email: string) => {
           },
         ],
       },
-      take: 6, // Limit the number of users to 7
+      take: 50, // Limit the number of users to 7
       orderBy: {
         // Random order
         id: "asc",

@@ -25,7 +25,7 @@ const fetcher = async (email: string) => {
 const CircularUserCarousel = ({ userEmail }: { userEmail: string }) => {
   // Embla Carousel setup with enhanced swipe settings
   const [emblaRef] = useEmblaCarousel({ 
-    loop: true,
+    loop: false,
     align: 'start',
     dragFree: true,
     containScroll: 'trimSnaps',

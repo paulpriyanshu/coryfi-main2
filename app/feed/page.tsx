@@ -20,8 +20,8 @@ export default async function Page() {
 
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <div className="max-w-[1440px] mx-auto py-4 px-3 sm:px-4 lg:px-5">
+    <div className="min-h-screen  md:bg-slate-100">
+      <div className="max-w-[1440px] mx-auto py-4   md:px-5">
         <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
           <div className="hidden lg:block lg:col-span-2">
             <div className="sticky top-4">
