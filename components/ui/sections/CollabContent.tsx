@@ -58,7 +58,7 @@ function EvaluationModal({ isOpen, onClose, onConfirm, request }: EvaluationModa
           <DialogTitle>Approve Path Request</DialogTitle>
           <DialogDescription>
             Are you sure you want to approve the connection between {request.requester.name} and{" "}
-            {request.nextNode.name}?
+            {request.nextNode?.name}?
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center justify-between py-4">
@@ -73,7 +73,7 @@ function EvaluationModal({ isOpen, onClose, onConfirm, request }: EvaluationModa
           </div>
           <ArrowRight className="w-4 h-4" />
           <div className="text-center">
-            <p className="font-semibold">{request.nextNode.name}</p>
+            <p className="font-semibold">{request.nextNode?.name}</p>
             <p className="text-sm text-muted-foreground">Recipient</p>
           </div>
         </div>
@@ -120,14 +120,14 @@ function CollabRequestCard({ request, onApprove, onDeny }: CollabRequestCardProp
           <ArrowRight className="w-4 h-4 text-muted-foreground" />
           <Avatar className="w-8 h-8">
             <AvatarImage
-              src={`https://api.dicebear.com/6.x/initials/svg?seed=${request.nextNode.name}`}
-              alt={request.nextNode.name}
+              src={`https://api.dicebear.com/6.x/initials/svg?seed=${request?.nextNode?.name}`}
+              alt={request?.nextNode?.name}
             />
-            <AvatarFallback>{request.nextNode.name.charAt(0)}</AvatarFallback>
+            <AvatarFallback>{request.nextNode?.name.charAt(0)}</AvatarFallback>
           </Avatar>
         </div>
         <p className="text-xs text-muted-foreground mb-4 text-center">
-          {request.requester.name} → You → {request.nextNode.name}
+          {request.requester.name} → You → {request?.nextNode?.name}
         </p>
         <div className="flex justify-between space-x-2">
           <Button variant="outline" size="sm" className="w-full" onClick={onDeny}>
