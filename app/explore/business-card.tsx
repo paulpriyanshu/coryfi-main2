@@ -51,7 +51,7 @@ export default async function BusinessCard({ business, categoryName }: BusinessC
         </div>
 
         <CardHeader className="p-4 pb-2 flex-grow">
-          <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
             {business.name}
           </h3>
 
@@ -64,9 +64,9 @@ export default async function BusinessCard({ business, categoryName }: BusinessC
           )}
         </CardHeader>
 
-        <CardContent className="p-4 pt-0">
+        <CardContent className="p-2 pt-0">
           {business.location && (
-            <div className="flex items-center text-sm text-muted-foreground">
+            <div className="flex items-center text-xs text-muted-foreground">
               <MapPin className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
               <span className="line-clamp-1">{business.location}</span>
             </div>

@@ -96,7 +96,7 @@ const filteredProducts = selectedCategory
               <p className="text-muted-foreground mt-1">
                 {selectedCategory
                   ? `Explore our ${selectedCategory.toLowerCase()} collection`
-                  : "Quality craftsmanship for your home"}
+                  :``}
               </p>
             </div>
             <SearchInput />
