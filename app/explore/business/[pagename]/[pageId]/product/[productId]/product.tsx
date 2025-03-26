@@ -11,22 +11,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { usePathname, useRouter } from "next/navigation"
 import React from "react"
 
-function Product({ product ,productId}) {
+function Product({ product, productId }) {
   const [quantity, setQuantity] = useState(1)
   const [currentImage, setCurrentImage] = useState(0)
-  const [selectedVariant, setSelectedVariant] = useState(0)
+  const [selectedVariant, setSelectedVariant] = useState(null)
   const [selectedFields, setSelectedFields] = useState({})
+  const [additionalCost, setAdditionalCost] = useState(0)
   const router = useRouter()
-  const pathname=usePathname()
-  const handleProductClick = (newProductId: string) => {
-    const newURL = pathname.replace(/[^/]+$/, newProductId); // Replace last segment
-    router.replace(newURL); // Update URL without reloading
-  };
+  const pathname = usePathname()
 
+  const handleProductClick = (newProductId: string) => {
+    const newURL = pathname.replace(/[^/]+$/, newProductId) // Replace last segment
+    router.replace(newURL) // Update URL without reloading
+  }
 
   // Default values for rating and reviews since they're not in the data structure
   const rating = 4.5
   const reviewCount = 12
+
+  // Calculate total price including any additional costs from selected fields
+  const totalPrice = React.useMemo(() => {
+    const basePrice = product?.basePrice || 0
+    return basePrice + additionalCost
+  }, [product?.basePrice, additionalCost])
 
   // Group variants by relationType
   const variantsByType = React.useMemo(() => {
@@ -39,6 +46,63 @@ function Product({ product ,productId}) {
       return acc
     }, {})
   }, [product?.variants])
+
+  const handleFieldSelection = (field, key, value) => {
+    // Create a copy of current selections
+    const newSelectedFields = { ...selectedFields }
+
+    // If this field was already selected with the same key, deselect it
+    if (newSelectedFields[field.name] && newSelectedFields[field.name].key === key) {
+      // If field type is "Cost", remove its cost contribution
+      if (field.type === "Cost" && !isNaN(Number(value))) {
+        setAdditionalCost((prev) => prev - Number(value))
+      }
+      // Remove the selection
+      delete newSelectedFields[field.name]
+    } else {
+      // If this field was already selected with a different key, remove its previous cost contribution
+      if (newSelectedFields[field.name] && field.type === "Cost") {
+        const previousKey = newSelectedFields[field.name].key
+        const previousValue = field.keyValues[previousKey]
+        if (!isNaN(Number(previousValue))) {
+          setAdditionalCost((prev) => prev - Number(previousValue))
+        }
+      }
+
+      // Update selection
+      newSelectedFields[field.name] = { key, value }
+
+      // If field type is "Cost", add the value to the price
+      if (field.type === "Cost" && !isNaN(Number(value))) {
+        setAdditionalCost((prev) => prev + Number(value))
+      }
+    }
+
+    setSelectedFields(newSelectedFields)
+  }
+
+  // Add a new function to handle clearing a field selection
+  const clearFieldSelection = (fieldName) => {
+    // Create a copy of current selections
+    const newSelectedFields = { ...selectedFields }
+
+    // If this field has a selection
+    if (newSelectedFields[fieldName]) {
+      // If field type is "Cost", remove its cost contribution
+      const field = product.fields.find((f) => f.name === fieldName)
+      if (field && field.type === "Cost") {
+        const key = newSelectedFields[fieldName].key
+        const value = field.keyValues[key]
+        if (!isNaN(Number(value))) {
+          setAdditionalCost((prev) => prev - Number(value))
+        }
+      }
+
+      // Remove the selection
+      delete newSelectedFields[fieldName]
+      setSelectedFields(newSelectedFields)
+    }
+  }
 
   const incrementQuantity = () => {
     setQuantity(quantity + 1)
@@ -149,7 +213,7 @@ function Product({ product ,productId}) {
           </div>
 
           <div className="mt-4">
-            <span className="text-2xl font-bold">₹{product?.basePrice?.toFixed(2) || "0.00"}</span>
+            <span className="text-2xl font-bold">₹{totalPrice.toFixed(2)}</span>
             <span className="ml-2 text-sm text-muted-foreground">Tax included</span>
           </div>
 
@@ -182,7 +246,10 @@ function Product({ product ,productId}) {
                   {variants.map((variant, index) => (
                     <div
                       key={index}
-                      onClick={() => setSelectedVariant(index)}
+                      onClick={() => {
+                        // Toggle selection - if already selected, deselect it
+                        setSelectedVariant(selectedVariant === index ? null : index)
+                      }}
                       className={`cursor-pointer rounded-md border p-2 transition-all hover:border-primary ${
                         index === selectedVariant ? "border-primary ring-1 ring-primary" : "border-muted"
                       } ${variant.product.stock <= 0 ? "opacity-50" : ""}`}
@@ -210,38 +277,47 @@ function Product({ product ,productId}) {
               </div>
             ))}
 
-            {/* Product Fields Selection */}
+            {/* Product Fields Selection - Updated for new field structure */}
             {product?.fields && product.fields.length > 0 && (
               <div>
-                {product.fields.map(
-                  (field) =>
-                    field.value &&
-                    field.value.length > 0 && (
-                      <div key={field.id} className="mb-4">
-                        <h3 className="mb-2 font-medium capitalize">{field.key}</h3>
-                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                          {field.value.map((value, index) => (
-                            <div
-                              key={index}
-                              onClick={() =>
-                                setSelectedFields({
-                                  ...selectedFields,
-                                  [field.key]: value,
-                                })
-                              }
-                              className={`cursor-pointer rounded-md border p-2 text-center transition-all hover:border-primary ${
-                                selectedFields[field.key] === value
-                                  ? "border-primary ring-1 ring-primary"
-                                  : "border-muted"
-                              }`}
-                            >
-                              <p className="text-sm">{value}</p>
-                            </div>
-                          ))}
+                {product.fields.map((field) => (
+                  <div key={field.id} className="mb-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-medium capitalize">{field.name}</h3>
+                      {selectedFields[field.name] && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            clearFieldSelection(field.name)
+                          }}
+                          className="text-xs h-7 px-2"
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                      {Object.entries(field.keyValues).map(([key, value]) => (
+                        <div
+                          key={key}
+                          onClick={() => handleFieldSelection(field, key, value)}
+                          className={`cursor-pointer rounded-md border p-2 text-center transition-all hover:border-primary ${
+                            selectedFields[field.name]?.key === key
+                              ? "border-primary ring-1 ring-primary"
+                              : "border-muted"
+                          }`}
+                        >
+                          <p className="text-sm">
+                            {key}
+                            {field.type === "Cost" && !isNaN(Number(value)) ? ` (+₹${value})` : ""}
+                          </p>
                         </div>
-                      </div>
-                    ),
-                )}
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
@@ -271,6 +347,7 @@ function Product({ product ,productId}) {
                     quantity,
                     selectedVariant: product?.variants?.[selectedVariant],
                     selectedFields,
+                    totalPrice,
                   })
                 }}
               >
@@ -347,10 +424,10 @@ function Product({ product ,productId}) {
             {selectedFields && Object.keys(selectedFields).length > 0 && (
               <>
                 <h3 className="mt-4 mb-2 font-medium">Selected Options</h3>
-                {Object.entries(selectedFields).map(([key, value]) => (
-                  <div key={key} className="mt-2 flex justify-between border-b pb-2">
-                    <span className="font-medium capitalize">{key}</span>
-                    <span className="text-muted-foreground">{value}</span>
+                {Object.entries(selectedFields).map(([fieldName, selection]) => (
+                  <div key={fieldName} className="mt-2 flex justify-between border-b pb-2">
+                    <span className="font-medium capitalize">{fieldName}</span>
+                    <span className="text-muted-foreground">{selection.key}</span>
                   </div>
                 ))}
               </>

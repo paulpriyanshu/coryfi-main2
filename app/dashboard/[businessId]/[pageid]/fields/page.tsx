@@ -6,8 +6,8 @@ import { toast } from "react-hot-toast"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/Input"
-import { Label } from "@/components/ui/Label"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
@@ -26,10 +26,11 @@ type Product = {
   [key: string]: any
 }
 
-type Filter = {
+type Field = {
   id: number
-  key: string
-  value: string[] // Changed from string to string[]
+  name: string
+  keyValues: Record<string, number | string> // JSON object storing key-value pairs
+  type: string // Type of the field (e.g., "Cost", "Length")
   productId: number
 }
 
@@ -41,20 +42,26 @@ export default function ProductFieldsAdmin({ params }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // State for filters
-  const [filters, setFilters] = useState<Record<number, Filter[]>>({})
+  // State for fields
+  const [fields, setFields] = useState<Record<number, Field[]>>({})
 
-  // State for new filter form
+  // State for new field form
   const [selectedProducts, setSelectedProducts] = useState<number[]>([])
-  const [newFilterKey, setNewFilterKey] = useState("")
-  const [newFilterValues, setNewFilterValues] = useState<string[]>([]) // Changed from newFilterValue (string) to newFilterValues (string[])
-  const [newValueInput, setNewValueInput] = useState("") // New state for the input field
+  const [newFieldName, setNewFieldName] = useState("")
+  const [newFieldType, setNewFieldType] = useState("")
 
-  // State for editing filter
-  const [editingFilter, setEditingFilter] = useState<Filter | null>(null)
-  const [editKey, setEditKey] = useState("")
-  const [editValues, setEditValues] = useState<string[]>([]) // Changed from editValue (string) to editValues (string[])
-  const [editValueInput, setEditValueInput] = useState("") // New state for the input field
+  // State for key-value pairs
+  const [keyValuePairs, setKeyValuePairs] = useState<Array<{ key: string; value: string | number }>>([])
+  const [newKey, setNewKey] = useState("")
+  const [newValue, setNewValue] = useState("")
+
+  // State for editing field
+  const [editingField, setEditingField] = useState<Field | null>(null)
+  const [editName, setEditName] = useState("")
+  const [editType, setEditType] = useState("")
+  const [editKeyValuePairs, setEditKeyValuePairs] = useState<Array<{ key: string; value: string | number }>>([])
+  const [editNewKey, setEditNewKey] = useState("")
+  const [editNewValue, setEditNewValue] = useState("")
 
   // State for product search
   const [searchQuery, setSearchQuery] = useState("")
@@ -67,7 +74,7 @@ export default function ProductFieldsAdmin({ params }) {
         setLoading(true)
         const data = await getAllProducts(businessPageId)
         setProducts(data)
-      } catch (err) {
+      } catch (err: any) {
         setError("Failed to load products")
         toast.error("Failed to load products")
         console.error(err)
@@ -79,25 +86,25 @@ export default function ProductFieldsAdmin({ params }) {
     fetchProducts()
   }, [businessPageId])
 
-  // Fetch filters for a product
-  const fetchFilters = async (productId: number) => {
+  // Fetch fields for a product
+  const fetchFields = async (productId: number) => {
     try {
       const data = await getFiltersByProduct(productId)
-      setFilters((prev) => ({
+      setFields((prev) => ({
         ...prev,
         [productId]: data,
       }))
       return data
-    } catch (err) {
-      console.error("Error fetching filters:", err)
-      // If no filters found, set empty array
+    } catch (err: any) {
+      console.error("Error fetching fields:", err)
+      // If no fields found, set empty array
       if ((err as Error).message.includes("No filters found")) {
-        setFilters((prev) => ({
+        setFields((prev) => ({
           ...prev,
           [productId]: [],
         }))
       } else {
-        toast.error("Failed to load filters")
+        toast.error("Failed to load fields")
       }
       return []
     }
@@ -113,141 +120,176 @@ export default function ProductFieldsAdmin({ params }) {
     } else {
       setSelectedProducts((prev) => [...prev, id])
 
-      // If we haven't loaded filters for this product yet, fetch them
-      if (!filters[id]) {
-        await fetchFilters(id)
+      // If we haven't loaded fields for this product yet, fetch them
+      if (!fields[id]) {
+        await fetchFields(id)
       }
     }
   }
 
-  // Add a new filter
-  const handleAddFilter = async () => {
-    if (selectedProducts.length === 0 || !newFilterKey.trim() || newFilterValues.length === 0) {
-      toast.error("Please select at least one product, provide a key, and add at least one value")
+  // Add a new key-value pair to the form
+  const addKeyValuePair = () => {
+    if (!newKey.trim()) {
+      toast.error("Please enter a key")
+      return
+    }
+
+    const valueAsNumber = Number(newValue)
+    const valueToAdd = !isNaN(valueAsNumber) ? valueAsNumber : newValue
+
+    setKeyValuePairs([...keyValuePairs, { key: newKey, value: valueToAdd }])
+    setNewKey("")
+    setNewValue("")
+  }
+
+  // Remove a key-value pair from the form
+  const removeKeyValuePair = (index: number) => {
+    setKeyValuePairs(keyValuePairs.filter((_, i) => i !== index))
+  }
+
+  // Add a new field
+  const handleAddField = async () => {
+    if (selectedProducts.length === 0 || !newFieldName.trim() || keyValuePairs.length === 0) {
+      toast.error("Please select at least one product, provide a field name, and add at least one key-value pair")
       return
     }
 
     try {
+      // Convert array of key-value pairs to object format
+      const keyValuesObject: Record<string, any> = {}
+      keyValuePairs.forEach((pair) => {
+        keyValuesObject[pair.key] = pair.value
+      })
+
       // Show loading toast
       const loadingToast = toast.loading(`Adding field to ${selectedProducts.length} product(s)...`)
 
-      // Add filter to each selected product
+      // Add field to each selected product
       const results = await Promise.all(
         selectedProducts.map(async (productId) => {
-          const newFilter = await addFilter(productId, newFilterKey, newFilterValues)
+          const newField = await addFilter(productId, newFieldName, keyValuesObject, newFieldType || "default")
 
           // Update local state
-          setFilters((prev) => ({
+          setFields((prev) => ({
             ...prev,
-            [productId]: [...(prev[productId] || []), newFilter],
+            [productId]: [...(prev[productId] || []), newField],
           }))
 
-          return newFilter
+          return newField
         }),
       )
 
       // Reset form
-      setNewFilterKey("")
-      setNewFilterValues([])
-      setNewValueInput("")
+      setNewFieldName("")
+      setNewFieldType("")
+      setKeyValuePairs([])
+      setNewKey("")
+      setNewValue("")
 
       // Dismiss loading toast and show success
       toast.dismiss(loadingToast)
       toast.success(`Field added to ${selectedProducts.length} product(s) successfully`)
-    } catch (err) {
-      toast.error("Failed to add filter to some products")
+    } catch (err: any) {
+      toast.error("Failed to add field")
       console.error(err)
     }
   }
 
-  // Add a value to the new filter values array
-  const addValueToNewFilter = () => {
-    if (!newValueInput.trim()) return
+  // Add a key-value pair to the edit form
+  const addEditKeyValuePair = () => {
+    if (!editNewKey.trim()) {
+      toast.error("Please enter a key")
+      return
+    }
 
-    setNewFilterValues((prev) => [...prev, newValueInput.trim()])
-    setNewValueInput("")
+    const valueAsNumber = Number(editNewValue)
+    const valueToAdd = !isNaN(valueAsNumber) ? valueAsNumber : editNewValue
+
+    setEditKeyValuePairs([...editKeyValuePairs, { key: editNewKey, value: valueToAdd }])
+    setEditNewKey("")
+    setEditNewValue("")
   }
 
-  // Remove a value from the new filter values array
-  const removeValueFromNewFilter = (index: number) => {
-    setNewFilterValues((prev) => prev.filter((_, i) => i !== index))
+  // Remove a key-value pair from the edit form
+  const removeEditKeyValuePair = (index: number) => {
+    setEditKeyValuePairs(editKeyValuePairs.filter((_, i) => i !== index))
   }
 
-  // Add a value to the edit filter values array
-  const addValueToEditFilter = () => {
-    if (!editValueInput.trim()) return
+  // Start editing a field
+  const startEditField = (field: Field) => {
+    setEditingField(field)
+    setEditName(field.name)
+    setEditType(field.type)
 
-    setEditValues((prev) => [...prev, editValueInput.trim()])
-    setEditValueInput("")
-  }
-
-  // Remove a value from the edit filter values array
-  const removeValueFromEditFilter = (index: number) => {
-    setEditValues((prev) => prev.filter((_, i) => i !== index))
-  }
-
-  // Start editing a filter
-  const startEditFilter = (filter: Filter) => {
-    setEditingFilter(filter)
-    setEditKey(filter.key)
-    setEditValues([...filter.value]) // Clone the array
-    setEditValueInput("")
+    // Convert object key-values to array for editing UI
+    const pairsArray = Object.entries(field.keyValues).map(([key, value]) => ({ key, value }))
+    setEditKeyValuePairs(pairsArray)
+    setEditNewKey("")
+    setEditNewValue("")
   }
 
   // Cancel editing
   const cancelEdit = () => {
-    setEditingFilter(null)
-    setEditKey("")
-    setEditValues("")
-    setEditValueInput("")
+    setEditingField(null)
+    setEditName("")
+    setEditType("")
+    setEditKeyValuePairs([])
+    setEditNewKey("")
+    setEditNewValue("")
   }
 
-  // Save filter edits
-  const saveFilterEdit = async () => {
-    if (!editingFilter || !editKey.trim() || editValues.length === 0) {
-      toast.error("Please provide a key and at least one value")
+  // Save field edits
+  const saveFieldEdit = async () => {
+    if (!editingField || !editName.trim() || editKeyValuePairs.length === 0) {
+      toast.error("Please provide a field name and at least one key-value pair")
       return
     }
 
     try {
-      const updated = await editFilter(editingFilter.id, editKey, editValues)
+      // Convert array of key-value pairs to object format
+      const keyValuesObject: Record<string, any> = {}
+      editKeyValuePairs.forEach((pair) => {
+        keyValuesObject[pair.key] = pair.value
+      })
+
+      const updated = await editFilter(editingField.id, editName, keyValuesObject, editType)
 
       // Update local state
-      setFilters((prev) => {
-        const productFilters = prev[editingFilter.productId] || []
-        const updatedFilters = productFilters.map((f) => (f.id === editingFilter.id ? updated : f))
+      setFields((prev) => {
+        const productFields = prev[editingField.productId] || []
+        const updatedFields = productFields.map((f) => (f.id === editingField.id ? updated : f))
 
         return {
           ...prev,
-          [editingFilter.productId]: updatedFilters,
+          [editingField.productId]: updatedFields,
         }
       })
 
       cancelEdit()
-      toast.success("Filter updated successfully")
-    } catch (err) {
-      toast.error("Failed to update filter")
+      toast.success("Field updated successfully")
+    } catch (err: any) {
+      toast.error("Failed to update field")
       console.error(err)
     }
   }
 
-  // Delete a filter
-  const handleDeleteFilter = async (filterId: number, productId: number) => {
+  // Delete a field
+  const handleDeleteField = async (fieldId: number, productId: number) => {
     try {
-      await deleteFilter(filterId)
+      await deleteFilter(fieldId)
 
       // Update local state
-      setFilters((prev) => {
-        const productFilters = prev[productId] || []
+      setFields((prev) => {
+        const productFields = prev[productId] || []
         return {
           ...prev,
-          [productId]: productFilters.filter((f) => f.id !== filterId),
+          [productId]: productFields.filter((f) => f.id !== fieldId),
         }
       })
 
-      toast.success("Filter deleted successfully")
-    } catch (err) {
-      toast.error("Failed to delete filter")
+      toast.success("Field deleted successfully")
+    } catch (err: any) {
+      toast.error("Failed to delete field")
       console.error(err)
     }
   }
@@ -419,70 +461,91 @@ export default function ProductFieldsAdmin({ params }) {
             <Card>
               <CardHeader>
                 <CardTitle>Add New Field to Selected Products</CardTitle>
-                <CardDescription>Add a field to all selected products at once</CardDescription>
+                <CardDescription>Add a field with key-value pairs to all selected products</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="field-key">Field Name</Label>
+                    <Label htmlFor="field-name">Field Name</Label>
                     <Input
-                      id="field-key"
-                      placeholder="e.g. size, color, material"
-                      value={newFilterKey}
-                      onChange={(e) => setNewFilterKey(e.target.value)}
+                      id="field-name"
+                      placeholder="e.g. Toppings, Size, Color"
+                      value={newFieldName}
+                      onChange={(e) => setNewFieldName(e.target.value)}
                       disabled={selectedProducts.length === 0}
                     />
+                    <p className="text-xs text-muted-foreground mt-1">Name of the field (e.g., "Toppings")</p>
                   </div>
 
                   <div>
-                    <Label htmlFor="field-values">Field Values</Label>
-                    <div className="flex gap-2 mb-2">
-                      <Input
-                        id="field-values"
-                        placeholder="e.g. large, red, cotton"
-                        value={newValueInput}
-                        onChange={(e) => setNewValueInput(e.target.value)}
-                        disabled={selectedProducts.length === 0}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault()
-                            addValueToNewFilter()
-                          }
-                        }}
-                      />
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={addValueToNewFilter}
-                        disabled={selectedProducts.length === 0 || !newValueInput.trim()}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Label htmlFor="field-type">Field Type</Label>
+                    <Input
+                      id="field-type"
+                      placeholder="e.g. Cost, Length, Weight"
+                      value={newFieldType}
+                      onChange={(e) => setNewFieldType(e.target.value)}
+                      disabled={selectedProducts.length === 0}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Categorizes this field (e.g., "Cost", "Size", "Weight")
+                    </p>
+                  </div>
 
-                    {newFilterValues.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {newFilterValues.map((value, index) => (
-                          <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                            {value}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-4 w-4 p-0 ml-1"
-                              onClick={() => removeValueFromNewFilter(index)}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </Badge>
-                        ))}
+                  <div className="space-y-2">
+                    <Label>Key-Value Pairs</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        placeholder="Key (e.g. cheese)"
+                        value={newKey}
+                        onChange={(e) => setNewKey(e.target.value)}
+                        disabled={selectedProducts.length === 0}
+                      />
+                      <Input
+                        placeholder="Value (e.g. 30)"
+                        value={newValue}
+                        onChange={(e) => setNewValue(e.target.value)}
+                        disabled={selectedProducts.length === 0}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="w-full"
+                      onClick={addKeyValuePair}
+                      disabled={selectedProducts.length === 0 || !newKey.trim()}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Key-Value Pair
+                    </Button>
+
+                    {keyValuePairs.length > 0 && (
+                      <div className="mt-4">
+                        <h4 className="text-sm font-medium mb-2">Added Key-Value Pairs:</h4>
+                        <div className="space-y-2">
+                          {keyValuePairs.map((pair, index) => (
+                            <div key={index} className="flex items-center justify-between border rounded-md p-2">
+                              <span>
+                                <span className="font-medium">{pair.key}</span>: {pair.value}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => removeKeyValuePair(index)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
 
                   <Button
                     className="w-full"
-                    onClick={handleAddFilter}
-                    disabled={selectedProducts.length === 0 || !newFilterKey.trim() || newFilterValues.length === 0}
+                    onClick={handleAddField}
+                    disabled={selectedProducts.length === 0 || !newFieldName.trim() || keyValuePairs.length === 0}
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Field to Selected Products
@@ -507,68 +570,89 @@ export default function ProductFieldsAdmin({ params }) {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {!filters[selectedProducts[0]] ? (
+                {!fields[selectedProducts[0]] ? (
                   <div className="text-center py-4">Loading fields...</div>
-                ) : filters[selectedProducts[0]].length === 0 ? (
+                ) : fields[selectedProducts[0]].length === 0 ? (
                   <p className="text-muted-foreground text-center py-4">No fields added yet.</p>
                 ) : (
                   <div className="space-y-4">
-                    {filters[selectedProducts[0]].map((filter) => (
-                      <div key={filter.id} className="border rounded-lg p-4">
-                        {editingFilter?.id === filter.id ? (
-                          <div className="space-y-3">
+                    {fields[selectedProducts[0]].map((field) => (
+                      <div key={field.id} className="border rounded-lg p-4">
+                        {editingField?.id === field.id ? (
+                          <div className="space-y-4">
                             <div>
-                              <Label htmlFor={`edit-key-${filter.id}`}>Field Name</Label>
+                              <Label htmlFor={`edit-name-${field.id}`}>Field Name</Label>
                               <Input
-                                id={`edit-key-${filter.id}`}
-                                value={editKey}
-                                onChange={(e) => setEditKey(e.target.value)}
+                                id={`edit-name-${field.id}`}
+                                value={editName}
+                                onChange={(e) => setEditName(e.target.value)}
                               />
                             </div>
-                            <div>
-                              <Label htmlFor={`edit-values-${filter.id}`}>Field Values</Label>
-                              <div className="flex gap-2 mb-2">
-                                <Input
-                                  id={`edit-values-${filter.id}`}
-                                  value={editValueInput}
-                                  onChange={(e) => setEditValueInput(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      e.preventDefault()
-                                      addValueToEditFilter()
-                                    }
-                                  }}
-                                />
-                                <Button
-                                  type="button"
-                                  variant="secondary"
-                                  onClick={addValueToEditFilter}
-                                  disabled={!editValueInput.trim()}
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </Button>
-                              </div>
 
-                              {editValues.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                  {editValues.map((value, index) => (
-                                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                                      {value}
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-4 w-4 p-0 ml-1"
-                                        onClick={() => removeValueFromEditFilter(index)}
+                            <div>
+                              <Label htmlFor={`edit-type-${field.id}`}>Field Type</Label>
+                              <Input
+                                id={`edit-type-${field.id}`}
+                                value={editType}
+                                onChange={(e) => setEditType(e.target.value)}
+                                placeholder="e.g. Cost, Length, Weight"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Key-Value Pairs</Label>
+                              <div className="grid grid-cols-2 gap-2">
+                                <Input
+                                  placeholder="Key (e.g. cheese)"
+                                  value={editNewKey}
+                                  onChange={(e) => setEditNewKey(e.target.value)}
+                                />
+                                <Input
+                                  placeholder="Value (e.g. 30)"
+                                  value={editNewValue}
+                                  onChange={(e) => setEditNewValue(e.target.value)}
+                                />
+                              </div>
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                className="w-full"
+                                onClick={addEditKeyValuePair}
+                                disabled={!editNewKey.trim()}
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add Key-Value Pair
+                              </Button>
+
+                              {editKeyValuePairs.length > 0 && (
+                                <div className="mt-4">
+                                  <h4 className="text-sm font-medium mb-2">Key-Value Pairs:</h4>
+                                  <div className="space-y-2">
+                                    {editKeyValuePairs.map((pair, index) => (
+                                      <div
+                                        key={index}
+                                        className="flex items-center justify-between border rounded-md p-2"
                                       >
-                                        <X className="h-3 w-3" />
-                                      </Button>
-                                    </Badge>
-                                  ))}
+                                        <span>
+                                          <span className="font-medium">{pair.key}</span>: {pair.value}
+                                        </span>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-6 w-6"
+                                          onClick={() => removeEditKeyValuePair(index)}
+                                        >
+                                          <X className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               )}
                             </div>
+
                             <div className="flex gap-2">
-                              <Button onClick={saveFilterEdit} className="flex-1">
+                              <Button onClick={saveFieldEdit} className="flex-1">
                                 <Save className="mr-2 h-4 w-4" />
                                 Save
                               </Button>
@@ -579,28 +663,38 @@ export default function ProductFieldsAdmin({ params }) {
                             </div>
                           </div>
                         ) : (
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <h3 className="font-medium">{filter.key}</h3>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {filter.value.map((val, index) => (
-                                  <Badge key={index} variant="outline" className="text-xs">
-                                    {val}
-                                  </Badge>
-                                ))}
+                          <div>
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h3 className="font-medium text-lg">{field.name}</h3>
+                                <Badge variant="secondary" className="mt-1">
+                                  Type: {field.type || "default"}
+                                </Badge>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button variant="ghost" size="icon" onClick={() => startEditField(field)}>
+                                  <Save className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDeleteField(field.id, selectedProducts[0])}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
                               </div>
                             </div>
-                            <div className="flex gap-2">
-                              <Button variant="ghost" size="icon" onClick={() => startEditFilter(filter)}>
-                                <Save className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDeleteFilter(filter.id, selectedProducts[0])}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
+
+                            <div className="mt-4">
+                              <h4 className="text-sm font-medium mb-2">Key-Value Pairs:</h4>
+                              <div className="grid gap-2">
+                                {Object.entries(field.keyValues).map(([key, value], index) => (
+                                  <div key={index} className="flex justify-between items-center border rounded-md p-2">
+                                    <span className="font-medium">{key}</span>
+                                    <span>{value}</span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </div>
                         )}
@@ -627,9 +721,11 @@ export default function ProductFieldsAdmin({ params }) {
                   <Select
                     onValueChange={async (value) => {
                       const productId = Number.parseInt(value)
-                      if (!filters[productId]) {
-                        await fetchFilters(productId)
+                      if (!fields[productId]) {
+                        await fetchFields(productId)
                       }
+                      // Set as selected product to show its fields
+                      setSelectedProducts([productId])
                     }}
                   >
                     <SelectTrigger id="preview-product">
@@ -645,34 +741,25 @@ export default function ProductFieldsAdmin({ params }) {
                   </Select>
                 </div>
 
-                {selectedProducts.length > 0 && filters[selectedProducts[0]]?.length > 0 && (
+                {selectedProducts.length > 0 && fields[selectedProducts[0]]?.length > 0 && (
                   <div className="border rounded-lg p-6">
                     <h2 className="text-2xl font-bold mb-4">
                       {products.find((p) => p.id === selectedProducts[0])?.name}
                     </h2>
 
                     <div className="grid gap-4 md:grid-cols-2">
-                      {/* Group filters by key */}
-                      {Object.entries(
-                        filters[selectedProducts[0]].reduce(
-                          (acc, filter) => {
-                            if (!acc[filter.key]) acc[filter.key] = []
-                            acc[filter.key].push(filter)
-                            return acc
-                          },
-                          {} as Record<string, Filter[]>,
-                        ),
-                      ).map(([key, options]) => (
-                        <div key={key}>
-                          <Label htmlFor={`preview-${key}`}>{key}</Label>
+                      {/* Display fields */}
+                      {fields[selectedProducts[0]].map((field) => (
+                        <div key={field.id}>
+                          <Label htmlFor={`preview-${field.id}`}>{field.name}</Label>
                           <Select>
-                            <SelectTrigger id={`preview-${key}`}>
-                              <SelectValue placeholder={`Select ${key}`} />
+                            <SelectTrigger id={`preview-${field.id}`}>
+                              <SelectValue placeholder={`Select ${field.name}`} />
                             </SelectTrigger>
                             <SelectContent>
-                              {options[0].value.map((val, index) => (
-                                <SelectItem key={`${options[0].id}-${index}`} value={val}>
-                                  {val}
+                              {Object.entries(field.keyValues).map(([key, value], index) => (
+                                <SelectItem key={`${field.id}-${index}`} value={key}>
+                                  {key} {field.type === "Cost" && value ? `(+${value})` : value ? `(${value})` : ""}
                                 </SelectItem>
                               ))}
                             </SelectContent>

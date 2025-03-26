@@ -76,10 +76,9 @@ export const getProductDetails = async (pageId: string, productId: number) => {
     variantOf: undefined // Removing original array for cleanup
   };
 };
-
 export const getFiltersByProduct = async (productId: number) => {
   try {
-    return await db.fields.findMany({
+    return await db.field.findMany({
       where: { productId },
     });
   } catch (error) {
@@ -88,9 +87,14 @@ export const getFiltersByProduct = async (productId: number) => {
   }
 };
 
-export const addFilter = async (productId: number, key: string, values: string[]) => {
+export const addFilter = async (
+  productId: number,
+  name: string, // Field name (e.g., "Toppings")
+  keyValues: Record<string, number | string>, // Multiple keys with values
+  type: string // Type (e.g., "Cost", "Length")
+) => {
   try {
-    console.log("fields data", productId, key, values);
+    console.log("fields data", productId, name, keyValues, type);
 
     // Check if the product exists before adding the filter
     const productExists = await db.product.findUnique({
@@ -102,10 +106,11 @@ export const addFilter = async (productId: number, key: string, values: string[]
     }
 
     // Create the filter entry
-    const data = await db.fields.create({
+    const data = await db.field.create({
       data: {
-        key,
-        value: values, // Store as an array
+        name,
+        keyValues, // Store as JSON
+        type,
         productId,
       },
     });
@@ -117,23 +122,26 @@ export const addFilter = async (productId: number, key: string, values: string[]
   }
 };
 
-export const editFilter = async (filterId: number, key?: string, values?: string[]) => {
+export const editFilter = async (
+  filterId: number,
+  name?: string,
+  keyValues?: Record<string, number | string>, 
+  type?: string
+) => {
   try {
-    // Find the filter before updating
-    const filterExists = await db.fields.findUnique({
+    const filterExists = await db.field.findUnique({
       where: { id: filterId },
     });
 
     if (!filterExists) {
       throw new Error("Filter not found");
     }
-
-    // Update the filter
-    const updatedFilter = await db.fields.update({
+    const updatedFilter = await db.field.update({
       where: { id: filterId },
       data: {
-        key: key ?? filterExists.key, // Keep existing key if not provided
-        value: values ?? filterExists.value, // Keep existing values if not provided
+        name: name ?? filterExists.name,
+        keyValues: keyValues ?? filterExists.keyValues,
+        type: type ?? filterExists.type,
       },
     });
 
@@ -146,17 +154,14 @@ export const editFilter = async (filterId: number, key?: string, values?: string
 
 export const deleteFilter = async (filterId: number) => {
   try {
-    // Check if filter exists before deleting
-    const filterExists = await db.fields.findUnique({
+    const filterExists = await db.field.findUnique({
       where: { id: filterId },
     });
 
     if (!filterExists) {
       throw new Error("Filter not found");
     }
-
-    // Delete the filter
-    await db.fields.delete({
+    await db.field.delete({
       where: { id: filterId },
     });
 
@@ -166,7 +171,6 @@ export const deleteFilter = async (filterId: number) => {
     throw new Error("Failed to delete filter");
   }
 };
-
 
 export const addProduct=async({businessPageId,name,description,categoryId,images,stock,basePrice,BeforeDiscountPrice,SKU})=>{
   

@@ -258,7 +258,7 @@ model Product {
   offers          Offer[] @relation("OfferProducts") 
   categoryCarouselId Int?
   categoryCarousel CategoryCarousel? @relation(fields: [categoryCarouselId], references: [id], onDelete: Cascade)
-  fields Fields[]
+  fields  Field[]
 
   // Symmetric many-to-many self-relation
   variants ProductVariant[] @relation("ProductToVariant_A")
@@ -316,14 +316,13 @@ model CategoryCarousel {
   products           Product[]
 }
 
-model Fields {
+model Field {
   id        Int      @id @default(autoincrement())
-  key       String   
-  value     String[]
+  name      String   // Field name (e.g., "Toppings")
+  keyValues Json     // Stores multiple key-value pairs as JSON
+  type      String   // Defines the type (e.g., "Cost", "Length")
   productId Int
   product   Product  @relation(fields: [productId], references: [id])
-
-
 }
 
 // model CategoryCarouselCategory {
