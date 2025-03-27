@@ -11,13 +11,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User, RefreshCw } from "lucide-react"
 import { useAppDispatch, useAppSelector } from "@/app/libs/store/hooks"
 import { selectResponseData, setResponseData } from "@/app/libs/features/pathdata/pathSlice"
-import { fetchUserConnections } from "@/app/api/actions/media"
+import { fetchUserConnections, fetchUserId } from "@/app/api/actions/media"
 
 export default function PersonalNetwork({ data: propData }) {
   const { data: session, status } = useSession()
   const svgRef = useRef(null)
   const [graphData, setGraphData] = useState(null)
   const [selectedPerson, setSelectedPerson] = useState(null)
+  const [selectedPersonImage, setSelectedPersonImage] = useState("")
   const [visibleNodes, setVisibleNodes] = useState([])
   const [visibleLinks, setVisibleLinks] = useState(null)
   const [error, setError] = useState(null)
@@ -334,14 +335,18 @@ export default function PersonalNetwork({ data: propData }) {
       .attr("height", 60)
       .attr("clip-path", (d) => `url(#clip-${d.id})`)
       .attr("xlink:href", (d) => {
-        const imageUrl = getUserProfilePicture(
-          d.email,
-          userConnections,
-          session?.user?.email,
-          session?.user?.userdp, // Pass current user's DP
-        )
-        // console.log("Image URL for node:", { email: d.email, url: imageUrl });
-        return imageUrl
+        // Start with a placeholder
+        return `https://api.dicebear.com/6.x/initials/svg?seed=${d.email || "unknown"}`
+      })
+      .each(function (d) {
+        // Asynchronously load the actual profile picture
+        getUserProfilePicture(d.email, userConnections, session?.user?.email)
+          .then((imageUrl) => {
+            d3.select(this).attr("xlink:href", imageUrl)
+          })
+          .catch((err) => {
+            console.error("Error loading profile picture for", d.email, err)
+          })
       })
       .on("error", function () {
         // Fallback if image fails to load
@@ -391,13 +396,26 @@ export default function PersonalNetwork({ data: propData }) {
       simulation.stop()
     }
   }, [visibleNodes, visibleLinks, handleNodeClick, graphData, pathData, userConnections, session])
+
   // Helper function to get profile pictures
-  const getUserProfilePicture = (nodeEmail, userConnections, currentUserEmail) => {
+  const getUserProfilePicture = async (nodeEmail, userConnections, currentUserEmail) => {
     // console.log("Getting profile picture for:", nodeEmail);
 
     if (!nodeEmail || !userConnections) {
       // console.log("Missing required data:", { nodeEmail, hasConnections: !!userConnections });
       return `https://api.dicebear.com/6.x/initials/svg?seed=${nodeEmail || "unknown"}`
+    }
+
+    try {
+      // First try to get user data using fetchUserId
+      const userData = await fetchUserId(nodeEmail)
+      if (userData && userData.userdp) {
+        // console.log("Found user profile picture via fetchUserId:", userData.userdp);
+        return userData.userdp
+      }
+    } catch (error) {
+      console.error("Error fetching user data with fetchUserId:", error)
+      // Continue with fallback methods
     }
 
     // if (nodeEmail === currentUserEmail) {
@@ -419,6 +437,7 @@ export default function PersonalNetwork({ data: propData }) {
     // console.log("No connection found, using default avatar");
     return `https://api.dicebear.com/6.x/initials/svg?seed=${nodeEmail}`
   }
+
   const drag = useCallback((simulation) => {
     function dragstarted(event) {
       if (!event.active) simulation.alphaTarget(0.3).restart()
@@ -470,6 +489,26 @@ export default function PersonalNetwork({ data: propData }) {
     fetchData()
   }, [fetchData])
 
+  // Effect to load the selected person's profile picture when selectedPerson changes
+  useEffect(() => {
+    if (selectedPerson && selectedPerson.email) {
+      // Set a default placeholder immediately
+      setSelectedPersonImage(`https://api.dicebear.com/6.x/initials/svg?seed=${selectedPerson.name}`)
+
+      // Then try to load the actual profile picture
+      getUserProfilePicture(selectedPerson.email, userConnections, session?.user?.email)
+        .then((imageUrl) => {
+          setSelectedPersonImage(imageUrl)
+        })
+        .catch((err) => {
+          console.error("Error loading selected person profile picture:", err)
+          // Keep the placeholder if there's an error
+        })
+    } else {
+      setSelectedPersonImage("")
+    }
+  }, [selectedPerson, userConnections, session])
+
   if (status === "loading" || isLoading) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>
   }
@@ -508,14 +547,8 @@ export default function PersonalNetwork({ data: propData }) {
             <CardHeader>
               <CardTitle className="flex items-center space-x-4">
                 <Avatar>
-                  <AvatarImage
-                    src={
-                      selectedPerson?.id === userId
-                        ? userdp
-                        : `https://api.dicebear.com/6.x/initials/svg?seed=${selectedPerson?.name}`
-                    }
-                  />
-                  <AvatarFallback>{selectedPerson?.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={selectedPersonImage} />
+                  <AvatarFallback>{selectedPerson?.name?.charAt(0) || "?"}</AvatarFallback>
                 </Avatar>
                 <span>{selectedPerson?.name}</span>
               </CardTitle>
