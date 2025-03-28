@@ -4,7 +4,7 @@ import { getAllPages } from '@/app/api/business/business' // Adjust the import p
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Fetch all business pages using the server action
   const businesses = await getAllPages()
-  console.log("data",businesses.pageData)
+
 
 
   // Generate sitemap entries dynamically
