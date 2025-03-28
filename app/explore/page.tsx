@@ -42,7 +42,7 @@ export default async function MarketplacePage() {
     if(!session){
       return <SignupComponent/>
     }
-
+    
   return (
     <div className="flex min-h-screen flex-col bg-background w-full">
     {/* Header */}

@@ -74,6 +74,7 @@
     "react-select": "^5.10.0",
     "react-slick": "^0.30.3",
     "reactflow": "^11.11.4",
+    "schema-dts": "^1.1.5",
     "slick-carousel": "^1.8.1",
     "socket.io-client": "^4.8.1",
     "sonner": "^1.7.1",

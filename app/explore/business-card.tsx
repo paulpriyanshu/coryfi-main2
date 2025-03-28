@@ -23,7 +23,7 @@ interface BusinessCardProps {
 }
 
 
-export default async function BusinessCard({ business, categoryName }: BusinessCardProps) {
+export default async function BusinessCard({ business, categoryName }) {
   return (
     <Card className="overflow-hidden group transition-all duration-300 hover:shadow-lg border border-border/40 h-full flex flex-col">
       <Link

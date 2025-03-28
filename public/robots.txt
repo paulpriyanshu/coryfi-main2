@@ -1,0 +1,22 @@
+# Basic Robots.txt for Coryfi
+
+# Allow all search engine robots
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://connect.coryfi.com/sitemap.xml
+
+# Optional: Disallow specific directories if needed
+# Disallow: /private/
+# Disallow: /admin/
+
+# Specific rules for different search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Crawl-delay to prevent overwhelming your server
+Crawl-delay: 10

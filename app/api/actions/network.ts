@@ -1484,6 +1484,183 @@ export async function fetchRequestsForIntermediary(intermediaryEmail: string) {
   }
 }
 
+export async function fetchRequestsForFinalIntermediary(
+  intermediaryEmail: string,
+  evaluationId: number
+) {
+  try {
+    console.log("Fetching full request chain for", intermediaryEmail);
+
+    // Input validation
+    if (!intermediaryEmail || !evaluationId) {
+      throw new Error("Intermediary email and evaluation ID are required.");
+    }
+
+    // Fetch all paths related to the evaluation, ordered sequentially
+    const allNodes = await db.path.findMany({
+      where: {
+        evaluationId: evaluationId,
+      },
+      orderBy: {
+        new_order: "asc", // Ensures the sequence is correct
+      },
+      include: {
+        intermediary: {
+          select: { email: true, name: true , userdp:true },
+        },
+      },
+    });
+
+    console.log("All nodes in evaluation chain:", allNodes);
+
+    // Check if the last node's intermediary matches the given email
+    const lastNode = allNodes[allNodes.length - 1];
+    if (!lastNode || lastNode.intermediary.email !== intermediaryEmail) {
+      return { success: true, data: [] }; // Not the last node, return empty
+    }
+
+    // Fetch the requesterId and recipientId from the Evaluation table
+    const evaluation = await db.evaluation.findUnique({
+      where: { id: evaluationId },
+      select: {
+        requesterId: true,
+        recipientId: true,
+        requester: {
+          select: { id: true, email: true, name: true ,userdp:true },
+        },
+        recipient: {
+          select: { id: true, email: true, name: true, userdp:true },
+        },
+      },
+    });
+
+    if (!evaluation) {
+      throw new Error("Evaluation not found.");
+    }
+
+    return {
+      success: true,
+      data: {
+        requesterId: evaluation.requesterId,
+        recipientId: evaluation.recipientId,
+        requester: evaluation.requester,
+        recipient: evaluation.recipient,
+        nodes: allNodes,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching full request chain:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function handleFinalApproval(
+  intermediaryEmail: string,
+  evaluationId: number
+) {
+  try {
+    if (!intermediaryEmail || !evaluationId) {
+      throw new Error("Intermediary email and evaluation ID are required.");
+    }
+
+    // Fetch the evaluation details
+    let evaluation;
+    try {
+      evaluation = await db.evaluation.findUnique({
+        where: { id: evaluationId },
+      });
+      if (!evaluation) {
+        throw new Error(`Evaluation with ID ${evaluationId} not found.`);
+      }
+    } catch (err) {
+      console.error("Error fetching evaluation:", err);
+      throw new Error("Database error while fetching evaluation.");
+    }
+
+    // Fetch the intermediary details
+    let intermediary;
+    try {
+      intermediary = await db.user.findUnique({
+        where: { email: intermediaryEmail },
+      });
+      if (!intermediary) {
+        throw new Error(`Intermediary with email ${intermediaryEmail} not found.`);
+      }
+    } catch (err) {
+      console.error("Error fetching intermediary:", err);
+      throw new Error("Database error while fetching intermediary.");
+    }
+
+    // Fetch the path record
+    let path;
+    try {
+      path = await db.path.findFirst({
+        where: {
+          evaluationId: evaluationId,
+          intermediaryId: intermediary.id,
+        },
+      });
+      if (!path) {
+        throw new Error(`Path not found for intermediary ${intermediaryEmail}.`);
+      }
+    } catch (err) {
+      console.error("Error fetching path:", err);
+      throw new Error("Database error while fetching path.");
+    }
+
+    if (path.approved === "TRUE") {
+      throw new Error("This intermediary has already approved.");
+    }
+
+    console.log(`Path found for intermediary ${intermediaryEmail}. Marking as approved.`);
+
+    // Update the Path record to mark it as approved
+    try {
+      await db.path.update({
+        where: { id: path.id },
+        data: { approved: "TRUE" },
+      });
+    } catch (err) {
+      console.error("Error updating path approval:", err);
+      throw new Error("Database error while updating path approval.");
+    }
+
+    // Update the evaluation status
+    try {
+      await db.evaluation.update({
+        where: { id: evaluationId },
+        data: { status: "COMPLETED" },
+      });
+    } catch (err) {
+      console.error("Error updating evaluation status:", err);
+      throw new Error("Database error while updating evaluation status.");
+    }
+
+    // Update the evaluation approvals
+    try {
+      await db.evaluationApprovals.updateMany({
+        where: {
+          evaluationIds: { has: evaluationId }, // Check if evaluationId exists in the array
+        },
+        data: {
+          evaluationWorked: evaluationId, // Set the evaluationWorked field
+          status: "CONNECTED", // Update status to CONNECTED
+        },
+      });
+      return {success:true}
+    } catch (err) {
+      console.error("Error updating evaluation approvals:", err);
+      throw new Error("Database error while updating evaluation approvals.");
+    }
+
+    console.log("Final approval process completed successfully.");
+  } catch (error) {
+    console.error("Final approval process failed:", error);
+    throw error; // Re-throw to be handled by caller
+  }
+}
+
+
 export const messagesent=async(senderName:string,recipientEmail:string)=>{
   console.log("reciever email",recipientEmail)
   const subject = "New Message";
