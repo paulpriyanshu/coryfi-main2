@@ -26,7 +26,10 @@ const geistMono = localFont({
 
 // Define metadata for the application
 export const metadata: Metadata = {
-  title: "Coryfi Connect",
+  title: {
+    default:"Coryfi Connect",
+    template:"%s - Coryfi"
+  },
   description: "We remove the 'Cold' from Cold Approach",
 };
 

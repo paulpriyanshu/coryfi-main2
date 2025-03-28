@@ -6,54 +6,56 @@ import { SearchInput } from "@/components/search-input"
 import { CategoryCarousel } from "@/components/CategoryCarousel"
 import { CategoryTags } from "./category-tags"
 import { getBusinessPageData } from "@/app/api/business/business"
-import { Organization, Product, WebPage } from 'schema-dts'
+// import { Organization, Product, WebPage } from 'schema-dts'
 
 // Structured Data Generation Function
-function generateStructuredData(pageData) {
-  const structuredData: WebPage & { 
-    about?: Organization, 
-    mainEntity?: Product[] 
-  } = {
-    '@context': 'https://schema.org',
-    '@type': 'WebPage',
-    name: `${pageData.name} - Business Profile`,
-    description: pageData.description || `Explore products and offerings from ${pageData.name}`,
-  }
+// function generateStructuredData(pageData) {
+//   const structuredData: WebPage & { 
+//     about?: Organization, 
+//     mainEntity?: Product[] 
+//   } = {
+//     '@context': 'https://schema.org',
+//     '@type': 'WebPage',
+//     name: `${pageData.name} - Business Profile`,
+//     description: pageData.description || `Explore products and offerings from ${pageData.name}`,
+//   }
 
-  // Organization Details
-  structuredData.about = {
-    '@type': 'Organization',
-    name: pageData.name,
-    description: pageData.description,
-    logo: pageData.dpImageUrl,
-    url: typeof window !== 'undefined' ? window.location.href : ''
-  }
+//   // Organization Details
+//   structuredData.about = {
+//     '@type': 'Organization',
+//     name: pageData.name,
+//     description: pageData.description,
+//     logo: pageData.dpImageUrl,
+//     url: typeof window !== 'undefined' ? window.location.href : ''
+//   }
 
-  // Products as Structured Data
-  if (pageData.products && pageData.products.length > 0) {
-    structuredData.mainEntity = pageData.products.map(product => ({
-      '@type': 'Product',
-      name: product.name,
-      description: product.description,
-      image: product.imageUrl,
-      offers: {
-        '@type': 'Offer',
-        price: product.price,
-        priceCurrency: 'USD',
-        availability: 'https://schema.org/InStock'
-      }
-    }))
-  }
+//   // Products as Structured Data
+//   if (pageData.products && pageData.products.length > 0) {
+//     structuredData.mainEntity = pageData.products.map(product => ({
+//       '@type': 'Product',
+//       name: product.name,
+//       description: product.description,
+//       image: product.imageUrl,
+//       offers: {
+//         '@type': 'Offer',
+//         price: product.price,
+//         priceCurrency: 'USD',
+//         availability: 'https://schema.org/InStock'
+//       }
+//     }))
+//   }
 
-  return JSON.stringify(structuredData)
-}
+//   return JSON.stringify(structuredData)
+// }
 
 // Metadata Generation
 export async function generateMetadata({ params }): Promise<Metadata> {
   const { pageData } = await getBusinessPageData(params.pageId)
   
   return {
-    title: `${pageData.name} - Business Profile`,
+    title: {
+      absolute:`${pageData.name} - Coryfi`
+    },
     description: pageData.description || `Explore products and offerings from ${pageData.name}`,
     keywords: pageData.categories?.map(cat => cat.name).join(', '),
     openGraph: {
@@ -112,12 +114,12 @@ export default async function BusinessProfile({ searchParams, params }) {
   return (
     <>
       {/* Structured Data Script */}
-      <script 
+      {/* <script 
         type="application/ld+json" 
         dangerouslySetInnerHTML={{ 
           __html: generateStructuredData(pageData) 
         }} 
-      />
+      /> */}
 
       <div className="min-h-screen bg-background">
         <Carousel images={pageData.bannerImageUrls} />

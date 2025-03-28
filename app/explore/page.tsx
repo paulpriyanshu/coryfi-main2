@@ -8,10 +8,14 @@ import { getAllPages } from "../api/business/business"
 import { getServerSession } from "next-auth"
 import { authOptions } from "../api/auth/[...nextauth]/route"
 import SignupComponent from "../signup/SignupComponent"
+import { Metadata } from "next"
 
 export const dynamic='force-dynamic';
 export const revalidate=0;
 
+export const metadata:Metadata={
+  title:"Business"
+}
 export default async function MarketplacePage() {
   const session=await getServerSession(authOptions)
 
@@ -42,7 +46,7 @@ export default async function MarketplacePage() {
     if(!session){
       return <SignupComponent/>
     }
-    
+
   return (
     <div className="flex min-h-screen flex-col bg-background w-full">
     {/* Header */}

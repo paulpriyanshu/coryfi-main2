@@ -6,7 +6,13 @@ import { fetchImages, fetchUserId } from "@/app/api/actions/media"
 import LeftSidebar from "@/components/ui/sections/LeftSideBar"
 import RightSidebar from "@/components/RightSidebar"
 import SearchBar from "@/components/ui/sections/SearchBar"
+import { Metadata } from "next"
 
+
+
+export const metadata:Metadata={
+  title:"Feed"
+}
 export default async function Page() {
   const session = await getServerSession(authOptions)
 
