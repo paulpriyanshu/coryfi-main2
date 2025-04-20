@@ -5,7 +5,7 @@ import Product from "./product"
 export default async function ProductPage({params}) {
 
   const data=await getProductDetails(params.pageId,parseInt(params.productId))
-  console.log("Data",JSON.stringify(data,null,2))
+  console.log("Product Data",JSON.stringify(data,null,2))
 
 
 return (

@@ -39,7 +39,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getServerSession(authOptions);
+  // const session = await getServerSession(authOptions);
 
   return (
     <html lang="en">
@@ -63,9 +63,7 @@ export default async function RootLayout({
           <StoreProvider>
             <SocketProvider>
               {/* Show SignupComponent if user is not logged in */}
-              {!session ? (
-                <SignupComponent />
-              ) : (
+              
                 <>
                   {/* Desktop Header */}
                   <Header />
@@ -78,7 +76,7 @@ export default async function RootLayout({
                     <MobileFooter />
                   </div>
                 </>
-              )}
+              
             </SocketProvider>
           </StoreProvider>
         </Providers>

@@ -2,7 +2,7 @@
 import Link from "next/link"
 import React, { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
-import { Home, Compass, User, Zap, Users, Menu, Settings, LogOut, Sun, Moon, Laptop, Network, Search, Store} from "lucide-react"
+import { Home, Compass, User, Zap, Users, Menu, Settings, LogOut, Sun, Moon, Laptop, Network, Search, Store, Package} from "lucide-react"
 import Image from "next/image"
 import { useSession, signOut, signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
@@ -26,6 +26,7 @@ import { Label } from "@/components/ui/Label"
 import { fetchUserId } from "@/app/api/actions/media"
 import { DashboardIcon } from "@radix-ui/react-icons"
 import { getBusiness, getBusinessPage, verifyMerchant } from "@/app/api/business/business"
+import CartButton from "./cart-button"
 
 interface NavItemProps {
   icon: React.ReactNode
@@ -120,7 +121,7 @@ export default function Component() {
   const verifyUserMerchant = async (userId) => {
     try {
       const verify = await verifyMerchant(userId);
-      console.log("verified", verify);
+      // console.log("verified", verify);
     
       if (verify && verify.data && verify.data.Merchant_Id) {
         await fetchBusinessData(verify.data.Merchant_Id);
@@ -138,7 +139,7 @@ export default function Component() {
   const fetchBusinessData = async (merchantId) => {
     try {
       const business_data = await getBusiness(merchantId);
-      console.log("businessdata", business_data);
+      // console.log("businessdata", business_data);
       if (business_data && business_data.business && business_data.business.Business_Id) {
         setIsMerchant(true);
         setBusinessId(business_data.business.Business_Id);
@@ -152,7 +153,7 @@ export default function Component() {
   const fetchBusinessPageData = async (businessId) => {
     try {
       const business_pageData = await getBusinessPage(businessId);
-      console.log("page layout", business_pageData);
+      // console.log("page layout", business_pageData);
     
       if (business_pageData?.pageData?.pageId) {
         setPageId(business_pageData.pageData.pageId);
@@ -232,6 +233,7 @@ export default function Component() {
                       </motion.div>
                     ))}
                   </nav>
+                  
                   {/* <div className="mt-8">
                     <h3 className="text-lg font-semibold mb-4">Mode Selection</h3>
                     <RadioGroup value={mode} onValueChange={setMode} className="grid gap-4">
@@ -325,6 +327,7 @@ export default function Component() {
               </Link>
             </div>
             <Notifications/>
+            {userId?<CartButton userId={userId}/>:null}
             {session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -347,6 +350,12 @@ export default function Component() {
                     <DropdownMenuItem>
                       <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href={`/orders/${userId}`} passHref>
+                    <DropdownMenuItem>
+                      <Package className="mr-2 h-4 w-4" />
+                      <span>Your Orders</span>
                     </DropdownMenuItem>
                   </Link>
                   <Link 

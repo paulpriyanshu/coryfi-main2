@@ -25,6 +25,10 @@ model User {
   merchants                 Merchant[]
   userDetails               UserDetails?
   createdAt                 DateTime @default(now()) // Fixed nullable issue
+  employees                 Employee[]
+
+  @@index([email])
+  @@index([id])
 }
 model Notification {
   id        Int      @id @default(autoincrement())
@@ -52,15 +56,32 @@ model Random {
   userId    Int
 }
 model UserDetails {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   bio          String?
   displayImage String?
-  city         String?
-  state        String?
-  country      String?
   phoneNumber  String?
-  userId       Int      @unique
-  user         User     @relation(fields: [userId], references: [id])
+  userId       Int       @unique
+  user         User      @relation(fields: [userId], references: [id])
+  addresses    Address[] // One-to-many relation
+}
+
+model Address { 
+  id            Int      @id @default(autoincrement())
+  type          String?   // e.g., 'home', 'work', 'other'
+  addressLine1  String?
+  addressLine2  String?
+  city          String?
+  state         String?
+  country       String?
+  zip           String?
+  landmark      String?   // Optional: for easier navigation
+  instructions  String?   // Optional: delivery instructions
+  userDetailsId Int
+  orderId       String?
+  userDetails   UserDetails @relation(fields: [userDetailsId], references: [id])
+  // order         Order? @relation(fields: [orderId], references: [order_id])
+
+  @@unique([userDetailsId, type]) // Prevent duplicate types like 2 "home"
 }
 
 model EvaluationApprovals {
@@ -195,6 +216,8 @@ model Business {
   updatedAt                      DateTime  @updatedAt
 
   @@index([merchantId])  // Index for better querying
+  @@index([merchantId,Business_Id])
+  @@index([Business_Id])
   @@index([id]) 
 }
 model Offer {
@@ -259,15 +282,26 @@ model Product {
   categoryCarouselId Int?
   categoryCarousel CategoryCarousel? @relation(fields: [categoryCarouselId], references: [id], onDelete: Cascade)
   fields  Field[]
+  counter Counter[]
+  recieveBy   String[]      
+  deliveryCharge  Float?      @default(0) // specific to this product
+  takeawayCharge  Float?      @default(0)
+  dineinCharge    Float?      @default(0)
 
   // Symmetric many-to-many self-relation
   variants ProductVariant[] @relation("ProductToVariant_A")
   variantOf ProductVariant[] @relation("ProductToVariant_B")
+  orderItems   OrderItem[]
 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
 
+enum RecieveBy {
+  DELIVERY
+  DINEIN
+  TAKEAWAY
+}
 
 
 model ProductVariant {
@@ -301,10 +335,140 @@ model BusinessPageLayout {
   offers              Offer[]
   category            String?
   location            String?
+  employees           Employee[]
+  payouts             Payout[]
+
   // posts               Post[]
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
+
+  @@index([businessId])
 }
+
+model Payout {
+  id               Int       @id @default(autoincrement())
+  payout_id        String    @unique @default(cuid())
+  businessPageId   String
+  businessPage     BusinessPageLayout @relation(fields: [businessPageId], references: [pageId])
+  payoutAmount     Decimal   @db.Decimal(12, 2)
+  payoutForDate    DateTime              // The date the payout is for (revenue day)
+  orders           Order[]
+  status           PayoutStatus @default(PENDING)
+  createdAt        DateTime  @default(now()) // When payout was actually made
+
+}
+
+enum PayoutStatus {
+  PAID
+  PENDING
+}
+
+model Order {
+  id          String     @id @default(cuid())
+  order_id    String     @unique
+  userId      Int
+  orderItems  OrderItem[]
+  totalCost   Float
+  transaction Transaction? @relation(name: "OrderToTransaction")
+  status      String     @default("pending")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  address     Json? 
+  fulfillmentStatus String  @default("pending")
+  payoutId    String? 
+  payout      Payout?   @relation(fields: [payoutId],references: [payout_id])
+  tasks       Task[]     // This is still valid; it's a reverse relation.
+
+  @@index([order_id])
+}
+
+
+
+model Employee {
+  id          Int                 @id @default(autoincrement())
+  user        User                @relation(fields: [userId], references: [id])
+  userId      Int
+  business    BusinessPageLayout  @relation(fields: [businessId], references: [pageId])
+  businessId  String
+  job         Job?                @relation(fields: [jobId], references: [id])
+  jobId       Int?
+  tasks       Task[]              // This is also valid; it's a reverse relation.
+
+  @@unique([userId, businessId], name: "task_employee_unique") // A user has one job per business
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  name        String?
+  status      String   @default("pending") // or "completed"
+  task_id     String
+  order       Order    @relation(fields: [task_id], references: [order_id])
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  employeeId  Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
+
+  @@unique([task_id, employeeId]) // Prevent duplicate employee assignment to same order
+}
+model Job {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String?
+  employees   Employee[]
+}
+
+
+model OrderItem {
+  id        Int       @id @default(autoincrement())
+  order     Order     @relation(fields: [orderId], references: [id])
+  orderId   String
+  product   Product   @relation(fields: [productId], references: [id])
+  productId Int
+  quantity  Int       @default(1)
+  OTP         String?   
+  productFulfillmentStatus  String? @default("pending")
+  details    Json?
+  outForDelivery String? @default("FALSE")
+  customization Json?
+  recieveBy     Json?
+}
+
+
+
+model Cart {
+  id          String   @id @default(cuid()) // Unique cart ID
+  userId      Int       @unique // ID of the user who owns the cart
+  productIds  Int[] // Array of product IDs
+  
+  cartItems   Json   // JSON field for product-specific details like customizations
+  totalCost   Float    // Total cost of items in cart
+  
+  address     String?  // Optional address in case the user saves it before checkout
+  createdAt   DateTime @default(now()) // Cart creation timestamp
+  updatedAt   DateTime @updatedAt       // Timestamp for last update
+}
+
+model Transaction {
+  id               String   @id @default(cuid())
+  orderId          String   @unique
+  order            Order    @relation(name:"OrderToTransaction",fields: [orderId], references: [order_id])
+  transactionId    String   @unique
+  paymentStatus    String
+  paymentAmount    Float
+  paymentCurrency  String
+  paymentMode      String
+  paymentTime      DateTime
+  bankReference    String?
+  paymentMessage   String?
+  customerEmail    String
+  customerPhone    String
+  customerName     String
+  paymentDetails   Json     // Store full webhook data
+  createdAt        DateTime @default(now())
+  @@index([transactionId])
+}
+
+
 
 model CategoryCarousel {
   id                 Int                 @id @default(autoincrement())
@@ -321,6 +485,17 @@ model Field {
   name      String   // Field name (e.g., "Toppings")
   keyValues Json     // Stores multiple key-value pairs as JSON
   type      String   // Defines the type (e.g., "Cost", "Length")
+  productId Int
+  showCost  Boolean? @default(false)
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model  Counter {
+  id        Int      @id @default(autoincrement())
+  name      String?   // Field name (e.g., "Toppings")
+  keyValues Json?     // Stores multiple key-value pairs as JSON
+  type      String?   // Defines the type (e.g., "Cost", "Length")
+  description String?
   productId Int
   product   Product  @relation(fields: [productId], references: [id])
 }

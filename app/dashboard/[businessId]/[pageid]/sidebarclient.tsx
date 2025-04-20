@@ -4,15 +4,17 @@ import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
-import { ChevronDown, ChevronRight, Home, ShoppingBag, Users, BarChart2, DollarSign, Settings } from "lucide-react"
+import { ChevronDown, ChevronRight, Home, ShoppingBag, Users, Users2,BarChart2, DollarSign, Settings,Package} from "lucide-react"
 
 const iconMap = {
   Home,
   ShoppingBag,
   Users,
+  Users2,
   BarChart2,
   DollarSign,
   Settings,
+  Package
 }
 
 export default function SidebarClient({ menuItems }: { menuItems: any[] }) {

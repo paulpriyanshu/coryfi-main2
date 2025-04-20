@@ -2,6 +2,7 @@ import SidebarClient from "./sidebarclient"
 import { getMerchant } from "@/app/api/business/business"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { Package } from "lucide-react"
 
 export default async function ModernSidebar({ pageId }: { pageId: string }) {
   const session = await getServerSession(authOptions)
@@ -21,12 +22,15 @@ export default async function ModernSidebar({ pageId }: { pageId: string }) {
         { name: "Categories", href: `/dashboard/${businessId}/${pageId}/categories` },
         { name: "Discounts", href: `/dashboard/${businessId}/${pageId}/discounts` },
         { name: "Fields", href: `/dashboard/${businessId}/${pageId}/fields` },
+        
       ],
     },
+    { name: "Orders", icon: "Package", href: `/dashboard/${businessId}/${pageId}/orders` },
     { name: "Customers", icon: "Users", href: `/dashboard/${businessId}/${pageId}/customers` },
-    { name: "Analytics", icon: "BarChart2", href: `/dashboard/${businessId}/${pageId}/analytics` },
+    { name: "Analytics", icon: "BarChart2", href: `/dashboard/${businessId}/${pageId}/payouts` },
     { name: "Sales", icon: "DollarSign", href: `/dashboard/${businessId}/${pageId}/sales` },
     { name: "Settings", icon: "Settings", href: `/dashboard/${businessId}/${pageId}/settings` },
+    { name: "Employees",  icon:"Users2", href: `/dashboard/${businessId}/${pageId}/employees` },
   ]
 
   return <SidebarClient menuItems={menuItems} />

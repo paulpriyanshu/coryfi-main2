@@ -129,7 +129,7 @@ export default async function BusinessProfile({ searchParams, params }) {
           <div className="flex flex-col md:flex-row md:items-center gap-6 mb-12">
             <div className="relative w-32 h-32 md:w-44 md:h-44 rounded-full overflow-hidden border-4 border-background bg-slate-100 shadow-lg mx-auto md:mx-0">
               <Image
-                src={`${pageData.dpImageUrl}`}
+                src={`${pageData.dpImageUrl}` || "/placeholder.svg"}
                 alt={pageData.name}
                 fill
                 className="object-cover"

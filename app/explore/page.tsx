@@ -24,6 +24,7 @@ export default async function MarketplacePage() {
 
   //  const Alldata=JSON.stringify(data,null,2)
    const allBusinesses=data.pageData
+   console.log("all business",allBusinesses)
   const categories = [
     { id: "all", name: "All Categories" },
     { id: "food", name: "Food & Restaurants" },
@@ -80,7 +81,7 @@ export default async function MarketplacePage() {
         <div className="grid grid-cols-2  md:grid-cols-3 gap-6">
           {allBusinesses.map((business) => (
             <BusinessCard
-              key={business.id}
+              key={business.pageId}
               business={business}
               categoryName={
                 categories.find((c) => c.id === business.category)?.name || ""

@@ -136,7 +136,7 @@ function ProductCard({ product ,pageId }) {
 
         {/* Price */}
         <div className="flex items-center gap-2">
-          <p className="font-semibold text-primary">₹{product.basePrice.toFixed(2)}</p>
+          <p className="font-semibold text-primary">₹{product?.basePrice?.toFixed(2)}</p>
           {product.BeforeDiscountPrice && (
             <p className="text-sm text-muted-foreground line-through">₹{product.BeforeDiscountPrice.toFixed(2)}</p>
           )}

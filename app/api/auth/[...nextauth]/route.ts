@@ -46,6 +46,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/signup", // Define your custom signup page
   },
+
   callbacks: {
     async signIn({ user, profile }) {
       try {

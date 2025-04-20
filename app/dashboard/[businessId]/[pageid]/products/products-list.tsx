@@ -9,9 +9,9 @@ import { Card } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { AddProductModal } from "./add-product-modal"
-import {VariantModal} from "./add-variant-modal"
+import { VariantModal } from "./add-variant-modal"
 import {
-  addProduct,
+  addProduct, 
   editProduct,
   addVariant,
   deleteProduct,
@@ -23,6 +23,8 @@ import "slick-carousel/slick/slick.css"
 import axios from "axios"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
 import { useTransition } from "react"
+
+type RecieveBy = ("DELIVER" | "DINEIN" | "TAKEAWAY")[]
 
 export default function ProductsList({ initialProducts, pageId, businessId }) {
   const [filter, setFilter] = useState("")
@@ -38,7 +40,7 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
   const [isEditing, setIsEditing] = useState(false)
   const [editedProduct, setEditedProduct] = useState(null)
   const [isPending, startTransition] = useTransition()
-  console.log("all prods",products)
+  console.log("all prods", products)
 
   const sortedProducts = [...products].sort((a, b) => {
     const valueA = a[sortBy]
@@ -56,8 +58,12 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
       stock: Number.parseInt(formData.stock, 10),
       basePrice: Number.parseFloat(formData.basePrice),
       businessPageId: pageId,
+      deliveryCharge: formData.deliveryCharge ? Number.parseFloat(formData.deliveryCharge) : null,
+      takeawayCharge: formData.takeawayCharge ? Number.parseFloat(formData.takeawayCharge) : null,
+      dineinCharge: formData.dineinCharge ? Number.parseFloat(formData.dineinCharge) : null,
+      // Note: backend expects receiveBy but we're using recieveBy in the frontend
     }
-
+    console.log("adding prod", updatedFormData)
     const result = await addProduct(updatedFormData)
     if (result.success) {
       setProducts((prevProducts) => [...prevProducts, result.data])
@@ -78,7 +84,7 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
 
   // Update handleVariantSubmit function to match the new API
   const handleVariantSubmit = async (variantData) => {
-    const { productAId, productBId, relationType, description, oldRelationType,relationId } = variantData
+    const { productAId, productBId, relationType, description, oldRelationType, relationId } = variantData
 
     if (variantEditMode === "add") {
       const result = await addVariant(productAId, productBId, relationType, description)
@@ -114,7 +120,7 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
       }
     } else if (variantEditMode === "edit" && selectedVariant) {
       // For editing, we need to handle the existing variant relationship
-      console.log("relationID",relationId)
+      console.log("relationID", relationId)
       const result = await editProductVariant(
         relationId,
         productAId,
@@ -122,9 +128,9 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
         relationType,
         description,
         businessId,
-        pageId
+        pageId,
       )
-      await autoRevalidateProducts(businessId,pageId)
+      await autoRevalidateProducts(businessId, pageId)
 
       if (result) {
         setProducts((prevProducts) => {
@@ -230,6 +236,10 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
     const [localEditedProduct, setLocalEditedProduct] = useState({
       ...selectedProductData,
       images: [...(selectedProductData.images || [])].slice(0, 5),
+      recieveBy: selectedProductData.recieveBy || ["DELIVERY"], // Default as array
+      deliveryCharge: selectedProductData.deliveryCharge,
+      takeawayCharge: selectedProductData.takeawayCharge,
+      dineinCharge: selectedProductData.dineinCharge,
     })
     const [isUploading, setIsUploading] = useState(false)
     const [uploadProgress, setUploadProgress] = useState(0)
@@ -298,6 +308,10 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
         stock: Number.parseInt(localEditedProduct.stock, 10),
         description: localEditedProduct.description,
         images: localEditedProduct.images,
+        recieveBy: localEditedProduct.recieveBy,
+        deliveryCharge: localEditedProduct.deliveryCharge,
+        takeawayCharge: localEditedProduct.takeawayCharge,
+        dineinCharge: localEditedProduct.dineinCharge,
       }
 
       await handleEditProduct(selectedProduct, productData)
@@ -494,6 +508,75 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
           </div>
         </div>
 
+        <div className="grid grid-cols-3 gap-4 mt-4">
+          {/* Only show these fields if the corresponding receive method is selected */}
+          {localEditedProduct.recieveBy?.includes("DELIVERY") && (
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-500">Delivery Price</p>
+              {isEditing ? (
+                <Input
+                  type="number"
+                  value={localEditedProduct.deliveryCharge || ""}
+                  onChange={(e) =>
+                    handleInputChange("deliveryCharge", e.target.value ? Number.parseFloat(e.target.value) : null)
+                  }
+                  placeholder="Same as bases price"
+                />
+              ) : (
+                <p className="text-lg font-medium">
+                  {selectedProductData.deliveryCharge !== null && selectedProductData.deliveryCharge !== undefined
+                    ? `₹${selectedProductData.deliveryCharge.toFixed(2)}`
+                    : "Same as base price"}
+                </p>
+              )}
+            </div>
+          )}
+
+          {localEditedProduct.recieveBy?.includes("TAKEAWAY") && (
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-500">Takeaway Price</p>
+              {isEditing ? (
+                <Input
+                  type="number"
+                  value={localEditedProduct.takeawayCharge || ""}
+                  onChange={(e) =>
+                    handleInputChange("takeawayCharge", e.target.value ? Number.parseFloat(e.target.value) : null)
+                  }
+                  placeholder="Same as base price"
+                />
+              ) : (
+                <p className="text-lg font-medium">
+                  {selectedProductData.takeawayCharge !== null && selectedProductData.takeawayCharge !== undefined
+                    ? `₹${selectedProductData.takeawayCharge.toFixed(2)}`
+                    : "Same as base price"}
+                </p>
+              )}
+            </div>
+          )}
+
+          {localEditedProduct.recieveBy?.includes("DINEIN") && (
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-500">Dine-in Price</p>
+              {isEditing ? (
+                <Input
+                  type="number"
+                  value={localEditedProduct.dineinCharge || ""}
+                  onChange={(e) =>
+                    handleInputChange("dineinCharge", e.target.value ? Number.parseFloat(e.target.value) : null)
+                  }
+                  placeholder="Same as base price"
+                />
+              ) : (
+                <p className="text-lg font-medium">
+                  {selectedProductData.dineinCharge !== null && selectedProductData.dineinCharge !== undefined
+                    ? `₹${selectedProductData.dineinCharge.toFixed(2)}`
+                    : "Same as base price"}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="space-y-2">
           <p className="text-sm text-gray-500">Description</p>
           {isEditing ? (
@@ -504,6 +587,69 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
             />
           ) : (
             <p className="text-sm text-gray-700 bg-gray-50 p-4 rounded-lg">{selectedProductData.description}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-sm text-gray-500">Receive By</p>
+          {isEditing ? (
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="recieveBy"
+                  value="DELIVERY"
+                  checked={localEditedProduct.recieveBy?.includes("DELIVERY")}
+                  onChange={(e) => {
+                    const currentValues = localEditedProduct.recieveBy || []
+                    const newValues = e.target.checked
+                      ? [...currentValues, "DELIVERY"]
+                      : currentValues.filter((v) => v !== "DELIVERY")
+                    handleInputChange("recieveBy", newValues)
+                  }}
+                  className="h-4 w-4"
+                />
+                <span>Delivery</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="recieveBy"
+                  value="DINEIN"
+                  checked={localEditedProduct.recieveBy?.includes("DINEIN")}
+                  onChange={(e) => {
+                    const currentValues = localEditedProduct.recieveBy || []
+                    const newValues = e.target.checked
+                      ? [...currentValues, "DINEIN"]
+                      : currentValues.filter((v) => v !== "DINEIN")
+                    handleInputChange("recieveBy", newValues)
+                  }}
+                  className="h-4 w-4"
+                />
+                <span>Dine In</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="recieveBy"
+                  value="TAKEAWAY"
+                  checked={localEditedProduct.recieveBy?.includes("TAKEAWAY")}
+                  onChange={(e) => {
+                    const currentValues = localEditedProduct.recieveBy || []
+                    const newValues = e.target.checked
+                      ? [...currentValues, "TAKEAWAY"]
+                      : currentValues.filter((v) => v !== "TAKEAWAY")
+                    handleInputChange("recieveBy", newValues)
+                  }}
+                  className="h-4 w-4"
+                />
+                <span>Takeaway</span>
+              </label>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-700 bg-gray-50 p-4 rounded-lg">
+              {selectedProductData.recieveBy?.length > 0 ? selectedProductData.recieveBy.join(", ") : "Not specified"}
+            </p>
           )}
         </div>
 
@@ -559,7 +705,7 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
                                   e.stopPropagation()
                                   setSelectedVariant({
                                     // relationId:r
-                                    relationId:variantItem.relationId,
+                                    relationId: variantItem.relationId,
                                     oldRelationType: relationType,
                                     relationType: relationType,
                                     description: variantItem.description,
@@ -740,4 +886,3 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
     </div>
   )
 }
-

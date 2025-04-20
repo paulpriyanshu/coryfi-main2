@@ -1,7 +1,9 @@
 "use server"
+import { generateOTP } from "@/app/checkout/[id]/otp";
 import db from "@/db"
-import { tree } from "d3";
+import { RecieveBy } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+
 
 export const getProductDetails = async (pageId: string, productId: number) => {
   const product = await db.product.findUnique({
@@ -15,6 +17,7 @@ export const getProductDetails = async (pageId: string, productId: number) => {
       categoryCarousel: true,
       offers: true,
       fields:true,
+      counter:true,
       variants: {
         select: {
           description: true,
@@ -91,10 +94,11 @@ export const addFilter = async (
   productId: number,
   name: string, // Field name (e.g., "Toppings")
   keyValues: Record<string, number | string>, // Multiple keys with values
+  showCost:boolean,
   type: string // Type (e.g., "Cost", "Length")
 ) => {
   try {
-    console.log("fields data", productId, name, keyValues, type);
+    // console.log("fields data", productId, name, keyValues, type);
 
     // Check if the product exists before adding the filter
     const productExists = await db.product.findUnique({
@@ -111,6 +115,7 @@ export const addFilter = async (
         name,
         keyValues, // Store as JSON
         type,
+        showCost,
         productId,
       },
     });
@@ -126,6 +131,7 @@ export const editFilter = async (
   filterId: number,
   name?: string,
   keyValues?: Record<string, number | string>, 
+  showCost?:any,
   type?: string
 ) => {
   try {
@@ -140,6 +146,7 @@ export const editFilter = async (
       where: { id: filterId },
       data: {
         name: name ?? filterExists.name,
+        showCost,
         keyValues: keyValues ?? filterExists.keyValues,
         type: type ?? filterExists.type,
       },
@@ -172,43 +179,177 @@ export const deleteFilter = async (filterId: number) => {
   }
 };
 
-export const addProduct=async({businessPageId,name,description,categoryId,images,stock,basePrice,BeforeDiscountPrice,SKU})=>{
-  
-   try {
-     const data=await db.product.create({
-         data:{
-             businessPageId,
-             name,
-             description,
-             categoryId,
-             images,
-             stock,
-             basePrice,
-             BeforeDiscountPrice,
-             SKU
-             
-         }
- 
-     })
-     return {success:true,data}
-   } catch (error) {
-    console.error("Error creating merchant:", error);
-    return { success: false, error: "Something went wrong" };
-    
-   }
 
-}
-export const editProduct = async (productId: number, updates: Partial<{ 
-  businessId: number;
+
+
+export const addCounter = async (
+  productId: number,
+  name: string, // Example: "Breads"
+  keyValues: Record<string, number | string>, // Example: { "Bread": 2 }
+  type: string, // Example: "Quantity"
+  description?: string // Optional description
+) => {
+  try {
+    // console.log(Object.keys(db));
+    // console.log("Adding counter:", productId, name, keyValues, type, description);
+
+    // Check if the product exists before adding the counter
+    const productExists = await db.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!productExists) {
+      throw new Error("Product not found");
+    }
+
+    // Create the counter entry
+    const data = await db.counter.create({
+      data: {
+        name,
+        keyValues, // Store as JSON
+        type,
+        description,
+        productId,
+      },
+    });
+
+    return data; // Return the created counter entry
+  } catch (error) {
+    console.error("Error adding counter:", error);
+    throw new Error("Failed to add counter");
+  }
+};
+
+export const editCounter = async (
+  counterId: number,
+  name?: string,
+  keyValues?: Record<string, number | string>, 
+  type?: string,
+  description?: string
+) => {
+  try {
+    // console.log("Editing counter:", counterId, name, keyValues, type, description);
+
+    const counterExists = await db.counter.findUnique({
+      where: { id: counterId },
+    });
+
+    if (!counterExists) {
+      throw new Error("Counter not found");
+    }
+
+    // Update the counter entry
+    const updatedCounter = await db.counter.update({
+      where: { id: counterId },
+      data: {
+        name: name ?? counterExists.name,
+        keyValues: keyValues ?? counterExists.keyValues,
+        type: type ?? counterExists.type,
+        description: description ?? counterExists.description,
+      },
+    });
+
+    return updatedCounter;
+  } catch (error) {
+    console.error("Error editing counter:", error);
+    throw new Error("Failed to edit counter");
+  }
+};
+
+export const deleteCounter = async (counterId: number) => {
+  try {
+    // console.log("Deleting counter:", counterId);
+
+    const counterExists = await db.counter.findUnique({
+      where: { id: counterId },
+    });
+
+    if (!counterExists) {
+      throw new Error("Counter not found");
+    }
+
+    await db.counter.delete({
+      where: { id: counterId },
+    });
+
+    return { message: "Counter deleted successfully" };
+  } catch (error) {
+    console.error("Error deleting counter:", error);
+    throw new Error("Failed to delete counter");
+  }
+};
+export const addProduct = async ({
+  businessPageId,
+  name,
+  description,
+  categoryId,
+  images,
+  stock,
+  basePrice,
+  BeforeDiscountPrice,
+  SKU,
+  receiveBy, // ✅ Correct spelling
+  deliveryCharge,
+  takeawayCharge,
+  dineinCharge,
+}: {
+  businessPageId?: string;
   name: string;
-  description: string;
-  categoryId: number;
+  description?: string;
+  categoryId?: number;
   images: string[];
-  stock: number;
-  basePrice: number;
-  BeforeDiscountPrice: number;
-  SKU: string;
-}>) => {
+  stock?: number;
+  basePrice?: number;
+  BeforeDiscountPrice?: number;
+  SKU?: string;
+  receiveBy?: string[];
+  deliveryCharge?: number;
+  takeawayCharge?: number;
+  dineinCharge?: number;
+}) => {
+  try {
+    const data = await db.product.create({
+      data: {
+        businessPageId,
+        name,
+        description,
+        categoryId,
+        images,
+        stock,
+        basePrice,
+        BeforeDiscountPrice,
+        SKU,
+        recieveBy: receiveBy?.length ? receiveBy : ["DELIVERY"],
+        deliveryCharge,
+        takeawayCharge,
+        dineinCharge,
+      },
+    });
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Error creating product:", error);
+    return { success: false, error: "Something went wrong" };
+  }
+};
+export const editProduct = async (
+  productId: number,
+  updates: Partial<{
+    businessPageId: string;
+    name: string;
+    description: string;
+    categoryId: number;
+    images: string[];
+    stock: number;
+    basePrice: number;
+    BeforeDiscountPrice: number;
+    SKU: string;
+    recieveBy: string[]; // still using same spelling as DB
+    deliveryCharge: number;
+    takeawayCharge: number;
+    dineinCharge: number;
+  }>
+) => {
   try {
     const data = await db.product.update({
       where: { id: productId },
@@ -416,7 +557,7 @@ export const addVariant = async (
   }
 };
 export const autoRevalidateProducts = async (businessId: string, pageId: string) => {
-  console.log("Revalidating products...");
+  // console.log("Revalidating products...");
   await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 3 seconds
   revalidatePath(`/dashboard/${businessId}/${pageId}/products`);
 };
@@ -429,7 +570,7 @@ export const editProductVariant = async (
   businessId: string,
   pageId: string
 ) => {
-  console.log("Updating variant relation:", productIdA, productIdB, newRelationType,relationId);
+  // console.log("Updating variant relation:", productIdA, productIdB, newRelationType,relationId);
 
   // Start a transaction to safely update the relationship
   const updatedVariant = await db.$transaction(async (tx) => {
@@ -453,7 +594,7 @@ export const editProductVariant = async (
     });
   });
 
-  console.log("Revalidating path:", `/dashboard/${businessId}/${pageId}/products`);
+  // console.log("Revalidating path:", `/dashboard/${businessId}/${pageId}/products`);
   revalidatePath(`/dashboard/${businessId}/${pageId}/products`);
 
   return updatedVariant;
@@ -496,7 +637,7 @@ export const deleteProductVariant=async(
   const result = await db.productVariant.deleteMany({
     where: whereClause
   });
-  console.log("Revalidating path:", `/dashboard/${businessId}/${pageId}/products`);
+  // console.log("Revalidating path:", `/dashboard/${businessId}/${pageId}/products`);
   revalidatePath(`/dashboard/${businessId}/${pageId}/products`)
   return {
     deletedCount: result.count,
@@ -665,5 +806,216 @@ export const deleteCategoryFromBusinessPage=async(businessPageId: string, catego
 
 
 
-// Example usage
-// deleteCategoryFromBusinessPage('some-business-page-id', 3);
+
+
+
+
+
+
+export async function addToCart(userId, newCartItems: any[], address?: string) {
+  const userIdNumber = userId;
+  // console.log("user id ", typeof userIdNumber);
+  // console.log("adding cart items ", newCartItems);
+
+  if (isNaN(userIdNumber)) {
+    throw new Error("Invalid userId. Expected a number.");
+  }
+
+  // console.log("User ID:", userIdNumber); // Debugging
+
+  // Find existing cart
+  let existingCart = await db.cart.findUnique({
+    where: { userId: userIdNumber }, // Ensure correct type
+  });
+
+  // console.log("existing cart", existingCart);
+
+  if (existingCart) {
+    const updatedCartItems = [...(existingCart.cartItems ?? []), ...newCartItems];
+
+    const uniqueProductIds = Array.from(
+      new Set(updatedCartItems.map((item) => item.productId))
+    );
+
+    await db.cart.update({
+      where: { id: existingCart.id },
+      data: {
+        cartItems: updatedCartItems,
+        productIds: [...existingCart.productIds, ...newCartItems.map((item) => item.productId)],
+        totalCost: existingCart.totalCost + newCartItems.reduce((sum, item) => sum + item.price, 0),
+      },
+    });
+  } else {
+    // If no cart is found, create a new one
+    if (newCartItems.length === 0) {
+      throw new Error("Cannot create an empty cart");
+    }
+
+    const totalCost = newCartItems.reduce((sum, item) => sum + item.price, 0);
+
+    await db.cart.create({
+      data: {
+        userId: userIdNumber, // Ensure correct type
+        productIds: newCartItems.map(item => item.productId),
+        cartItems: newCartItems,
+        totalCost,
+        address: address || null,
+      },
+    });
+  }
+
+  // ✅ Always revalidate cart page after updating or creating
+  revalidatePath("/cart");
+}
+
+
+export async function getCartsByUserId(userId: number) {
+  // Fetch the cart for the user
+  const cart = await db.cart.findUnique({
+    where: { userId },
+  });
+
+  // console.log("Cart items:", cart);
+
+  // If cart doesn't exist or is empty, return null
+  if (!cart || !cart.productIds.length) return null;
+
+  // Fetch product details for all product IDs in the cart
+  const products = await db.product.findMany({
+    where: { id: { in: cart.productIds } },
+    select: {
+      id: true,
+      name: true,
+      basePrice: true,
+      images: true,
+      stock: true,
+    },
+  });
+
+  // console.log("Product details:", products);
+
+  // Ensure cartItems is an array (fallback to empty array if undefined)
+  const cartItems = Array.isArray(cart.cartItems) ? cart.cartItems : [];
+
+  // Merge cart items with product details while keeping duplicates
+  const cartItemsWithDetails = cartItems
+    .map((cartItem: any) => {
+      const product = products.find((p) => p.id === cartItem.productId);
+
+      if (!product) {
+        console.warn(`Product with ID ${cartItem.productId} not found`);
+        return null; // Skip if product is not found
+      }
+
+      return {
+        ...cartItem, // Keep cart item properties (quantity, customization, etc.)
+        ...product, // Merge product details (name, images, basePrice, stock, etc.)
+      };
+    })
+    .filter(Boolean); // Remove any null values
+
+  return {
+    ...cart,
+    cartItems: cartItemsWithDetails, // Return cartItems with product details
+  };
+}
+
+export async function deleteCart(cartId: string) {
+  await db.cart.delete({
+    where: { id: cartId },
+  });
+}
+
+
+
+export async function moveCartToOrder(
+  cartId: string,
+  order_id: string,
+  userId: number,
+  address: any,
+  totalCost: any
+) {
+  const cart = await db.cart.findUnique({
+    where: { id: cartId },
+  });
+
+  if (!cart) throw new Error("Cart not found");
+
+  const parsedCartItems = cart.cartItems ?? [];
+  const productIds = parsedCartItems.map((item: any) => item.productId);
+
+  const products = await db.product.findMany({
+    where: { id: { in: productIds } },
+    select: {
+      id: true,
+      businessPageId: true,
+    },
+  });
+
+  // Map productId -> businessPageId
+  const productToBusinessMap = new Map<number, string>();
+  products.forEach((product) => {
+    productToBusinessMap.set(product.id, product.businessPageId);
+  });
+
+  // OTP grouped by (businessPageId + recieveBy)
+  const otpMap = new Map<string, string>();
+
+  for (const item of parsedCartItems) {
+    const businessId = productToBusinessMap.get(item.productId);
+    const recieveBy = item.recieveBy?.type.toUpperCase?.() || "UNKNOWN";
+    const otpKey = `${businessId}_${recieveBy}`;
+
+    if (!otpMap.has(otpKey)) {
+      otpMap.set(otpKey, String(generateOTP(6)));
+    }
+  }
+
+  const orderItemsData = parsedCartItems.map((item: any) => {
+    const businessId = productToBusinessMap.get(item.productId)!;
+    const recieveBy = item.recieveBy?.type.toUpperCase?.() || "UNKNOWN";
+    const otpKey = `${businessId}_${recieveBy}`;
+    const otp = otpMap.get(otpKey);
+
+    return {
+      productId: item.productId,
+      quantity: item.quantity || 1,
+      details: item || null,
+      customization: item.customization,
+      recieveBy: item.recieveBy || null,
+      OTP: otp,
+    };
+  });
+
+  const order = await db.order.create({
+    data: {
+      order_id,
+      userId,
+      totalCost,
+      address: address ?? "No address provided",
+      status: "pending",
+      orderItems: {
+        create: orderItemsData,
+      },
+    },
+  }); 
+
+  return order;
+}
+
+export async function updateCart(cartId: string, cartItems: any[], address?: string) {
+  // console.log("updating",cartItems)
+  const totalCost = cartItems.reduce((sum, item) => sum + item.price, 0);
+
+  const updatedCart = await db.cart.update({
+    where: { id: cartId },
+    data: {
+      productIds: cartItems.map(item => item.id),
+      cartItems,
+      totalCost,
+      address: address || undefined,
+    },
+  });
+
+  return updatedCart;
+}

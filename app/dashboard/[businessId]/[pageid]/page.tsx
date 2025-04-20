@@ -14,7 +14,7 @@ interface PageProps {
 
 export default async function Page({ params }) {
   const slug=params
-  console.log("params",slug)
+  // console.log("params",slug)
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) {
     return <div>Unauthorized</div>
@@ -22,13 +22,13 @@ export default async function Page({ params }) {
 
   // Extract businessId and pageId from params
   const slugArray = params.slug || [];
-  console.log("Slug Array:", slugArray);
+  // console.log("Slug Array:", slugArray);
   
   const businessId = slug.businessId
   const pageId = slug.pageid
   
-  console.log("Business ID:", businessId);
-  console.log("Page ID:", pageId);
+  // console.log("Business ID:", businessId);
+  // console.log("Page ID:", pageId);
   
   if (!businessId || !pageId) {
     return <div>Invalid Request</div>;
@@ -36,7 +36,7 @@ export default async function Page({ params }) {
 
   // Fetch user ID based on email
   const userData = await fetchUserId(session.user.email)
-  console.log("user id",userData)
+  // console.log("user id",userData)
   if (!userData) {
     return <div>Invalid User</div>
   }
@@ -46,11 +46,11 @@ export default async function Page({ params }) {
   }
 
   // Verify if the business belongs to the logged-in user
-  console.log("Merchant",JSON.stringify(isMerchant,null,2))
+  // console.log("Merchant",JSON.stringify(isMerchant,null,2))
   const hasBusiness = isMerchant.data.businesses?.some(
     business => business.Business_Id === businessId
   );
-  console.log("hasBusiness",hasBusiness)
+  // console.log("hasBusiness",hasBusiness)
   
   const hasPage = isMerchant.data.businesses?.some(
     business =>

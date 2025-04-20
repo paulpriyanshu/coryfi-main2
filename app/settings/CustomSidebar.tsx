@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { ChevronLeft, ChevronRight, User, Route, LogOut, Settings } from 'lucide-react'
+import { ChevronLeft,ListTodo, ChevronRight, User, Route, LogOut, Settings } from 'lucide-react'
 
 interface SidebarItem {
   icon: React.ElementType
@@ -14,7 +14,8 @@ interface SidebarItem {
 
 const sidebarItems: SidebarItem[] = [
   { icon: User, label: 'Profile', href: '/settings/profile' },
-  { icon: Route, label: 'Paths', href: '/settings/userPaths' }
+  { icon: Route, label: 'Paths', href: '/settings/userPaths' },
+  { icon: ListTodo, label: 'Tasks', href: '/settings/tasks' }
 ]
 
 interface CustomSidebarProps {

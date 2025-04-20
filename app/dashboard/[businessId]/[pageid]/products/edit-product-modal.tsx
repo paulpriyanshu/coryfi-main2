@@ -10,6 +10,7 @@ export function EditProductModal({ isOpen, onClose, product, onSubmit }) {
     description: product?.description || "",
     basePrice: product?.basePrice || 0,
     stock: product?.stock || 0,
+    recieveBy: product?.recieveBy || ""
   });
 
   const handleChange = (e) => {
@@ -58,6 +59,13 @@ export function EditProductModal({ isOpen, onClose, product, onSubmit }) {
             value={formData.stock}
             onChange={handleChange}
             placeholder="Stock"
+          />
+           <Input
+            type="text"
+            name="recieveBy"
+            value={formData.recieveBy}
+            onChange={handleChange}
+            placeholder="recieveBy"
           />
         </div>
         <DialogFooter>

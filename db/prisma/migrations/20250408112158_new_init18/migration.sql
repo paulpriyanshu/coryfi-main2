@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Product" ALTER COLUMN "recieveBy" SET DEFAULT ARRAY['DELIVERY']::TEXT[];

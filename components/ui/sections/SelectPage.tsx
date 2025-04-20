@@ -42,7 +42,7 @@ export function SelectDemo({ businessId }: { businessId: string }) {
 
   return (
     <Select onValueChange={handlePageSelect} disabled={loading}>
-      <SelectTrigger className="w-[180px]">
+      <SelectTrigger className="w-[100px] md:w-[180px]">
         {loading ? (
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" />

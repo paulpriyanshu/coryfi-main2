@@ -25,7 +25,7 @@ export function BusinessPageList({ pages ,businessId}) {
 }
 
 function BusinessPageCard({ page ,businessId}) {
-    console.log("pages",page)
+    // console.log("pages",page)
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md">
       <CardHeader className="p-0">

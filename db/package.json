@@ -11,6 +11,7 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "^6.3.0",
-    "prisma": "^6.3.0"
+    "prisma": "^6.3.0",
+    "react-qr-code": "^2.0.15"
   }
 }

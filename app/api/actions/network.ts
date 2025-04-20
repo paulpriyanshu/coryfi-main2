@@ -6,6 +6,7 @@ import { createUserChat } from "@/components/ui/sections/api";
 import { getSession } from "next-auth/react";
 import AWS from 'aws-sdk'
 import nodemailer from "nodemailer"
+import { revalidatePath } from "next/cache"
 
 
 export const check_connection=async(requesterEmail:string,recipientEmail:string)=>{
@@ -994,11 +995,11 @@ const prisma = new PrismaClient();
 export async function getOngoingEvaluations(email:string) {
   try {
     // Fetch all ongoing evaluations for the user (either requester or recipient)
-    const userId=await fetchUserId(email)
-    const user=await fetchUserData(userId.id)
+    const userData=await fetchUserId(email)
+    // const user=await fetchUserData(userId.id)
     const ongoingEvaluations = await prisma.evaluation.findMany({
       where: {
-        OR: [{ requesterId: userId.id }],
+        OR: [{ requesterId: userData.id }],
         status: "ONGOING",
       },
       include: {
@@ -1055,7 +1056,7 @@ export async function getOngoingEvaluations(email:string) {
     // });
 
     return {
-      userData:user,
+      userData,
       ongoingEvaluations,
       incompleteEvaluations,
       intermediaries,
@@ -2089,3 +2090,94 @@ a[x-apple-data-detectors],
       throw new Error('Failed to update user profile');
     }
   }
+
+
+  
+  
+
+  
+  export async function saveUserAddress(userId: number, formData: FormData) {
+    try {
+      const phone = formData.get("phone") as string
+      const displayImage = formData.get("displayImage") as string
+      const bio = formData.get("bio") as string
+  
+      // Address fields
+      const addressType = (formData.get("type") as string) || "home" // default to 'home'
+      const addressLine1 = formData.get("addressLine1") as string
+      const addressLine2 = formData.get("addressLine2") as string
+      const city = formData.get("city") as string
+      const state = formData.get("state") as string
+      const country = formData.get("country") as string
+      const zip = formData.get("zip") as string
+      const landmark = formData.get("landmark") as string
+      const instructions = formData.get("instructions") as string
+  
+      // Upsert UserDetails
+      const userDetails = await prisma.userDetails.upsert({
+        where: { userId },
+        update: {
+          phoneNumber: phone,
+          displayImage,
+          bio,
+        },
+        create: {
+          userId,
+          phoneNumber: phone,
+          displayImage,
+          bio,
+        },
+      })
+  
+      // Check if address of this type already exists for this userDetails
+      const existingAddress = await prisma.address.findFirst({
+        where: {
+          userDetailsId: userDetails.id,
+          type: addressType,
+        },
+      })
+  
+      if (existingAddress) {
+        // Update existing address
+        await prisma.address.update({
+          where: { id: existingAddress.id },
+          data: {
+            addressLine1,
+            addressLine2,
+            city,
+            state,
+            country,
+            zip,
+            landmark,
+            instructions,
+          },
+        })
+      } else {
+        // Create new address of this type
+        await prisma.address.create({
+          data: {
+            type: addressType,
+            addressLine1,
+            addressLine2,
+            city,
+            state,
+            country,
+            zip,
+            landmark,
+            instructions,
+            userDetailsId: userDetails.id,
+          },
+        })
+      }
+  
+      revalidatePath(`/profile/${userId}`)
+      revalidatePath(`/checkout/${userId}`)
+  
+      return { success: true }
+    } catch (error) {
+      console.error("Error saving user details & address:", error)
+      return { success: false, error: "Failed to save user details or address" }
+    }
+  }
+  
+  

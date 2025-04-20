@@ -151,7 +151,7 @@ export const getAllUnconnectedUsers = async (email: string) => {
       }
     })
     
-    console.log("unconnected users", users)
+    // console.log("unconnected users", users)
     return users
   } catch (error) {
     console.error("Error fetching unconnected users:", error)
@@ -256,6 +256,22 @@ export const fetchUserData = async (userId) => {
       userDetails: {
         select: {
           bio: true, // Fetch bio from userDetails table
+          phoneNumber:true,
+          addresses:{
+            select: {
+              id: true,
+              type: true,
+              addressLine1: true,
+              addressLine2: true,
+              city: true,
+              state: true,
+              country: true,
+              zip: true,
+              landmark: true,
+              instructions: true,
+            },
+          }
+
         },
       },
     },
@@ -266,13 +282,41 @@ export const fetchUserId=async(email:string)=>{
     const user=await db.user.findFirst({
         where:{
             email
-        }
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          userdp: true,
+          userDetails: {
+            select: {
+              bio: true, // Fetch bio from userDetails table
+              phoneNumber:true,
+              addresses:{
+                select: {
+                  id: true,
+                  type: true,
+                  addressLine1: true,
+                  addressLine2: true,
+                  city: true,
+                  state: true,
+                  country: true,
+                  zip: true,
+                  landmark: true,
+                  instructions: true,
+                },
+              }
+    
+            },
+          },
+        },
+        
     })
     if (!user) {
-      console.log("No user found for this email");
+      // console.log("No user found for this email");
       return null;
   }
-    console.log("user",user)
+    // console.log("user",user)
     return user
 
 
