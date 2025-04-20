@@ -8,9 +8,10 @@ import MobileFooter from "@/components/ui/MobileFooter";
 import { store } from "./libs/store/store";
 import StoreProvider from "./StoreProvider";
 import { SocketProvider } from "@/components/ui/sections/context/SocketContext";
-import { getServerSession } from "next-auth";
-import { authOptions } from "./api/auth/[...nextauth]/route";
-import SignupComponent from "./signup/SignupComponent";
+// import { getServerSession } from "next-auth";
+// import { authOptions } from "./api/auth/[...nextauth]/route";
+// import SignupComponent from "./signup/SignupComponent";
+// import ServerNav from "@/components/ui/sections/navbar-client";
 
 // Import local fonts
 const geistSans = localFont({
@@ -66,7 +67,7 @@ export default async function RootLayout({
               
                 <>
                   {/* Desktop Header */}
-                  <Header />
+                  <Header/>
 
                   {/* Page-specific content */}
                   {children}
