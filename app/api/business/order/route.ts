@@ -7,7 +7,8 @@ export async function POST(req: NextRequest) {
 
     // ✅ Parse request body
     const requestBody = await req.json();
-    console.log("Request Body:", requestBody);
+    // console.log("Request Body:", requestBody);
+    // console.log("cash free creds",process.env.CASHFREE_CLIENT_ID,process.env.CASHFREE_CLIENT_ID)
 
     const cashfreeBody = {
       order_id: requestBody.order_id || `order_${Date.now()}`,
@@ -30,8 +31,8 @@ export async function POST(req: NextRequest) {
       headers: {
         "x-api-version": "2025-01-01", // recommended stable version
 
-        "x-client-id": process.env.CASHFREE_CLIENT,
-        "x-client-secret": process.env.CASHFREE_SECRET,
+        "x-client-id": process.env.CASHFREE_CLIENT_ID,
+        "x-client-secret": process.env.CASHFREE_CLIENT_SECRET,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(cashfreeBody),
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     if (!response.ok) {
       console.error("Cashfree Error:", data);
-      return NextResponse.json({ error: data.message || "Failed to create order" }, { status: response.status });
+      return NextResponse.json({ error: data || "Failed to create order" }, { status: response.status });
     }
 
     console.log("Cashfree API Success:", data);
