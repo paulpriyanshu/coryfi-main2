@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Plus, Pencil, Trash2, FileText, Search } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/ui/Input"
 import {
   deleteEmployee,
   updateEmployeeJob,
