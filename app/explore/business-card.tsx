@@ -27,7 +27,7 @@ export default async function BusinessCard({ business, categoryName }) {
   return (
     <Card className="overflow-hidden group transition-all duration-300 hover:shadow-lg border border-border/40 h-full flex flex-col">
       <Link
-        href={`https://testing.coryfi.com/explore/business/${encodeURI(business.name)}/${business.pageId}`}
+        href={`https://connect.coryfi.com/explore/business/${encodeURI(business.name)}/${business.pageId}`}
         className="flex flex-col h-full"
       >
         <div className="relative aspect-[4/3] overflow-hidden">

@@ -40,7 +40,7 @@ function Checkout({ userId, user_name, user_email, user_phone, total_amount, car
         customer_name: user_name,
         customer_email: user_email,
         customer_phone: user_phone,
-        return_url: `https://testing.coryfi.com/orders/${userId}`,
+        return_url: `https://connect.coryfi.com/orders/${userId}`,
       };
 
       const res = await fetch("/api/business/order", {

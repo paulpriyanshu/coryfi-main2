@@ -7,7 +7,7 @@ export default function ViewBusinessButton({ business }) {
 
 
   return (
-    <Link href={`https://testing.coryfi.com/explore/business/${encodeURI(business.name)}/${business.pageId}`}>
+    <Link href={`https://connect.coryfi.com/explore/business/${encodeURI(business.name)}/${business.pageId}`}>
     <Button variant="outline" size="sm" className="w-full">
       View Business
     </Button>
