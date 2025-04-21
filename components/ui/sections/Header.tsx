@@ -8,7 +8,7 @@ import { getBusiness, getBusinessPage, verifyMerchant } from "@/app/api/business
 import { NavbarClient } from "./navbar-client"
 import CartButton from "./cart-button"
 import Notifications from "./Notifications"
-import { SelectDemo } from "./SelectPage"
+// import { SelectDemo } from "./SelectPage"
 
 export default async function Header() {
   const session = await getServerSession(authOptions)
