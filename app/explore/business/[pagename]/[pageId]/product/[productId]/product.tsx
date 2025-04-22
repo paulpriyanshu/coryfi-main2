@@ -787,6 +787,7 @@ function Product({ product, productId }) {
                     productId: product.id,
                     name: product.name,
                     price: totalPrice,
+                    basePrice:product.basePrice,
                     fields: selectedFields,
                     customization: allCustomizations.join(", ") || "Normal",
                     counterItems: Object.entries(counterItems).reduce((acc, [counterName, count]) => {
@@ -800,6 +801,7 @@ function Product({ product, productId }) {
                           // Include both count and cost in the object
                           acc[key] = {
                             count: count,
+                            default:initialValue,
                             cost: counterItem.keyValues[key].cost || 0,
                           }
                         }

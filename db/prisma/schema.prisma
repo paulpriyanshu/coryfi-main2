@@ -208,7 +208,8 @@ model Business {
   Business_UPI_ID                String?   @unique
   Bank_Account_Number            String?
   IFSC_CODE                      String?
-  businessPageLayout             BusinessPageLayout[]
+  // businessPageLayout             BusinessPageLayout[]
+   businessToPageLayouts          BusinessToPageLayout[]
    // Foreign key reference to BusinessPageLayout
 
 
@@ -320,10 +321,26 @@ model ProductVariant {
   // @@unique([productAId, productBId, relationType])
 }
 
+model BusinessToPageLayout { 
+  id                Int               @id @default(autoincrement())
+  businessId        String
+  business          Business          @relation(fields: [businessId], references: [Business_Id])
+  businessPageLayoutId Int
+  businessPageLayout BusinessPageLayout @relation(fields: [businessPageLayoutId], references: [id])
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@unique([businessId, businessPageLayoutId])
+  @@index([businessId])
+  @@index([businessPageLayoutId])
+}
+
 model BusinessPageLayout {
   id                  Int                 @id @default(autoincrement())
-  businessId          String  
-  business           Business             @relation(fields: [businessId], references: [Business_Id])
+  businessToPageLayouts BusinessToPageLayout[]
+  // businessId          String  
+  // business           Business             @relation(fields: [businessId], references: [Business_Id])
   name                String              @default("Page Name")
   pageId              String              @unique  @default(uuid())
   description         String?  
@@ -342,7 +359,7 @@ model BusinessPageLayout {
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
 
-  @@index([businessId])
+  @@index([pageId])
 }
 
 model Payout {
@@ -467,6 +484,7 @@ model Transaction {
   createdAt        DateTime @default(now())
   @@index([transactionId])
 }
+
 
 
 

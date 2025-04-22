@@ -41,31 +41,37 @@ export default async function Page({ params }) {
     return <div>Invalid User</div>
   }
   const isMerchant = await verifyMerchant(userData.id)
+  console.log("Merchant Data",isMerchant)
   if (!isMerchant) {
     return <div>Not Authorized</div>
   }
 
   // Verify if the business belongs to the logged-in user
   // console.log("Merchant",JSON.stringify(isMerchant,null,2))
-  const hasBusiness = isMerchant.data.businesses?.some(
-    business => business.Business_Id === businessId
-  );
-  // console.log("hasBusiness",hasBusiness)
-  
-  const hasPage = isMerchant.data.businesses?.some(
-    business =>
-      business.Business_Id === businessId &&
-      business.businessPageLayout?.some(page => page.pageId === pageId)
-  );
-  console.log("hasPage",hasPage)
-  
-  if (!hasBusiness || !hasPage) {
-    console.log("Access Denied because:");
-    if (!hasBusiness) console.log("- Business_Id does not match");
-    if (!hasPage) console.log("- PageId does not match within the correct business");
-  
-    return <div>Access Denied</div>;
-  }
+ // Verify if the business belongs to the logged-in user
+const hasBusiness = isMerchant.data.businesses?.some(
+  business => business.Business_Id === businessId
+);
+
+// Modified verification to check if the business has the specified page
+// using the junction table relationship
+const hasPage = isMerchant.data.businesses?.some(
+  business =>
+    business.Business_Id === businessId &&
+    business.businessToPageLayouts.some(relation => 
+      relation.businessPageLayout.pageId === pageId
+    )
+);
+
+console.log("hasPage", hasPage)
+
+if (!hasBusiness || !hasPage) {
+  console.log("Access Denied because:");
+  if (!hasBusiness) console.log("- Business_Id does not match");
+  if (!hasPage) console.log("- PageId does not match within the correct business");
+
+  return <div>Access Denied</div>;
+}
 
   
 //   if (isMerchant.data.businesses?.some(business => 

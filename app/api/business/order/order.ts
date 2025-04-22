@@ -29,6 +29,7 @@ export const getOrders = async (userId: number) => {
               quantity: true,
               OTP:true,
               productFulfillmentStatus:true,
+              details:true,
               product: {
                 select: {
                   id: true,

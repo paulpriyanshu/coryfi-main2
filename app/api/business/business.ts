@@ -80,13 +80,22 @@ export async function createMerchantAndBusiness(merchantData: any, businessData:
           IFSC_CODE: validatedBusinessData.IFSC_CODE,
         },
       });
-      const businessPage=await tx.businessPageLayout.create({
-        data:{
-          businessId:business.Business_Id
+      
+      // Create a BusinessPageLayout
+      const businessPage = await tx.businessPageLayout.create({
+        data: {
+          name: "Default Page", // You can customize this
+          description: "Default business page layout",
+          // Create the relationship using the junction table
+          businessToPageLayouts: {
+            create: {
+              businessId: business.Business_Id
+            }
+          }
         }
-      })
+      });
 
-      return { success: true, merchant, business,businessPage };
+      return { success: true, merchant, business, businessPage };
     });
   } catch (error) {
     console.error("Transaction failed:", error);
@@ -167,34 +176,36 @@ export async function createBusiness(data: any, merchantId: string) {
   }
 }
 
-export const verifyMerchant=async(userId:number)=>{
- try {
-        // console.log("finding merchant with id",userId)
-       const isMerchant=await db.merchant.findFirst({
-           where:{
-               userId
-           },
-           include:{
-            businesses:{
-              include:{
-                businessPageLayout:true
+export const verifyMerchant = async (userId: number) => {
+  try {
+    // console.log("finding merchant with id", userId)
+    const isMerchant = await db.merchant.findFirst({
+      where: {
+        userId
+      },
+      include: {
+        businesses: {
+          include: {
+            // Use the junction table
+            businessToPageLayouts: {
+              include: {
+                businessPageLayout: true // Include the actual layout details
               }
             }
+          }
+        }
+      }
+    });
 
-           }
-           
-       })
-
-       if(isMerchant){
-        return {success:true,data:isMerchant}
-       }
-       return false
- } catch (error) {
-    console.log(error)
-    return {error}
- }
-
-}
+    if (isMerchant) {
+      return { success: true, data: isMerchant };
+    }
+    return false;
+  } catch (error) {
+    console.log(error);
+    return { error };
+  }
+};
 
 export const getBusiness = async (merchantId: string) => {
   try {
@@ -216,21 +227,103 @@ export const getBusiness = async (merchantId: string) => {
 };
 
 
-export const createBusinessPage=async({name,description,businessId})=>{
-  // console.log("new page",name,description,businessId)
+export const getAllBusinessPage = async (businessId) => {
   try {
-      const page=await db.businessPageLayout.create({
-      data: {
-        businessId,
-        name,
-        description
-      }
-      })
-      return page
+    // Now uses the junction table to find pages connected to this business
+    const pageData = await db.businessPageLayout.findMany({
+      where: {
+        businessToPageLayouts: {
+          some: {
+            businessId: businessId
+          }
+        }
+      },
+    });
+    
+    if (pageData) {
+      return { success: true, pageData }
+    }
+    return { success: false, business: null, message: "Page not found" };
   } catch (error) {
-    console.error("Error creating page",error)
+    console.error("Error fetching Business Page", error);
+    return { success: false, error };
   }
+}
 
+export const getAllPages = async () => {
+  try {
+    const pageData = await db.businessPageLayout.findMany({
+      include: {
+        // Include the businesses connected through the junction table
+        businessToPageLayouts: {
+          include: {
+            business: {
+              select: {
+                Business_Id: true,
+                Business_Name: true,
+                Entity: true,
+              }
+            }
+          }
+        }
+      }
+    });
+    
+    if (pageData) {
+      return { success: true, pageData }
+    }
+    return { success: false, business: null, message: "Page not found" };
+  } catch (error) {
+    console.error("Error fetching Business Page", error);
+    return { success: false, error };
+  }
+}
+
+export const getBusinessPage = async (businessId) => {
+  try {
+    // Find a page connected to this business through the junction table
+    const pageData = await db.businessPageLayout.findFirst({
+      where: {
+        businessToPageLayouts: {
+          some: {
+            businessId: businessId
+          }
+        }
+      }
+    });
+    
+    if (pageData) {
+      return { success: true, pageData }
+    }
+    return { success: false, business: null, message: "Page not found" };
+  } catch (error) {
+    console.error("Error fetching Business Page", error);
+    return { success: false, error };
+  }
+}
+
+export const createBusinessPage = async ({ name, description, businessId }) => {
+  // console.log("new page", name, description, businessId)
+  try {
+    // Create the page and connect it to the business in one step
+    const page = await db.businessPageLayout.create({
+      data: {
+        name,
+        description,
+        // Use the junction table to connect to the business
+        businessToPageLayouts: {
+          create: {
+            businessId: businessId
+          }
+        }
+      }
+    });
+    
+    return page;
+  } catch (error) {
+    console.error("Error creating page", error);
+    throw error; // Better to throw the error for proper handling by caller
+  }
 }
 
 
@@ -262,54 +355,92 @@ export async function updateBusinessPageLayout(
   }
 }
 
-
-
-export const getAllBusinessPage=async(businessId)=>{
+export async function connectBusinessToExistingLayout(businessId: string, layoutPageId: string) {
   try {
-    const pageData=await db.businessPageLayout.findMany({
-      where:{
-        businessId
-      },
-  
-     })
-    if(pageData) {
-      return {success:true,pageData}
+    // First, verify that both the business and layout exist
+    const business = await db.business.findUnique({
+      where: { Business_Id: businessId }
+    });
+
+    const layout = await db.businessPageLayout.findUnique({
+      where: { pageId: layoutPageId }
+    });
+
+    if (!business || !layout) {
+      return { 
+        success: false, 
+        error: !business ? "Business not found" : "Layout not found" 
+      };
     }
-    return { success: false, business: null, message: "Page not found" };
-  } catch (error) {
-    console.error("Error fetching Business Page",error);
-    return { success: false, error};
-    
-  }
 
-}
-
-export const getAllPages=async()=>{
-  try {
-    const pageData=await db.businessPageLayout.findMany({
-      include:{
-        business:{
-          select:{
-            Business_Id:true,
-            Business_Name:true,
-            Entity:true,
-
-          }
-        }
+    // Create a new connection in the junction table
+    const connection = await db.businessToPageLayout.create({
+      data: {
+        businessId: businessId,
+        businessPageLayoutId: layout.id
       }
-      
-     })
-    if(pageData) {
-      return {success:true,pageData}
-    }
-    return { success: false, business: null, message: "Page not found" };
-  } catch (error) {
-    console.error("Error fetching Business Page",error);
-    return { success: false, error};
-    
-  }
+    });
 
+    return { 
+      success: true, 
+      connection,
+      message: "Business successfully connected to existing layout"
+    };
+  } catch (error) {
+    console.error("Failed to connect business to layout:", error);
+    return { 
+      success: false, 
+      error: "Something went wrong" 
+    };
+  }
 }
+
+// export const getAllBusinessPage=async(businessId)=>{
+//   try {
+//     const pageData=await db.businessPageLayout.findMany({
+//       where:{
+//         businessId
+//       },
+  
+//      })
+//     if(pageData) {
+//       return {success:true,pageData}
+//     }
+//     return { success: false, business: null, message: "Page not found" };
+//   } catch (error) {
+//     console.error("Error fetching Business Page",error);
+//     return { success: false, error};
+    
+//   }
+
+// }
+
+// export const getAllPages=async()=>{
+//   try {
+//     const pageData=await db.businessPageLayout.findMany({
+//       include:{
+//         business:{
+//           select:{
+//             Business_Id:true,
+//             Business_Name:true,
+//             Entity:true,
+
+//           }
+//         }
+//       }
+      
+//      })
+//     if(pageData) {
+//       return {success:true,pageData}
+//     }
+//     return { success: false, business: null, message: "Page not found" };
+//   } catch (error) {
+//     console.error("Error fetching Business Page",error);
+//     return { success: false, error};
+    
+//   }
+
+// }
 
 export const getBusinessPageDetails=async(pageId)=>{
   try {
@@ -334,24 +465,24 @@ export const getBusinessPageDetails=async(pageId)=>{
 
 }
 
-export const getBusinessPage=async(businessId)=>{
-  try {
-    const pageData=await db.businessPageLayout.findFirst({
-      where:{
-        businessId
-      }
-     })
-    if(pageData) {
-      return {success:true,pageData}
-    }
-    return { success: false, business: null, message: "Page not found" };
-  } catch (error) {
-    console.error("Error fetching Business Page",error);
-    return { success: false, error};
+// export const getBusinessPage=async(businessId)=>{
+//   try {
+//     const pageData=await db.businessPageLayout.findFirst({
+//       where:{
+//         businessId
+//       }
+//      })
+//     if(pageData) {
+//       return {success:true,pageData}
+//     }
+//     return { success: false, business: null, message: "Page not found" };
+//   } catch (error) {
+//     console.error("Error fetching Business Page",error);
+//     return { success: false, error};
     
-  }
+//   }
 
-}
+// }
 
 export const getBusinessPageData=async(pageId)=>{
   try {

@@ -160,7 +160,7 @@ export default async function CartPage() {
                                 <span>
                                   {name} × {details.count}
                                 </span>
-                                <span>₹{(details.cost * details.count).toFixed(2)}</span>
+                                <span>₹{(details.cost * (details.count-details.default)).toFixed(2)}</span>
                               </div>
                             ))}
 
