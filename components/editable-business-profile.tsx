@@ -491,7 +491,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
       if (!confirmDelete) return; // Exit if user cancels
   
       // Proceed with delete logic here...
-      await DeleteBusinessPage(pageId) 
+      await DeleteBusinessPage(pageId,businessId) 
 
       console.log("Page deleted");
       router.replace(`/dashboard/${businessId}`)

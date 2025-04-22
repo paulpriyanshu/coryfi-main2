@@ -513,23 +513,51 @@ export const getBusinessPageData=async(pageId)=>{
 
 }
 
-export const DeleteBusinessPage=async(pageId)=>{
-  try {
-    const pageData=await db.businessPageLayout.delete({
-      where:{
-        pageId
-      },
-     })
-    if(pageData) {
-      return {success:true,pageData}
-    }
-    return { success: false, business: null, message: "Page not found" };
-  } catch (error) {
-    console.error("Error fetching Business Page",error);
-    return { success: false, error};
+// export const DeleteBusinessPage=async(pageId)=>{
+//   try {
+//     const pageData=await db.businessPageLayout.delete({
+//       where:{
+//         pageId
+//       },
+//      })
+//     if(pageData) {
+//       return {success:true,pageData}
+//     }
+//     return { success: false, business: null, message: "Page not found" };
+//   } catch (error) {
+//     console.error("Error fetching Business Page",error);
+//     return { success: false, error};
     
-  }
+//   }
 
+// }
+export const DeleteBusinessPage = async(businessId, pageId) => {
+  try {
+    // Only delete the specific connection between this business and page layout
+    const deletedConnection = await db.businessToPageLayout.deleteMany({
+      where: {
+        businessId: businessId,
+        businessPageLayout: {
+          pageId: pageId
+        }
+      }
+    });
+    
+    if (deletedConnection.count > 0) {
+      return {
+        success: true, 
+        message: "Successfully disconnected business from page layout",
+        deletedConnection
+      };
+    }
+    return { 
+      success: false, 
+      message: "Connection not found between this business and page layout" 
+    };
+  } catch (error) {
+    console.error("Error disconnecting business from page layout", error);
+    return { success: false, error};
+  }
 }
 
 
