@@ -24,7 +24,6 @@ export default async function MarketplacePage() {
     { id: "fashion", name: "Fashion & Clothing" },
     { id: "tech", name: "Technology" },
     { id: "health", name: "Health & Beauty" },
-    { id: "home", name: "Home & Decor" },
     { id: "services", name: "Services" },
   ]
 
