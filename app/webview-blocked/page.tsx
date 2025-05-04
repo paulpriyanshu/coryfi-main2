@@ -42,7 +42,7 @@ export default function WebViewBlocked() {
       </button> */}
 
       {isInstagramWebView && (
-        <div className="absolute top-4 right-1 flex flex-col items-center text-sm text-gray-700 animate-bounce">
+        <div className="absolute top-4 right-1 flex flex-col items-center text-sm text-gray-700">
           <div className="mb-1 font-bold text-lg">⋯</div>
           <svg
             className="w-6 h-6 text-gray-700"
@@ -52,6 +52,7 @@ export default function WebViewBlocked() {
             viewBox="0 0 24 24"
           >
             <path
+              className="animate-bounce"
               strokeLinecap="round"
               strokeLinejoin="round"
               d="M12 19V6"
