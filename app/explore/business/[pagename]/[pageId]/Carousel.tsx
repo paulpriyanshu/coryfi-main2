@@ -27,14 +27,14 @@ export function Carousel({ images, autoplaySpeed = 3000 }) {
   const nextSlide = () => {
     if (isAnimating) return
     setIsAnimating(true)
-    setCurrentSlide((prev) => (prev + 1) % images.length)
+    setCurrentSlide((prev) => (prev + 1) % images?.length)
     setTimeout(() => setIsAnimating(false), 500)
   }
 
   const prevSlide = () => {
     if (isAnimating) return
     setIsAnimating(true)
-    setCurrentSlide((prev) => (prev - 1 + images.length) % images.length)
+    setCurrentSlide((prev) => (prev - 1 + images?.length) % images?.length)
     setTimeout(() => setIsAnimating(false), 500)
   }
 
@@ -88,7 +88,7 @@ export function Carousel({ images, autoplaySpeed = 3000 }) {
       onMouseLeave={() => setIsPaused(false)}
     >
       <div className="relative aspect-[16/9] md:aspect-[16/9] w-full overflow-hidden">
-        {images.map((image, index) => (
+        {images?.map((image, index) => (
           <div
             key={index}
             className={cn(
@@ -149,7 +149,7 @@ export function Carousel({ images, autoplaySpeed = 3000 }) {
 
       {/* Pagination dots */}
       <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center gap-2">
-        {images.map((_, index) => (
+        {images?.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}

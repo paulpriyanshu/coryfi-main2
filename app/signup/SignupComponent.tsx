@@ -2,9 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { signIn } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 
 function SignupComponent() {
   const [webViewDetected, setWebViewDetected] = useState(false);
+  const searchParams=useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
 
   // Detect WebView on client side
   useEffect(() => {
@@ -18,11 +21,13 @@ function SignupComponent() {
     if (isWebView) setWebViewDetected(true);
   }, []);
 
-  const handleSignin = async () => {
-    if (!webViewDetected) {
-      await signIn("google");
-    }
-  };
+ const handleSignin = async () => {
+  if (!webViewDetected) {
+    const url = searchParams.get("callbackUrl") || "/";
+    console.log("redireting url",url)
+    await signIn("google", { callbackUrl: url });
+  }
+};
 
   // Show this message if WebView is detected
   if (webViewDetected) {

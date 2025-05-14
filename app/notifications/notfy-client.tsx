@@ -20,7 +20,7 @@ export default function NotifyClient({ request, userEmail, userName }) {
   const content = request.post?.content || ""
 
   const handleClick = () => {
-    if (request.type === "Post" && request.post?.id) {
+    if (request.type === "Like Post" && request.post?.id) {
       router.push(`http://localhost:3000/p/${request.post.id}`)
     }
   }
@@ -28,7 +28,7 @@ export default function NotifyClient({ request, userEmail, userName }) {
   return (
     <li
       className={`bg-white rounded-md p-3 flex items-center justify-between cursor-pointer ${
-        request.type === "Post" ? "hover:bg-gray-100" : ""
+        request.type === "Like Post" ? "hover:bg-gray-100" : ""
       }`}
       onClick={handleClick}
     >
@@ -41,7 +41,7 @@ export default function NotifyClient({ request, userEmail, userName }) {
           {request.type === "Connection" && (
             <p className="font-medium text-sm">{request.senderName}</p>
           )}
-          {request.type === "Post" && (
+          {request.type === "Like Post" && (
             <p className="font-medium text-sm">{request.content}</p>
           )}
         </div>

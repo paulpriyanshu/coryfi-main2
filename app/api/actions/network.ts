@@ -814,7 +814,7 @@ export const approve_request = async (requesterEmail: string, recipientEmail: st
           senderName:likerName,
           senderMail:likerEmail,
           postId:postId,
-          type:"Post",
+          type:"Like Post",
           senderId:likerId
         }
       })

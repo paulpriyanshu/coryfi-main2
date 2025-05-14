@@ -142,7 +142,7 @@ export default function ConnectionRequestsDropdown() {
   }
 
   const handlePostClick = (request: Request) => {
-    if (request.type === "Post" && request.post?.id) {
+    if (request.type === "Like Post" && request.post?.id) {
       router.push(`/p/${request.post.id}`)
     }
   }
@@ -213,11 +213,11 @@ export default function ConnectionRequestsDropdown() {
                 <DropdownMenuItem
                   key={request.id}
                   className={`flex items-start justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors duration-150 ease-in-out focus:bg-gray-100 ${
-                    request.type === "Post" ? "cursor-pointer" : ""
+                    request.type === "Like Post" ? "cursor-pointer" : ""
                   }`}
                   onSelect={(e) => {
                     e.preventDefault()
-                    if (request.type === "Post") {
+                    if (request.type === "Like Post") {
                       handlePostClick(request)
                     }
                   }}
@@ -229,6 +229,8 @@ export default function ConnectionRequestsDropdown() {
                     </Avatar>
                     <div>
                       <p className="text-sm font-medium">{request.senderName}</p>
+                      {request.type==="Like Post" && <p className="text-sm font-medium">has liked our post</p>}
+
                       {request.type === "Connection" && <p className="text-xs text-gray-500">{request.senderMail}</p>}
                       {!isPending(request.status) && request.type === "Connection" && (
                         <Badge
@@ -240,6 +242,7 @@ export default function ConnectionRequestsDropdown() {
                           {request.status === "accepted" ? "Connected" : "Rejected"}
                         </Badge>
                       )}
+
                       <p className="text-xs text-gray-500 mt-1">{new Date(request.createdAt).toLocaleString()}</p>
                     </div>
                   </div>
@@ -277,7 +280,7 @@ export default function ConnectionRequestsDropdown() {
                   )}
 
                   {/* Post Content */}
-                  {request.type === "Post" && (
+                  {request.type === "Like Post" && (
                     <div className="max-w-xs ml-5">
                       {request.post?.imageUrl?.length > 0 ? (
                         <img

@@ -128,10 +128,62 @@ export const authOptions: NextAuthOptions = {
       }
     },
 
-    // Redirect user to home page after successful sign-in
+    // Simplified redirect callback that avoids URL parsing
     async redirect({ url, baseUrl }) {
-      // Here we are ensuring the user is redirected to the home page
-      return baseUrl; // Redirects to the home page, you can change this to any URL
+      // Safety check: if URL doesn't start with baseUrl or /, use baseUrl
+      if (!url.startsWith(baseUrl) && !url.startsWith('/')) {
+        console.log("Invalid URL, redirecting to base URL:", baseUrl);
+        return baseUrl;
+      }
+
+      // Check if there's a callbackUrl parameter
+      let callbackUrl = null;
+      
+      // Simple string check for callbackUrl
+      const callbackParam = "callbackUrl=";
+      const callbackIndex = url.indexOf(callbackParam);
+      
+      if (callbackIndex !== -1) {
+        // Extract the callbackUrl parameter value
+        const startIndex = callbackIndex + callbackParam.length;
+        const endIndex = url.indexOf("&", startIndex);
+        
+        if (endIndex !== -1) {
+          callbackUrl = url.substring(startIndex, endIndex);
+        } else {
+          callbackUrl = url.substring(startIndex);
+        }
+        
+        // Decode the URL-encoded callbackUrl
+        try {
+          callbackUrl = decodeURIComponent(callbackUrl);
+          
+          // Security check for the callbackUrl
+          if (callbackUrl.startsWith('/')) {
+            console.log("Redirecting to callback path:", callbackUrl);
+            return `${baseUrl}${callbackUrl.startsWith('/') ? callbackUrl : `/${callbackUrl}`}`;
+          }
+        } catch (error) {
+          console.error("Error decoding callback URL:", error);
+          // If there's an error, fall back to the original URL or baseUrl
+        }
+      }
+      
+      // If we reach here, use the original URL if it's safe
+      if (url.startsWith(baseUrl)) {
+        console.log("Redirecting to original URL:", url);
+        return url;
+      }
+      
+      // Add baseUrl to relative paths
+      if (url.startsWith('/')) {
+        console.log("Redirecting to path:", url);
+        return `${baseUrl}${url}`;
+      }
+      
+      // Default fallback
+      console.log("Redirecting to base URL:", baseUrl);
+      return baseUrl;
     },
   },
 };
