@@ -5,6 +5,7 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 import db from "@/db"
 import nodemailer from "nodemailer"
+import { like_notification } from "./network"
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || "eu-north-1",
@@ -718,20 +719,26 @@ export const notifyUsersOnNewPost = async (name: string) => {
     throw error;
   }
 };
-export const onLikePost = async (likerName: string, postId: number) => {
+export const onLikePost = async (likerName: string,likerEmail:string, postId: number) => {
   try {
+    console.log("likin this post",postId)
     // Find the post and include the owner's details
     const post = await db.post.findFirst({
       where: { id: postId },
       include: { user: true }, // Assuming the `post` model has a relation to the `user` model
     });
+    const liker=await db.user.findUnique({
+      where:{
+        email:likerEmail
+      }
+    })
 
     // Check if the post and user exist
     if (!post || !post.user) {
       console.error("Post or post owner not found.");
       return;
     }
-
+    await like_notification(likerEmail,likerName,post.userId,postId,liker.id)
     const postOwnerEmail = post.user.email; // Assuming `email` is a field in the `user` model
     const subject = "Someone Liked Your Post!";
     const bodyText = `${likerName} liked your post`;

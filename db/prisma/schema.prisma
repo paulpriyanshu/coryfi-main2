@@ -13,6 +13,7 @@ model User {
   email                     String                  @unique
   name                      String
   notifications             Notification[]          @relation("UserNotifications") // Added missing relation
+  SenderNotifications             Notification[]          @relation("SenderUserNotifications") // Added missing relation
   posts                     Post[]                  @relation("UserPosts")
   evaluationsStarted        Evaluation[]            @relation("EvaluationRequester")
   evaluationsReceived       Evaluation[]            @relation("EvaluationRecipient")
@@ -34,9 +35,12 @@ model Notification {
   id        Int      @id @default(autoincrement())
   userId    Int
   user      User     @relation("UserNotifications",fields: [userId], references: [id]) // Fixed relation
+  postId    Int?
+  post     Post?    @relation(fields: [postId],references: [id])
   senderName String?
   senderMail String?
   senderId   Int?
+  senderUser      User?     @relation("SenderUserNotifications",fields: [senderId], references: [id]) // Fixed relation
   type      String   // e.g., "LIKE", "COMMENT", "FOLLOW", etc.
   content   String   // Notification message
   status    STATUS?   
@@ -44,6 +48,7 @@ model Notification {
   createdAt DateTime @default(now())
 
   @@index([userId])  // Index for faster lookups
+  @@index([postId])
 }
 enum STATUS {
     accepted
@@ -153,6 +158,7 @@ model Post {
   // business        BusinessPageLayout? @relation(fields: [businessPageId], references: [id])
   reports         Int[]     @default([])
   reportReasons   String[]  @default([])
+  notifications   Notification[]  
 
   @@index([userId])
 }

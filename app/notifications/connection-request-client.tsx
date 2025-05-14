@@ -115,6 +115,7 @@ export default function ConnectionRequestsClient({
                   </Avatar>
                   <div>
                     <p className="font-medium text-sm">{request.senderName}</p>
+                    {/* <p className="font-medium text-sm">sent you a request</p> */}
                     {!isPending(request.status) && (
                       <Badge
                         variant="secondary"

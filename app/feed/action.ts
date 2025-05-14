@@ -47,7 +47,7 @@ export const handleLike = async (postId, post, session) => {
         // toast.success("Post liked", { duration: 2000, style: { background: "#4CAF50", color: "#fff" } })
       }
   
-      await onLikePost(session?.user?.name, post.id);
+      await onLikePost(session?.user?.name,session?.user?.email, post.id);
     } catch (error) {
       console.error("Error toggling like on post:", error);
       // toast.error("Failed to update like status", { duration: 2000, style: { background: "#EF4444", color: "#fff" } })

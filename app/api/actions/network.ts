@@ -805,8 +805,29 @@ export const approve_request = async (requesterEmail: string, recipientEmail: st
     })
     return 
   }
+  export const like_notification=async(likerEmail:string,likerName:string,userId:number,postId:number,likerId:number)=>{
+  try {
+      const notification=await db.notification.create({
+        data:{
+          userId:userId,
+          content:`${likerName} has liked your post`,
+          senderName:likerName,
+          senderMail:likerEmail,
+          postId:postId,
+          type:"Post",
+          senderId:likerId
+        }
+      })
+      return notification
+  } catch (error) {
+    console.log("error creating notification",error)
+    return null
+    
+  }
+
+  }
   // Fetch all new connection requests for a user
-  export const get_requests = async (email: string) => {
+  export const get_notifications = async (email: string) => {
     const notifications = await db.notification.findMany({
       where: {
         user: {
@@ -823,12 +844,22 @@ export const approve_request = async (requesterEmail: string, recipientEmail: st
         senderName: true,
         senderMail: true,
         senderId: true,
+        senderUser:{
+            select:{
+              id:true,
+              name:true,
+              userdp:true
+            }
+        },
         type: true,
         content: true,
         isRead: true,
         status: true, // Ensure status is included
         createdAt: true,
+        post:true
+
       },
+      
     });
   
     return notifications;

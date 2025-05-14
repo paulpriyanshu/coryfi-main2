@@ -1,8 +1,10 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
-import { approve_request, reject_request, get_new_requests, get_requests } from "@/app/api/actions/network"
+import { approve_request, reject_request, get_new_requests, get_notifications } from "@/app/api/actions/network"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -29,22 +31,31 @@ interface Request {
   isRead: boolean
   status?: "pending" | "accepted" | "rejected" | null
   createdAt: string
+  post?: {
+    id: string
+    content: string
+    imageUrl?: string[]
+  }
+  senderUser?: {
+    userdp: string
+  }
 }
 
 export default function ConnectionRequestsDropdown() {
   const { data: session } = useSession()
-  const [requests, setRequests] = useState([])
+  const [requests, setRequests] = useState<Request[]>([])
   const [loading, setLoading] = useState(true)
   const [showTooltip, setShowTooltip] = useState(false)
   const [open, setOpen] = useState(false)
-  const router=useRouter()
+  const [expandedPosts, setExpandedPosts] = useState<Record<number, boolean>>({})
+  const router = useRouter()
 
   useEffect(() => {
     const fetchRequests = async () => {
       if (!session?.user?.email) return
       try {
         const result = await get_new_requests(session.user.email)
-        const notify = await get_requests(session.user.email)
+        const notify = await get_notifications(session.user.email)
 
         if (result.success) {
           // Sort notifications by createdAt in descending order (latest first)
@@ -130,22 +141,37 @@ export default function ConnectionRequestsDropdown() {
     }
   }
 
+  const handlePostClick = (request: Request) => {
+    if (request.type === "Post" && request.post?.id) {
+      router.push(`/p/${request.post.id}`)
+    }
+  }
+
+  const toggleExpanded = (e: React.MouseEvent, requestId: number) => {
+    e.stopPropagation()
+    setExpandedPosts((prev) => ({
+      ...prev,
+      [requestId]: !prev[requestId],
+    }))
+  }
+
   const isPending = (status?: string | null) => status === "pending" || status === null || status === undefined
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768 && open) {
-        setOpen(false);
-        router.push("/notifications"); // Redirect to the Notifications page
+        setOpen(false)
+        router.push("/notifications") // Redirect to the Notifications page
       }
-    };
+    }
 
-    window.addEventListener("resize", handleResize);
-    
+    window.addEventListener("resize", handleResize)
+
     // Check on mount
-    handleResize();
+    handleResize()
 
-    return () => window.removeEventListener("resize", handleResize);
-  }, [open, router]);
+    return () => window.removeEventListener("resize", handleResize)
+  }, [open, router])
 
   return (
     <div className="relative">
@@ -186,18 +212,25 @@ export default function ConnectionRequestsDropdown() {
               {requests.map((request) => (
                 <DropdownMenuItem
                   key={request.id}
-                  className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors duration-150 ease-in-out focus:bg-gray-100"
-                  onSelect={(e) => e.preventDefault()}
+                  className={`flex items-start justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors duration-150 ease-in-out focus:bg-gray-100 ${
+                    request.type === "Post" ? "cursor-pointer" : ""
+                  }`}
+                  onSelect={(e) => {
+                    e.preventDefault()
+                    if (request.type === "Post") {
+                      handlePostClick(request)
+                    }
+                  }}
                 >
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-start space-x-3">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={request.senderName.slice(0, 2)} />
+                      <AvatarImage src={request?.senderUser?.userdp || "/placeholder.svg?height=48&width=48"} />
                       <AvatarFallback className="text-lg">{request.senderName.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
                       <p className="text-sm font-medium">{request.senderName}</p>
-                      <p className="text-xs text-gray-500">{request.senderMail}</p>
-                      {!isPending(request.status) && (
+                      {request.type === "Connection" && <p className="text-xs text-gray-500">{request.senderMail}</p>}
+                      {!isPending(request.status) && request.type === "Connection" && (
                         <Badge
                           variant="secondary"
                           className={`mt-1 ${
@@ -211,42 +244,84 @@ export default function ConnectionRequestsDropdown() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end space-y-2">
-                    {isPending(request.status) ? (
-                      <>
-                        <Badge
-                          variant="secondary"
-                          className="text-xs px-2 py-1 rounded-full bg-white text-black cursor-help"
-                          onMouseEnter={() => setShowTooltip(true)}
-                          onMouseLeave={() => setShowTooltip(false)}
+                  {/* Connection Request Actions */}
+                  {request.type === "Connection" && isPending(request.status) && (
+                    <div className="flex flex-col items-end space-y-2">
+                      <Badge
+                        variant="secondary"
+                        className="text-xs px-2 py-1 rounded-full bg-white text-black cursor-help"
+                        onMouseEnter={() => setShowTooltip(true)}
+                        onMouseLeave={() => setShowTooltip(false)}
+                      >
+                        {Number.parseInt(request.content.split(" ").pop() || "0", 10)}
+                      </Badge>
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 rounded-full bg-green-100 hover:bg-green-200 transition-colors duration-150"
+                          onClick={(e) => handleAccept(e, request)}
                         >
-                          {Number.parseInt(request.content.split(" ").pop(), 10)}
-                        </Badge>
-                        <div className="flex space-x-2">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 rounded-full bg-green-100 hover:bg-green-200 transition-colors duration-150"
-                            onClick={(e) => handleAccept(e, request)}
-                          >
-                            <Check className="h-4 w-4 text-green-600" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 rounded-full bg-red-100 hover:bg-red-200 transition-colors duration-150"
-                            onClick={(e) => handleReject(e, request)}
-                          >
-                            <X className="h-4 w-4 text-red-600" />
-                          </Button>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-xs text-gray-500">
-                        {request.status === "accepted" ? "Accepted" : "Rejected"}
+                          <Check className="h-4 w-4 text-green-600" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 rounded-full bg-red-100 hover:bg-red-200 transition-colors duration-150"
+                          onClick={(e) => handleReject(e, request)}
+                        >
+                          <X className="h-4 w-4 text-red-600" />
+                        </Button>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
+
+                  {/* Post Content */}
+                  {request.type === "Post" && (
+                    <div className="max-w-xs ml-5">
+                      {request.post?.imageUrl?.length > 0 ? (
+                        <img
+                          src={request.post.imageUrl[0] || "/placeholder.svg"}
+                          alt="post"
+                          className="w-12 h-12 object-cover rounded-md"
+                        />
+                      ) : (
+                        <div
+                          className={`prose prose-sm text-sm transition-all duration-300 ${
+                            expandedPosts[request.id] ? "" : "line-clamp-3 overflow-hidden"
+                          }`}
+                          dangerouslySetInnerHTML={{ __html: request.post?.content || request.content || "" }}
+                        />
+                      )}
+                      {!expandedPosts[request.id] &&
+                        ((request.post?.content && request.post.content.length > 150) ||
+                          (request.content && request.content.length > 150)) && (
+                          <button
+                            onClick={(e) => toggleExpanded(e, request.id)}
+                            className="text-blue-500 text-xs mt-1 underline"
+                          >
+                            Show more
+                          </button>
+                        )}
+                      {expandedPosts[request.id] &&
+                        ((request.post?.content && request.post.content.length > 150) ||
+                          (request.content && request.content.length > 150)) && (
+                          <button
+                            onClick={(e) => toggleExpanded(e, request.id)}
+                            className="text-blue-500 text-xs mt-1 underline"
+                          >
+                            Show less
+                          </button>
+                        )}
+                    </div>
+                  )}
+
+                  {/* Connection Status (if not pending) */}
+                  {request.type === "Connection" && !isPending(request.status) && (
+                    <div className="text-xs text-gray-500">
+                      {request.status === "accepted" ? "Accepted" : "Rejected"}
+                    </div>
+                  )}
                 </DropdownMenuItem>
               ))}
             </div>
@@ -261,4 +336,3 @@ export default function ConnectionRequestsDropdown() {
     </div>
   )
 }
-

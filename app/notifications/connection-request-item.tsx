@@ -51,6 +51,7 @@ export default function ConnectionRequestItem({ request, userEmail, userName }: 
         </Avatar>
         <div>
           <p className="font-medium text-sm">{request.senderName}</p>
+          <p className="font-medium text-sm">sent you a request</p>
           {!isPending && (
             <Badge
               variant="secondary"

@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
-import { get_new_requests, get_requests } from "@/app/api/actions/network"
+import { get_new_requests, get_notifications } from "@/app/api/actions/network"
 import ConnectionRequestsList from "./connection-request-list"
 import Header from "./header"
 import { Suspense } from "react"
@@ -18,7 +18,7 @@ function Loader() {
 // Fetch connection requests separately
 async function FetchRequests({ userEmail, userName }: { userEmail: string; userName: string }) {
   await get_new_requests(userEmail)
-  const notifications = await get_requests(userEmail)
+  const notifications = await get_notifications(userEmail)
   const sortedNotifications = notifications.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   )
