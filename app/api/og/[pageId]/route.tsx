@@ -1,9 +1,10 @@
 import { ImageResponse } from '@vercel/og'
 import { NextRequest } from 'next/server'
-import { getBusinessPageData } from '@/app/api/business/business'
+// import { getBusinessPageData } from '@/app/api/business/business'
+import { getEdgeBusinessPageData } from '../../edge/business-data'
 
 // Enable the Edge runtime for fast response
-export const runtime = 'nodejs'
+// export const runtime = 'edge'
 
 export async function GET(
   req: NextRequest,
@@ -11,7 +12,7 @@ export async function GET(
 ) {
   const { pageId } = params
 
-  const { pageData } = await getBusinessPageData(pageId)
+  const { pageData } = await getEdgeBusinessPageData(pageId)
 
   const name = pageData?.name || 'Business'
   const description = pageData?.description || 'Explore our offerings'
