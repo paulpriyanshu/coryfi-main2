@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server'
 import { getBusinessPageData } from '@/app/api/business/business'
 
 // Enable the Edge runtime for fast response
-// export const runtime = 'edge'
+export const runtime = 'node'
 
 export async function GET(
   req: NextRequest,
@@ -16,6 +16,7 @@ export async function GET(
   const name = pageData?.name || 'Business'
   const description = pageData?.description || 'Explore our offerings'
   const imageUrl = pageData?.dpImageUrl || 'https://yourdomain.com/default-image.png'
+  console.log("og url",imageUrl)
 
   return new ImageResponse(
     (
