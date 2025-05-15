@@ -65,7 +65,7 @@ export default async function BusinessProfile({ searchParams, params }) {
       {/* Content below carousel */}
       <div className="relative">
         {/* Blur overlay for non-logged in users */}
-        {!isLoggedIn && <BlurOverlay />}
+       
         
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row md:items-center gap-6 mb-12">
@@ -83,6 +83,7 @@ export default async function BusinessProfile({ searchParams, params }) {
               <p className="text-muted-foreground mt-2">{pageData?.description}</p>
             </div>
           </div>
+          {!isLoggedIn && <BlurOverlay />}
 
           {pageData?.categories?.length > 0 && (
             <div className="mb-16">

@@ -79,7 +79,7 @@ function ProductCard({ product ,pageId }) {
             : "bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-foreground",
         )}
       >
-        <Heart className={cn("h-4 w-4 transition-all", isWishlisted && "fill-red-500 scale-110")} />
+        {/* <Heart className={cn("h-4 w-4 transition-all", isWishlisted && "fill-red-500 scale-110")} /> */}
       </button>
 
       {/* Product image */}
