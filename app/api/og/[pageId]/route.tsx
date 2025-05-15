@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server'
 import { getBusinessPageData } from '@/app/api/business/business'
 
 // Enable the Edge runtime for fast response
-export const runtime = 'edge'
+// export const runtime = 'edge'
 
 export async function GET(
   req: NextRequest,
