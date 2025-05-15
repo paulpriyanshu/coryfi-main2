@@ -1,5 +1,5 @@
 import Image from "next/image"
-import { Metadata } from 'next'
+import type { Metadata } from "next"
 import { Carousel } from "./Carousel"
 import { ProductGrid } from "@/components/ProductGrid"
 import { SearchInput } from "@/components/search-input"
@@ -11,8 +11,7 @@ import { BlurOverlay } from "./blur-overlay"
 import { LoginPrompt } from "./login-prompt"
 
 // Metadata Generation
-export const dynamic = 'force-dynamic'
-
+export const dynamic = "force-dynamic"
 export async function generateMetadata({ params }): Promise<Metadata> {
   const { pageId } = params
   const { pageData } = await getBusinessPageData(pageId)
@@ -30,10 +29,10 @@ export async function generateMetadata({ params }): Promise<Metadata> {
           height: 630,
         },
       ],
-      type: 'website',
+      type: "website",
     },
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title: `${pageData.name} - Coryfi`,
       description: `${pageData.description}`,
       images: [`https://connect.coryfi.com/api/og/${pageId}`],
@@ -46,29 +45,31 @@ export default async function BusinessProfile({ searchParams, params }) {
   const { pageData } = await getBusinessPageData(params.pageId)
   const selectedCategory = searchParams?.category || null
 
+  // Check if user is logged in
   const session = await getServerSession()
   const isLoggedIn = !!session
 
   const filteredProducts = selectedCategory
-    ? pageData?.products.filter(product => {
-        const categoryObj = pageData?.categories.find(cat => cat.name === selectedCategory)
+    ? pageData?.products.filter((product) => {
+        const categoryObj = pageData?.categories.find((cat) => cat.name === selectedCategory)
         return categoryObj ? product.categoryId === categoryObj.id : false
       })
     : pageData?.products
 
-  const profileImage = pageData?.dpImageUrl || '/placeholder.svg'
+  const profileImage = pageData?.dpImageUrl || "/placeholder.svg"
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Non-blurred sections: Carousel and Business Logo */}
       <Carousel images={pageData?.bannerImageUrls} />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Logo + Name (always visible) */}
+        {/* Business logo and name section - NOT blurred */}
         <div className="flex flex-col md:flex-row md:items-center gap-6 mb-12">
           <div className="relative w-32 h-32 md:w-44 md:h-44 rounded-full overflow-hidden border-4 border-background bg-slate-100 shadow-lg mx-auto md:mx-0">
             <Image
-              src={profileImage}
-              alt={pageData?.name || 'Business Profile'}
+              src={profileImage || "/placeholder.svg"}
+              alt={pageData?.name || "Business Profile"}
               fill
               className="object-cover"
               priority
@@ -80,58 +81,50 @@ export default async function BusinessProfile({ searchParams, params }) {
           </div>
         </div>
 
-        {/* Blur area starts below the logo */}
+        {/* Content below business logo - will be blurred for non-logged in users */}
         <div className="relative">
+          {/* Blur overlay for non-logged in users */}
           {!isLoggedIn && <BlurOverlay />}
 
-          <div className="relative z-10">
-            {/* Categories Section */}
-            {pageData?.categories?.length > 0 && (
-              <div className="mb-16">
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold">Featured Categories</h2>
-                    <p className="text-muted-foreground mt-1">Browse our collections</p>
-                  </div>
+          {pageData?.categories?.length > 0 && (
+            <div className="mb-16">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold">Featured Categories</h2>
+                  <p className="text-muted-foreground mt-1">Browse our collections</p>
                 </div>
-                {pageData?.categoryCarousel && (
-                  <CategoryCarousel
-                    categories={pageData.categoryCarousel.categories}
-                    productSectionId="product-section"
-                  />
-                )}
-                <CategoryTags
-                  categories={pageData.categories}
-                  selectedCategory={selectedCategory}
+              </div>
+              {pageData?.categoryCarousel && (
+                <CategoryCarousel
+                  categories={pageData.categoryCarousel.categories}
+                  productSectionId="product-section"
                 />
-              </div>
-            )}
+              )}
+              <CategoryTags categories={pageData.categories} selectedCategory={selectedCategory} />
+            </div>
+          )}
 
-            {/* Products Section */}
-            {filteredProducts?.length > 0 && (
-              <div id="product-section" className="mb-16">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold">
-                      {selectedCategory ? `${selectedCategory} Products` : 'Our Products'}
-                    </h2>
-                    <p className="text-muted-foreground mt-1">
-                      {selectedCategory
-                        ? `Explore our ${selectedCategory.toLowerCase()} collection`
-                        : ''}
-                    </p>
-                  </div>
-                  <SearchInput />
+          {filteredProducts?.length > 0 && (
+            <div id="product-section" className="mb-16">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold">
+                    {selectedCategory ? `${selectedCategory} Products` : "Our Products"}
+                  </h2>
+                  <p className="text-muted-foreground mt-1">
+                    {selectedCategory ? `Explore our ${selectedCategory.toLowerCase()} collection` : ""}
+                  </p>
                 </div>
-
-                <ProductGrid products={filteredProducts} params={params} />
+                <SearchInput />
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* Login prompt */}
-        {!isLoggedIn && <LoginPrompt />}
+              <ProductGrid products={filteredProducts} params={params} />
+            </div>
+          )}
+
+          {/* Login prompt for non-logged in users */}
+          {!isLoggedIn && <LoginPrompt />}
+        </div>
       </div>
     </div>
   )
