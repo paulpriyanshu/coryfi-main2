@@ -10,45 +10,30 @@ import { getBusinessPageData } from "@/app/api/business/business"
 // Metadata Generation
 export async function generateMetadata({ params }): Promise<Metadata> {
   const { pageData } = await getBusinessPageData(params.pageId)
-  
+
   return {
     title: {
-      absolute:`${pageData?.name} - Coryfi`
+      absolute: `${pageData?.name} - Coryfi`,
     },
     description: pageData?.description || `Explore products and offerings from ${pageData?.name}`,
-    keywords: pageData?.categories?.map(cat => cat.name).join(', '),
     openGraph: {
       title: `${pageData?.name} - Business Profile`,
-      description: pageData?.description || `Explore products and offerings from ${pageData?.name}`,
+      description: pageData?.description,
       images: [
         {
-          url: pageData?.dpImageUrl || '/default-business-image.jpg',
-          width: 800,
-          height: 600,
-        }
+          url: `https://connect.coryfi.com/api/og/${params.pageId}`, // Use dynamic OG image
+          width: 1200,
+          height: 630,
+        },
       ],
-      type: 'website'
+      type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
       title: `${pageData?.name} - Business Profile`,
-      description: pageData?.description || `Explore products and offerings from ${pageData?.name}`,
-      images: [pageData?.dpImageUrl || '/default-business-image.jpg']
+      description: pageData?.description,
+      images: [`https://connect.coryfi.com/api/og/${params.pageId}`],
     },
-    alternates: {
-      canonical: `/business/${params.pageId}`
-    },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1
-      }
-    }
   }
 }
 
