@@ -8,6 +8,7 @@ import { CategoryTags } from "./category-tags"
 import { getBusinessPageData } from "@/app/api/business/business"
 
 // Metadata Generation
+export const dynamic = 'force-dynamic'
 export async function generateMetadata({ params }): Promise<Metadata> {
   const { pageId } = params
 

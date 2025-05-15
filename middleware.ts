@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isWebViewUA } from './app/utils/isWebView';
 import { getToken } from 'next-auth/jwt';
 
-const publicPaths = ['/login', '/signup', '/webview-blocked', '/api', '/_next', '/favicon.ico'];
+const publicPaths = ['/login', '/signup', '/webview-blocked', '/api', '/_next', '/favicon.ico','/explore/business'];
 
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
