@@ -11,13 +11,14 @@ import { getBusinessPageData } from "@/app/api/business/business"
 export const dynamic = 'force-dynamic'
 export async function generateMetadata({ params }): Promise<Metadata> {
   const { pageId } = params
+  const {pageData}=await getBusinessPageData(pageId)
 
   return {
-    title: `Business Profile - Coryfi`,
-    description: `Explore business offerings on Coryfi`,
+    title: `${pageData.name} - Coryfi`,
+    description: `${pageData.description}`,
     openGraph: {
-      title: `Explore this business on Coryfi`,
-      description: `View business details and product offerings`,
+        title: `${pageData.name} - Coryfi`,
+        description: `${pageData.description}`,
       images: [
         {
           url: `https://connect.coryfi.com/api/og/${pageId}`,
@@ -29,8 +30,8 @@ export async function generateMetadata({ params }): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Business on Coryfi`,
-      description: `Explore this business’s profile`,
+      title: `${pageData.name} - Coryfi`,
+      description: `${pageData.description}`,
       images: [`https://connect.coryfi.com/api/og/${pageId}`],
     },
   }
