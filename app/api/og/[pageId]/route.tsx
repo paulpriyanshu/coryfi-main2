@@ -1,55 +1,53 @@
-import { ImageResponse } from '@vercel/og'
-import { NextRequest } from 'next/server'
-// import { getBusinessPageData } from '@/app/api/business/business'
-import { getEdgeBusinessPageData } from '../../edge/business-data'
+// app/api/og/[pageId]/route.ts
+import { ImageResponse } from 'next/og'
 
-// Enable the Edge runtime for fast response
-// export const runtime = 'edge'
+export const runtime = 'edge'
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { pageId: string } }
-) {
+export async function GET(req: Request, { params }) {
   const { pageId } = params
 
-  const { pageData } = await getEdgeBusinessPageData(pageId)
+  // Fetch business data from your Node.js API route
+  const res = await fetch(`https://connect.coryfi.com/api/business-data/${pageId}`)
+  if (!res.ok) {
+    return new Response('Business not found', { status: 404 })
+  }
 
-  const name = pageData?.name || 'Business'
-  const description = pageData?.description || 'Explore our offerings'
-  const imageUrl = pageData?.dpImageUrl || 'https://yourdomain.com/default-image.png'
-  console.log("og url",imageUrl)
+  const { pageData } = await res.json()
 
   return new ImageResponse(
     (
       <div
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#f9fafb',
+          fontSize: 48,
+          background: 'white',
           width: '100%',
           height: '100%',
-          fontFamily: 'Inter, sans-serif',
-          padding: '40px',
-          textAlign: 'center',
+          padding: 50,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+          fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
+          color: '#000',
         }}
       >
+        <div style={{ fontSize: 64, fontWeight: 'bold' }}>
+          {pageData?.name || 'Business Name'}
+        </div>
+        <div style={{ fontSize: 32, marginTop: 20, color: '#333' }}>
+          {pageData?.description || 'Check out this awesome business on Coryfi!'}
+        </div>
         <img
-          src={imageUrl}
-          width={128}
-          height={128}
+          src={pageData?.dpImageUrl || 'https://connect.coryfi.com/placeholder.jpg'}
+          alt="Business"
           style={{
-            borderRadius: '50%',
-            marginBottom: '20px',
+            width: 200,
+            height: 200,
             objectFit: 'cover',
+            borderRadius: 16,
+            marginTop: 40,
           }}
-          alt="Business Logo"
         />
-        <h1 style={{ fontSize: 48, fontWeight: 'bold', margin: 0 }}>{name}</h1>
-        <p style={{ fontSize: 24, color: '#6b7280', marginTop: '16px' }}>
-          {description}
-        </p>
       </div>
     ),
     {
