@@ -21,7 +21,7 @@ export default function NotifyClient({ request, userEmail, userName }) {
 
   const handleClick = () => {
     if (request.type === "Like Post" && request.post?.id) {
-      router.push(`http://localhost:3000/p/${request.post.id}`)
+      router.push(`https://connect.coryfi.com/p/${request.post.id}`)
     }
   }
 
