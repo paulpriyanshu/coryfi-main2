@@ -7,7 +7,7 @@ export const runtime = "edge"
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const id = params.id
-   const res = await fetch(`https://connect.coryfi.com/api/post-og/${id}`, {
+   const res = await fetch(`https://connect.coryfi.com/api/post-data/${id}`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
     })
     const post=await res.json()
