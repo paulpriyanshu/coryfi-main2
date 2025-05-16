@@ -1,9 +1,10 @@
 import { ImageResponse } from "next/og"
-import { headers } from "next/headers"
+import { NextRequest } from "next/server"
+
 
 export const runtime = "edge" // Change to edge runtime for better performance with OG images
 
-export async function GET(request: Request, { params }: { params: { postId: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { postId: number } }) {
   try {
     const { postId } = params
 
@@ -192,7 +193,7 @@ export async function GET(request: Request, { params }: { params: { postId: stri
       const title = post.title || "Coryfi Connect Post"
 
       // Generate a gradient background based on the post ID for variety
-      const hue = (Number.parseInt(postId) * 137.5) % 360
+      const hue = (postId * 137.5) % 360
       const gradient = `linear-gradient(135deg, hsl(${hue}, 80%, 50%), hsl(${(hue + 60) % 360}, 80%, 50%))`
 
       return new ImageResponse(

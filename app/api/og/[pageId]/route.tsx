@@ -5,7 +5,7 @@ export const runtime = 'edge'
 
 export async function GET(req: NextRequest, { params }: { params: { pageId: string } }) {
   try {
-    console.log("hello there")
+
     const { pageId } = params
 
     // Fetch business data from your Node.js API route

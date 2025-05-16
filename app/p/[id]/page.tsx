@@ -10,11 +10,12 @@ export async function generateMetadata(
   parent: ResolvingMetadata,
 ): Promise<Metadata> {
   // Fetch post data for metadata
-  const id = params.id
+  const id= Number(params.id)
   const post = await fetchOnlyPost(Number(id))
 
   // Fallback values if post isn't found
-  const title = post?.title || "Post Detail"
+  const title =
+  post?.title || post?.content?.slice(0, 50)?.replace(/<[^>]*>/g, "") || "Post on Coryfi"
   const description = post?.content
     ? post.content.replace(/<[^>]*>/g, "").substring(0, 160)
     : "View this post on Coryfi Connect"
@@ -30,14 +31,13 @@ export async function generateMetadata(
       description,
       images: [
         {
-          url: ogImageUrl,
+          url: `https://connect.coryfi.com/api/post-og/${id}`,
           width: 1200,
           height: 630,
           alt: title,
         },
       ],
       type: "article",
-      publishedTime: post?.createdAt,
       authors: post?.user?.name ? [post.user.name] : undefined,
       url: `https://connect.coryfi.com/p/${id}`,
       siteName: "Coryfi Connect",
@@ -46,7 +46,7 @@ export async function generateMetadata(
       card: "summary_large_image",
       title: `${title} | Coryfi Connect`,
       description,
-      images: [ogImageUrl],
+      images: [`https://connect.coryfi.com/api/post-og/${id}`],
       creator: post?.user?.name ? `@${post.user.name.replace(/\s+/g, "")}` : "@coryficonnect",
     },
   }
