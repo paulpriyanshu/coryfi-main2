@@ -1,0 +1,259 @@
+import { ImageResponse } from "next/og"
+import { fetchOnlyPost } from "@/app/api/actions/media"
+
+export const runtime = "edge"
+
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  try {
+    const id = params.id
+    const post = await fetchOnlyPost(Number(id))
+
+    // If post doesn't exist, return a default OG image
+    if (!post) {
+      return new ImageResponse(
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: "100%",
+            backgroundColor: "#f5f5f5",
+            padding: "40px",
+            fontFamily: "sans-serif",
+          }}
+        >
+          <div style={{ fontSize: 60, fontWeight: "bold", color: "#333" }}>Coryfi Connect</div>
+          <div style={{ fontSize: 30, color: "#666", marginTop: 20 }}>Post not found</div>
+        </div>,
+        {
+          width: 1200,
+          height: 630,
+        },
+      )
+    }
+
+    // Check if the post has images
+    if (post.imageUrl && post.imageUrl.length > 0) {
+      // Use the first image from the post
+      const imageUrl = post.imageUrl[0]
+
+      // Create an OG image with the post's first image and overlay text
+      return new ImageResponse(
+        <div
+          style={{
+            display: "flex",
+            position: "relative",
+            width: "100%",
+            height: "100%",
+            backgroundColor: "#000",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {/* Background image with overlay */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(0, 0, 0, 0.4)",
+            }}
+          >
+            <img
+              src={imageUrl || "/placeholder.svg"}
+              alt={post.title || "Post image"}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                position: "absolute",
+                zIndex: -1,
+              }}
+            />
+          </div>
+
+          {/* Content overlay */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "40px",
+              backgroundColor: "rgba(0, 0, 0, 0.6)",
+              borderRadius: "16px",
+              maxWidth: "80%",
+              textAlign: "center",
+            }}
+          >
+            {post.title && (
+              <div style={{ fontSize: 60, fontWeight: "bold", color: "#fff", marginBottom: 20 }}>
+                {post.title.length > 60 ? `${post.title.substring(0, 57)}...` : post.title}
+              </div>
+            )}
+
+            {/* User info */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginTop: 20,
+              }}
+            >
+              {post.user?.userdp && (
+                <img
+                  src={post.user.userdp || "/placeholder.svg"}
+                  alt={post.user.name || "User"}
+                  width={50}
+                  height={50}
+                  style={{ borderRadius: "50%", marginRight: 15 }}
+                />
+              )}
+              <div style={{ fontSize: 30, color: "#fff" }}>{post.user?.name || "Coryfi Connect User"}</div>
+            </div>
+          </div>
+
+          {/* Branding */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: 30,
+              right: 30,
+              fontSize: 24,
+              color: "#fff",
+              fontWeight: "bold",
+            }}
+          >
+            Coryfi Connect
+          </div>
+        </div>,
+        {
+          width: 1200,
+          height: 630,
+        },
+      )
+    } else {
+      // For text-only posts, create a designed template with the content
+      // Extract text content from HTML if needed
+      const textContent = post.content
+        ? post.content.replace(/<[^>]*>/g, "").substring(0, 280)
+        : "View this post on Coryfi Connect"
+
+      const title = post.title || "Coryfi Connect Post"
+
+      // Generate a gradient background based on the post ID for variety
+      const hue = (Number(id) * 137.5) % 360
+      const gradient = `linear-gradient(135deg, hsl(${hue}, 80%, 50%), hsl(${(hue + 60) % 360}, 80%, 50%))`
+
+      return new ImageResponse(
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: "100%",
+            background: gradient,
+            padding: "60px",
+            fontFamily: "sans-serif",
+            color: "white",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(0, 0, 0, 0.4)",
+              borderRadius: "16px",
+              padding: "40px",
+              width: "90%",
+              height: "80%",
+            }}
+          >
+            <div style={{ fontSize: 60, fontWeight: "bold", marginBottom: 30 }}>
+              {title.length > 60 ? `${title.substring(0, 57)}...` : title}
+            </div>
+
+            <div style={{ fontSize: 32, lineHeight: 1.4, maxWidth: "90%" }}>
+              "{textContent.length > 140 ? `${textContent.substring(0, 137)}...` : textContent}"
+            </div>
+
+            {/* User info */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginTop: "auto",
+              }}
+            >
+              {post.user?.userdp && (
+                <img
+                  src={post.user.userdp || "/placeholder.svg"}
+                  alt={post.user.name || "User"}
+                  width={50}
+                  height={50}
+                  style={{ borderRadius: "50%", marginRight: 15 }}
+                />
+              )}
+              <div style={{ fontSize: 30 }}>{post.user?.name || "Coryfi Connect User"}</div>
+            </div>
+          </div>
+
+          {/* Branding */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: 30,
+              right: 30,
+              fontSize: 24,
+              fontWeight: "bold",
+            }}
+          >
+            Coryfi Connect
+          </div>
+        </div>,
+        {
+          width: 1200,
+          height: 630,
+        },
+      )
+    }
+  } catch (error) {
+    console.error("Error generating OG image:", error)
+
+    // Fallback image in case of error
+    return new ImageResponse(
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+          height: "100%",
+          backgroundColor: "#f5f5f5",
+          padding: "40px",
+          fontFamily: "sans-serif",
+        }}
+      >
+        <div style={{ fontSize: 60, fontWeight: "bold", color: "#333" }}>Coryfi Connect</div>
+        <div style={{ fontSize: 30, color: "#666", marginTop: 20 }}>Share and connect with others</div>
+      </div>,
+      {
+        width: 1200,
+        height: 630,
+      },
+    )
+  }
+}

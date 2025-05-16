@@ -826,6 +826,29 @@ export const approve_request = async (requesterEmail: string, recipientEmail: st
   }
 
   }
+  export const  read_notifications=async(email:string,ids:number[])=>{
+    try {
+      await db.notification.updateMany({
+        where:{
+          id:{in:ids},
+
+          user:{
+            email
+          },
+          
+          type: {in:["Like Post","Comment"]}
+          
+        },
+        data:{
+          isRead:true
+        }
+      })
+    } catch (error) {
+      console.error('Error marking read notifications', error);
+      return { success: false, error: error.message };
+      
+    }
+  }
   // Fetch all new connection requests for a user
   export const get_notifications = async (email: string) => {
     const notifications = await db.notification.findMany({

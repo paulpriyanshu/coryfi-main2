@@ -4,7 +4,13 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
-import { approve_request, reject_request, get_new_requests, get_notifications } from "@/app/api/actions/network"
+import {
+  approve_request,
+  reject_request,
+  get_new_requests,
+  get_notifications,
+  read_notifications,
+} from "@/app/api/actions/network"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -51,14 +57,16 @@ export default function ConnectionRequestsDropdown() {
   const router = useRouter()
 
   useEffect(() => {
+    if (!session?.user?.email) return
+
+    let intervalId: NodeJS.Timeout
+
     const fetchRequests = async () => {
-      if (!session?.user?.email) return
       try {
         const result = await get_new_requests(session.user.email)
         const notify = await get_notifications(session.user.email)
 
         if (result.success) {
-          // Sort notifications by createdAt in descending order (latest first)
           const sortedNotifications = notify.sort(
             (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
           )
@@ -75,7 +83,31 @@ export default function ConnectionRequestsDropdown() {
     }
 
     fetchRequests()
+    intervalId = setInterval(fetchRequests, 3000) // fetch every 30 seconds
+
+    return () => clearInterval(intervalId) // cleanup on unmount
   }, [session?.user?.email])
+
+  useEffect(() => {
+    if (open && requests.length > 0 && session?.user?.email) {
+      // Get IDs of unread notifications of type "Like Post" or "Comment"
+      const unreadIds = requests
+        .filter((req) => !req.isRead && (req.type === "Like Post" || req.type === "Comment"))
+        .map((req) => req.id)
+
+      if (unreadIds.length > 0) {
+        // Mark notifications as read
+        read_notifications(session.user.email, unreadIds)
+          .then(() => {
+            // Update local state to reflect read status
+            setRequests((prev) => prev.map((req) => (unreadIds.includes(req.id) ? { ...req, isRead: true } : req)))
+          })
+          .catch((error) => {
+            console.error("Failed to mark notifications as read:", error)
+          })
+      }
+    }
+  }, [open, requests, session?.user?.email])
 
   const handleAccept = async (e: React.MouseEvent, request: Request) => {
     e.preventDefault()
@@ -179,10 +211,10 @@ export default function ConnectionRequestsDropdown() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
-            {requests.filter((req) => isPending(req.status)).length > 0 && (
+            {requests.filter((req) => !req.isRead && isPending(req.status)).length > 0 && (
               <Badge variant="destructive" className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs">
-                {requests.filter((req) => isPending(req.status)).length}
-              </Badge>
+                {requests.filter((req) => !req.isRead && isPending(req.status)).length}
+              </Badge>  
             )}
           </Button>
         </DropdownMenuTrigger>
@@ -214,7 +246,7 @@ export default function ConnectionRequestsDropdown() {
                   key={request.id}
                   className={`flex items-start justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors duration-150 ease-in-out focus:bg-gray-100 ${
                     request.type === "Like Post" ? "cursor-pointer" : ""
-                  }`}
+                  } ${!request.isRead ? "bg-blue-50" : ""}`}
                   onSelect={(e) => {
                     e.preventDefault()
                     if (request.type === "Like Post") {
@@ -229,7 +261,7 @@ export default function ConnectionRequestsDropdown() {
                     </Avatar>
                     <div>
                       <p className="text-sm font-medium">{request.senderName}</p>
-                      {request.type==="Like Post" && <p className="text-sm font-medium">has liked our post</p>}
+                      {request.type === "Like Post" && <p className="text-sm font-medium">has liked our post</p>}
 
                       {request.type === "Connection" && <p className="text-xs text-gray-500">{request.senderMail}</p>}
                       {!isPending(request.status) && request.type === "Connection" && (
