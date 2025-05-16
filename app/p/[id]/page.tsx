@@ -2,6 +2,7 @@ import { Suspense } from "react"
 import { fetchOnlyPost } from "@/app/api/actions/media"
 import PostDetail from "./post-detail"
 import type { Metadata, ResolvingMetadata } from "next"
+import { fetchEdgeOnlyPost } from "@/app/api/edge/post"
 
 // This is a server component that handles metadata and initial data fetching
 export async function generateMetadata(

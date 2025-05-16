@@ -1,12 +1,16 @@
 import { ImageResponse } from "next/og"
 import { fetchOnlyPost } from "@/app/api/actions/media"
+import { fetchEdgeOnlyPost } from "../../edge/post"
 
 export const runtime = "edge"
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const id = params.id
-    const post = await fetchOnlyPost(Number(id))
+   const res = await fetch(`https://connect.coryfi.com/api/post-og/${id}`, {
+      next: { revalidate: 3600 }, // Cache for 1 hour
+    })
+    const post=await res.json()
 
     // If post doesn't exist, return a default OG image
     if (!post) {
