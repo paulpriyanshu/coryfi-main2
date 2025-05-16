@@ -5,6 +5,7 @@ import type { Metadata, ResolvingMetadata } from "next"
 import { fetchEdgeOnlyPost } from "@/app/api/edge/post"
 
 // This is a server component that handles metadata and initial data fetching
+export const dynamic = "force-dynamic"
 export async function generateMetadata(
   { params }: { params: { id: string } },
   parent: ResolvingMetadata,
