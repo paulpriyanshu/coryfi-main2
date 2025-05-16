@@ -1,16 +1,27 @@
 import { ImageResponse } from "next/og"
-import { fetchOnlyPost } from "@/app/api/actions/media"
-import { fetchEdgeOnlyPost } from "../../edge/post"
+import { headers } from "next/headers"
 
-export const runtime = "edge"
+export const runtime = "edge" // Change to edge runtime for better performance with OG images
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: { postId: string } }) {
   try {
-    const id = params.id
-   const res = await fetch(`https://connect.coryfi.com/api/post-data/${id}`, {
+    const { postId } = params
+
+    // Get the host from headers to build absolute URLs that work in both dev and production
+    // const headersList = headers()
+    // const host = headersList.get("host") || "localhost:3000"
+    // const protocol = host.includes("localhost") ? "http" : "https"
+
+    // Use absolute URL that works in both development and production
+    const res = await fetch(`https://connect.coryfi.com/api/post-data/${postId}`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
     })
-    const post=await res.json()
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch post data: ${res.status}`)
+    }
+
+    const post = await res.json()
 
     // If post doesn't exist, return a default OG image
     if (!post) {
@@ -23,13 +34,13 @@ export async function GET(request: Request, { params }: { params: { id: string }
             justifyContent: "center",
             width: "100%",
             height: "100%",
-            backgroundColor: "#f5f5f5",
+            backgroundColor: "#1a1a1a",
             padding: "40px",
             fontFamily: "sans-serif",
           }}
         >
-          <div style={{ fontSize: 60, fontWeight: "bold", color: "#333" }}>Coryfi Connect</div>
-          <div style={{ fontSize: 30, color: "#666", marginTop: 20 }}>Post not found</div>
+          <div style={{ fontSize: 60, fontWeight: "bold", color: "#fff" }}>Coryfi Connect</div>
+          <div style={{ fontSize: 30, color: "#ccc", marginTop: 20 }}>Post not found</div>
         </div>,
         {
           width: 1200,
@@ -54,6 +65,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
             backgroundColor: "#000",
             alignItems: "center",
             justifyContent: "center",
+            overflow: "hidden", // Prevent image overflow
           }}
         >
           {/* Background image with overlay */}
@@ -67,7 +79,6 @@ export async function GET(request: Request, { params }: { params: { id: string }
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: "rgba(0, 0, 0, 0.4)",
             }}
           >
             <img
@@ -81,6 +92,18 @@ export async function GET(request: Request, { params }: { params: { id: string }
                 zIndex: -1,
               }}
             />
+            {/* Dark overlay for better text readability */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.6)",
+                zIndex: 0,
+              }}
+            />
           </div>
 
           {/* Content overlay */}
@@ -91,14 +114,21 @@ export async function GET(request: Request, { params }: { params: { id: string }
               alignItems: "center",
               justifyContent: "center",
               padding: "40px",
-              backgroundColor: "rgba(0, 0, 0, 0.6)",
-              borderRadius: "16px",
               maxWidth: "80%",
               textAlign: "center",
+              zIndex: 1, // Ensure content is above the background
             }}
           >
             {post.title && (
-              <div style={{ fontSize: 60, fontWeight: "bold", color: "#fff", marginBottom: 20 }}>
+              <div
+                style={{
+                  fontSize: 72,
+                  fontWeight: "bold",
+                  color: "#fff",
+                  marginBottom: 20,
+                  textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                }}
+              >
                 {post.title.length > 60 ? `${post.title.substring(0, 57)}...` : post.title}
               </div>
             )}
@@ -115,12 +145,20 @@ export async function GET(request: Request, { params }: { params: { id: string }
                 <img
                   src={post.user.userdp || "/placeholder.svg"}
                   alt={post.user.name || "User"}
-                  width={50}
-                  height={50}
+                  width={60}
+                  height={60}
                   style={{ borderRadius: "50%", marginRight: 15 }}
                 />
               )}
-              <div style={{ fontSize: 30, color: "#fff" }}>{post.user?.name || "Coryfi Connect User"}</div>
+              <div
+                style={{
+                  fontSize: 36,
+                  color: "#fff",
+                  textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                }}
+              >
+                {post.user?.name || "Coryfi Connect User"}
+              </div>
             </div>
           </div>
 
@@ -130,9 +168,10 @@ export async function GET(request: Request, { params }: { params: { id: string }
               position: "absolute",
               bottom: 30,
               right: 30,
-              fontSize: 24,
+              fontSize: 28,
               color: "#fff",
               fontWeight: "bold",
+              textShadow: "0 2px 4px rgba(0,0,0,0.5)",
             }}
           >
             Coryfi Connect
@@ -153,7 +192,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       const title = post.title || "Coryfi Connect Post"
 
       // Generate a gradient background based on the post ID for variety
-      const hue = (Number(id) * 137.5) % 360
+      const hue = (Number.parseInt(postId) * 137.5) % 360
       const gradient = `linear-gradient(135deg, hsl(${hue}, 80%, 50%), hsl(${(hue + 60) % 360}, 80%, 50%))`
 
       return new ImageResponse(
@@ -185,11 +224,11 @@ export async function GET(request: Request, { params }: { params: { id: string }
               height: "80%",
             }}
           >
-            <div style={{ fontSize: 60, fontWeight: "bold", marginBottom: 30 }}>
+            <div style={{ fontSize: 72, fontWeight: "bold", marginBottom: 30 }}>
               {title.length > 60 ? `${title.substring(0, 57)}...` : title}
             </div>
 
-            <div style={{ fontSize: 32, lineHeight: 1.4, maxWidth: "90%" }}>
+            <div style={{ fontSize: 36, lineHeight: 1.4, maxWidth: "90%" }}>
               "{textContent.length > 140 ? `${textContent.substring(0, 137)}...` : textContent}"
             </div>
 
@@ -205,12 +244,12 @@ export async function GET(request: Request, { params }: { params: { id: string }
                 <img
                   src={post.user.userdp || "/placeholder.svg"}
                   alt={post.user.name || "User"}
-                  width={50}
-                  height={50}
+                  width={60}
+                  height={60}
                   style={{ borderRadius: "50%", marginRight: 15 }}
                 />
               )}
-              <div style={{ fontSize: 30 }}>{post.user?.name || "Coryfi Connect User"}</div>
+              <div style={{ fontSize: 36 }}>{post.user?.name || "Coryfi Connect User"}</div>
             </div>
           </div>
 
@@ -220,7 +259,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
               position: "absolute",
               bottom: 30,
               right: 30,
-              fontSize: 24,
+              fontSize: 28,
               fontWeight: "bold",
             }}
           >
@@ -246,13 +285,13 @@ export async function GET(request: Request, { params }: { params: { id: string }
           justifyContent: "center",
           width: "100%",
           height: "100%",
-          backgroundColor: "#f5f5f5",
+          backgroundColor: "#1a1a1a",
           padding: "40px",
           fontFamily: "sans-serif",
         }}
       >
-        <div style={{ fontSize: 60, fontWeight: "bold", color: "#333" }}>Coryfi Connect</div>
-        <div style={{ fontSize: 30, color: "#666", marginTop: 20 }}>Share and connect with others</div>
+        <div style={{ fontSize: 60, fontWeight: "bold", color: "#fff" }}>Coryfi Connect</div>
+        <div style={{ fontSize: 30, color: "#ccc", marginTop: 20 }}>Share and connect with others</div>
       </div>,
       {
         width: 1200,

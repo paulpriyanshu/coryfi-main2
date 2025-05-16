@@ -1,10 +1,11 @@
 import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export async function GET(req: NextRequest, { params }: { params: { pageId: string } }) {
   try {
+    console.log("hello there")
     const { pageId } = params
 
     // Fetch business data from your Node.js API route
@@ -18,6 +19,7 @@ export async function GET(req: NextRequest, { params }: { params: { pageId: stri
     }
 
     const { pageData } = await res.json()
+    console.log("business data",pageData)
 
     // Make sure we have full absolute URLs for images
     const imageUrl = pageData?.dpImageUrl 
