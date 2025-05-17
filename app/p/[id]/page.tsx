@@ -12,7 +12,11 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   // Fetch post data for metadata
   const id= Number(params.id)
-  const post = await fetchOnlyPost(Number(id))
+   const res = await fetch(`https://connect.coryfi.com/api/post-data/${id}`, {
+      next: { revalidate: 3600 }, // Cache for 1 hour
+    })
+    const post=await res.json()
+    console.log("meta posts",post)
 
   // Fallback values if post isn't found
   const title =
@@ -32,7 +36,7 @@ export async function generateMetadata(
       description,
       images: [
         {
-          url: `https://connect.coryfi.com/api/post-og/${id}`,
+          url: post.imageUrl[0],
           width: 1200,
           height: 630,
           alt: title,
