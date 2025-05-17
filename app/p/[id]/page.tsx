@@ -51,7 +51,7 @@ export async function generateMetadata(
       card: "summary_large_image",
       title: `${title} | Coryfi Connect`,
       description,
-      images: [`https://connect.coryfi.com/api/post-og/${id}`],
+      images: [post.imageUrl[0]],
       creator: post?.user?.name ? `@${post.user.name.replace(/\s+/g, "")}` : "@coryficonnect",
     },
   }
