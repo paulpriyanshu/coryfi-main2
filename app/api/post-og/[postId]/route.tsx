@@ -23,6 +23,8 @@ export async function GET(request: NextRequest, { params }: { params: { postId: 
     }
 
     const post = await res.json()
+    
+
 
     // If post doesn't exist, return a default OG image
     if (!post) {
@@ -53,7 +55,10 @@ export async function GET(request: NextRequest, { params }: { params: { postId: 
     // Check if the post has images
     if (post.imageUrl && post.imageUrl.length > 0) {
       // Use the first image from the post
-      const imageUrl = post.imageUrl[0]
+    //   const imageUrl = post.imageUrl[0]
+       const imageUrl = post?.imageUrl[0] 
+      ? new URL(post.imageUrl[0], 'https://connect.coryfi.com').toString()
+      : 'https://connect.coryfi.com/placeholder.jpg'
 
       // Create an OG image with the post's first image and overlay text
       return new ImageResponse(
