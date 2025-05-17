@@ -21,9 +21,10 @@ export async function generateMetadata(
   // Fallback values if post isn't found
   const title =
   post?.title || post?.content?.slice(0, 50)?.replace(/<[^>]*>/g, "") || "Post on Coryfi"
-  const description = post?.content
-    ? post.content.replace(/<[^>]*>/g, "").substring(0, 160)
-    : "View this post on Coryfi Connect"
+  // const description = post?.content
+  //   ? post.content.replace(/<[^>]*>/g, "").substring(0, 160)
+  //   : "View this post on Coryfi Connect"
+  const description=`Post by ${post?.user?.name}`
 
   // Use the dynamic OG image route instead of a static image
   const ogImageUrl = `https://connect.coryfi.com/api/post-og/${id}`
@@ -36,7 +37,7 @@ export async function generateMetadata(
       description,
       images: [
         {
-          url: ogImageUrl,
+          url: post.imageUrl[0],
           width: 1200,
           height: 630,
           alt: title,
@@ -51,7 +52,7 @@ export async function generateMetadata(
       card: "summary_large_image",
       title: `${title} | Coryfi Connect`,
       description,
-      images: [ogImageUrl],
+      images: [post.imageUrl[0]],
       creator: post?.user?.name ? `@${post.user.name.replace(/\s+/g, "")}` : "@coryficonnect",
     },
   }
