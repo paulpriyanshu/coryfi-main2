@@ -27,7 +27,7 @@ export default function NotifyClient({ request, userEmail, userName }) {
 
   return (
     <li
-      className={`bg-white rounded-md p-3 flex items-center justify-between cursor-pointer ${
+      className={`bg-white rounded-md p-3 flex items-center justify-between cursor-pointer  dark:bg-black ${
         request.type === "Like Post" ? "hover:bg-gray-100" : ""
       }`}
       onClick={handleClick}

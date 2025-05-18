@@ -43,7 +43,7 @@ export default function ConnectionRequestItem({ request, userEmail, userName }: 
   const isPending = status === "pending" || status === null || status === undefined
 
   return (
-    <li className="bg-white rounded-md p-3 flex items-center justify-between">
+    <li className="bg-white rounded-md p-3 flex items-center justify-between  dark:bg-black">
       <div className="flex items-center space-x-3">
         <Avatar className="h-10 w-10">
           <AvatarImage src={request.senderName.slice(0, 2)} />
