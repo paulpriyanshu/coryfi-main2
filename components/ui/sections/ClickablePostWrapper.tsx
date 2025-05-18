@@ -25,7 +25,11 @@ export default function ClickablePostWrapper({ children, post, userId }: Clickab
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   return (
-    <div className="bg-white border border-slate-100 my-2  rounded-none md:rounded-lg md:p-4" onClick={() => setIsModalOpen(true)}>
+   <div
+  className="bg-white dark:bg-black border border-slate-100 dark:border-gray-700 
+             my-2 rounded-none md:rounded-lg md:p-4 transition-colors duration-300"
+  onClick={() => setIsModalOpen(true)}
+>
       {children}
       {isModalOpen && (
         <PostModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} post={post} userId={userId.id} />

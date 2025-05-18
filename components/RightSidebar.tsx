@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 
 export default function RightSidebar({ session, user }) {
   return (
-    <Card className="bg-white shadow-lg sticky top-4">
+    <Card className="bg-white shadow-lg sticky top-4 dark:bg-black dark:border border dark:text-white">
       <CardContent className="p-6">
         {session ? (
           <div className="flex flex-col items-center space-x-4 mb-4">
@@ -14,11 +14,11 @@ export default function RightSidebar({ session, user }) {
               <AvatarFallback>{user?.name?.charAt(0) || "U"}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col items-center">
-              <Link href="/profile" className="font-bold text-black">
+              <Link href="/profile" className="font-bold text-black dark:text-white">
                 {user?.name}
               </Link>
               <Link href="/settings/profile" passHref>
-                <Button variant="link" className="text-black p-0 h-auto">
+                <Button variant="link" className="text-black p-0 h-auto dark:text-white">
                   Edit Profile
                 </Button>
               </Link>

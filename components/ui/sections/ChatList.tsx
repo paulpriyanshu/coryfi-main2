@@ -53,7 +53,7 @@ export function ChatList({ chats, onSelectChat, currentUserId }) {
             return (
               <Card
                 key={chat._id}
-                className="cursor-pointer hover:bg-muted/50"
+                className="cursor-pointer hover:bg-muted/50 dark:bg-gray-700"
                 onClick={() => onSelectChat(chat)}
               >
                 <CardContent className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4">

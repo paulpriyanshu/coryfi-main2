@@ -174,7 +174,7 @@ function CollabRequestCard({ request, onApprove, onDeny }: CollabRequestCardProp
   }
 
   return (
-    <Card className="w-full">
+    <Card className="w-full dark:bg-gray-700">
       <CardContent className="p-4">
         <h3 className="text-sm font-semibold mb-2">Path Request</h3>
         <div className="flex items-center justify-between mb-4">
@@ -606,7 +606,7 @@ export default function CollabContent() {
   return (
     <>
       <Toaster position="top-right" />
-      <div className="space-y-6 p-4">
+      <div className="space-y-6 p-4 dark:bg-gray-900">
         {/* Regular intermediary requests */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Oncoming Paths</h2>

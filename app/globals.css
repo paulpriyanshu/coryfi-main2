@@ -164,3 +164,25 @@ html {
     font-size: 14px; /* Smaller text on mobile */
   }
 }
+
+/* Dark mode support for ReactQuill content */
+/* Dark mode support for ReactQuill content */
+.dark .ql-container {
+  background-color: #374151; /* gray-700 */
+  color: #ffffff;
+  border-color: #4b5563; /* gray-600 */
+}
+
+.dark .ql-editor {
+  color: #ffffff;
+}
+
+.dark .ql-toolbar {
+  background-color: #1f2937; /* gray-800 */
+  border-color: #4b5563;
+  color: #ffffff;
+}
+
+.dark .ql-toolbar .ql-picker {
+  color: #ffffff;
+}

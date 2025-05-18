@@ -40,7 +40,7 @@ export default async function CheckoutPage({ params }) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-12 ">
       <div className="flex items-center mb-8">
         <Link
           href="/cart"
@@ -52,8 +52,8 @@ export default async function CheckoutPage({ params }) {
         <h1 className="text-3xl font-bold">Checkout</h1>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 ">
+        <div className="lg:col-span-2 space-y-6 ">
           {/* Address Form Client Component */}
           <AddressFormClient
             userId={userId}
@@ -63,7 +63,7 @@ export default async function CheckoutPage({ params }) {
           />
 
           {hasAddresses && hasPhoneNumber && (
-            <Card>
+            <Card className="dark:bg-gray-900">
               <CardHeader>
                 <CardTitle>Payment Method</CardTitle>
                 <CardDescription>Complete your purchase with Google Pay</CardDescription>
@@ -95,7 +95,7 @@ export default async function CheckoutPage({ params }) {
         </div>
 
         <div className="space-y-6">
-          <Card className="border-muted/40 overflow-hidden">
+          <Card className="border-muted/40 overflow-hidden dark:bg-gray-900">
             <CardHeader className="bg-muted/10 pb-4">
               <CardTitle>Order Summary</CardTitle>
             </CardHeader>
@@ -144,7 +144,7 @@ export default async function CheckoutPage({ params }) {
             </CardContent>
           </Card>
 
-          <Card className="border-muted/30 bg-muted/5">
+          <Card className="border-muted/30 bg-muted/5 dark:bg-gray-900">
             <CardContent className="pt-6">
               <div className="space-y-4">
                 <div className="flex items-center">

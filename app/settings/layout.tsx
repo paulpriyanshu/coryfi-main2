@@ -5,7 +5,7 @@ import React from "react"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-100 dark:bg-black">
       {/* Sidebar */}
       <CustomSidebar />
 

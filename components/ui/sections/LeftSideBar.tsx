@@ -25,9 +25,9 @@ export default function LeftSidebar({ userEmail }) {
 
 
   return (
-    <Card className="bg-white shadow-lg sticky top-4">
+    <Card className="bg-white shadow-lg sticky top-4 dark:bg-black dark:border border">
       <CardContent className="p-6">
-        <div className="flex justify-center h-full w-full font-bold text-slate-800 text-lg m-2">
+        <div className="flex justify-center h-full w-full font-bold text-slate-800 text-lg m-2 dark:text-white">
           People You May Know
         </div>
         <div>
@@ -46,20 +46,20 @@ export default function LeftSidebar({ userEmail }) {
               people?.map(person => (
                 <div 
                   key={person?.name} 
-                  className="flex items-center justify-between mb-5 p-2 hover:bg-slate-200 rounded-lg transition-colors"
+                  className="flex items-center justify-between mb-5 p-2 hover:bg-slate-700 rounded-lg transition-colors"
                 >
                   <div className="flex items-center space-x-2">
                     <Avatar>
                       <AvatarImage src={person?.userdp} alt={person?.name} />
                       <AvatarFallback>{person?.name[0]}</AvatarFallback>
                     </Avatar>
-                    <p className="font-medium text-sm text-black">{person?.name}</p>
+                    <p className="font-medium text-sm text-black dark:text-white">{person?.name}</p>
                   </div>
                   <Link  href={`/userProfile/${person.id}`}>
                   <Button
                     size="sm"
                     variant="outline"
-                    className="text-black border-black hover:bg-slate-400"
+                    className="text-black dark:bg-white border-black"
                    
                   >
                     View 

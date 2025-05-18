@@ -13,7 +13,7 @@ export default function PostList({ initialPosts, session, userId }) {
         
       }
       {initialPosts?.map((post) => (
-        <div key={post.id}>
+        <div key={post.id} >
           <Posts post={post} session={session} userId={userId}  />
         </div>
       ))}

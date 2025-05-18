@@ -28,7 +28,7 @@ export default function EvaluationPaths() {
 
   if (evaluationsData.ongoingEvaluations.length === 0) {
     return (
-      <Card className="w-full">
+      <Card className="w-full dark:bg-gray-700">
         <CardContent className="flex items-center justify-center h-32">
           <p className="text-lg text-muted-foreground">No paths started yet</p>
         </CardContent>
@@ -59,7 +59,7 @@ function EvaluationPathCard({ userData, intermediaries }) {
   const endNodeName = endNode?.name || endNode?.intermediary?.name || "Unknown"
 
   return (
-    <Card className="w-full">
+    <Card className="w-full dark:bg-gray-700">
       <CardHeader>
         <CardTitle>Path to {endNodeName}</CardTitle>
       </CardHeader>

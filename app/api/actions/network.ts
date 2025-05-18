@@ -1027,31 +1027,30 @@ export const createConnectionRequest = async (
     try {
       const chatResponse = await createUserChat(id2.data.data._id, id1.data.data._id);
       console.log("Chat created successfully:", chatResponse.data.data);
+      return {
+      success: true,
+      message: "Connection request created successfully.",
+      evaluationId: evaluation.id,
+      chatDetails:chatResponse.data.data
+    };
     } catch (error) {
       console.error("Error creating chat:", error);
     }
 
-    return {
-      success: true,
-      message: "Connection request created successfully.",
-      evaluationId: evaluation.id,
-    };
+    
   } catch (error) {
     console.error("Error creating connection request:", error);
     return { success: false, error: error.message };
   }
 };
 
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
 
 export async function getOngoingEvaluations(email:string) {
   try {
     // Fetch all ongoing evaluations for the user (either requester or recipient)
     const userData=await fetchUserId(email)
     // const user=await fetchUserData(userId.id)
-    const ongoingEvaluations = await prisma.evaluation.findMany({
+    const ongoingEvaluations = await db.evaluation.findMany({
       where: {
         OR: [{ requesterId: userData.id }],
         status: "ONGOING",

@@ -53,7 +53,7 @@ export default function AddressFormClient({ userId, userData, hasAddresses, hasP
   return (
     <>
       {hasAddresses && hasPhoneNumber ? (
-        <Card>
+        <Card className="dark:bg-gray-900">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Shipping Address</CardTitle>

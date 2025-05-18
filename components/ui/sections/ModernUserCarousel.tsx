@@ -80,7 +80,7 @@ const CircularUserCarousel = ({ userEmail }: { userEmail: string }) => {
           <div key={user.id} className="flex-none min-w-0 px-4">
             <Link href={`/userProfile/${user.id}`}>
               <div className="flex flex-col items-center space-y-2">
-                <Avatar className="w-20 h-20 border-2 border-primary">
+                <Avatar className="w-20 h-20 border-2 border-blue-400">
                   <AvatarImage src={user.userdp} alt={user.name} />
                   <AvatarFallback className="text-lg">{user.name.charAt(0)}</AvatarFallback>
                 </Avatar>

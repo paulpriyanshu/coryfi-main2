@@ -21,7 +21,7 @@ const MESSAGE_RECEIVED_EVENT = "messageReceived"
 const JOIN_CHAT_EVENT = "joinChat"
 const MESSAGE_DELETE_EVENT = "messageDeleted"
 
-export function MobileChatWindow({ chat,currentUserId, onClose, onChatUpdated, refetchMessages, onMessagesFetched }) {
+export function MobileChatWindow({ chat,currentUserId,chatRecieverId ,onClose, onChatUpdated, refetchMessages, onMessagesFetched }) {
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
   const [attachments,setAttachments]=useState([])

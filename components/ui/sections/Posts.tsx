@@ -25,19 +25,15 @@ interface PostProps {
 }
 
 export default function Posts({ post, session, userId }: PostProps) {
-  // Limit content length
   const MAX_LENGTH = 200;
   const isLongContent = post.content.length > MAX_LENGTH;
   const displayedContent = post.content.substring(0, MAX_LENGTH);
 
   const makeLinksClickable = (text: string) => {
-    // Regular expression to match URLs (http, https, ftp, etc.)
     const urlRegex = /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/g;
-
-    // Replace the URLs with anchor tags and ensure there are no stray tags
     return text.replace(urlRegex, (url) => {
-      const cleanedUrl = url.replace(/[.,!?;]$/, ''); // Remove trailing punctuation
-      return `<a href="${cleanedUrl}" target="_blank" class="text-blue-500 hover:underline">${cleanedUrl}</a>`;
+      const cleanedUrl = url.replace(/[.,!?;]$/, "");
+      return `<a href="${cleanedUrl}" target="_blank" class="text-blue-500 dark:text-blue-400 hover:underline">${cleanedUrl}</a>`;
     });
   };
 
@@ -53,14 +49,19 @@ export default function Posts({ post, session, userId }: PostProps) {
           </Avatar>
           <div>
             <Link href={`/userProfile/${post?.user?.id}`}>
-              <h3 className="text-black font-semibold hover:underline hover:cursor-pointer">{post?.user?.name}</h3>
+              <h3 className="text-black dark:text-white font-semibold hover:underline hover:cursor-pointer">
+                {post?.user?.name}
+              </h3>
             </Link>
-            <p className="text-sm text-gray-500">{new Date(post?.createdAt).toLocaleString()}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {new Date(post?.createdAt).toLocaleString()}
+            </p>
           </div>
         </div>
       </div>
+
       <div className="mb-4 p-2">
-        <div className="prose">
+        <div className="prose dark:prose-invert max-w-full">
           <div
             dangerouslySetInnerHTML={{
               __html: makeLinksClickable(displayedContent),

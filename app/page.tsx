@@ -47,6 +47,7 @@ function Component() {
   const [isSignInDialogOpen, setIsSignInDialogOpen] = useState(false);
   const [collabCount, setCollabCount] = useState(0);
   const [evaluationCount, setEvaluationCount] = useState(0);
+  const [chatRecieverId,setchatRecieverId]=useState(null)
   const router = useRouter();
   const searchParams = useSearchParams();
   const data = useAppSelector(selectResponseData);
@@ -58,10 +59,12 @@ function Component() {
   useEffect(() => {
     const initialTab = searchParams.get('tab') as FilterType;
     const shouldExpand = searchParams.get('expand') === 'true';
-    const id = searchParams.get('id');
+    const id = searchParams.get('rid');
     
     if (id) {
-      // console.log('ID from query:', id);
+      console.log('ID from query:', id);
+      setchatRecieverId(id)
+
     }
 
     if (initialTab) {
@@ -114,24 +117,24 @@ function Component() {
     setSidebarWidth(size.width);
   };
 
-  useEffect(() => {
-    const id = searchParams.get('id');
+  // useEffect(() => {
+  //   const id = searchParams.get('id');
 
-    async function getUser() {
-      if (activeFilter === 'chats' && id && session?.user?.email) {
-        const receiverData = await fetchUserData(Number(id));
-        const receiverChatData = await axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${receiverData.email}`);
-        const userChatData = await axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${session?.user?.email}`);
-        const chat = await axios.post(`https://chat.coryfi.com/api/v1/chat-app/chats/c/${receiverChatData?.data?.data?._id}/${userChatData?.data?.data?._id}`);
-        setReceiverId(id);
-      }
-    }
+  //   async function getUser() {
+  //     if (activeFilter === 'chats' && id && session?.user?.email) {
+  //       const receiverData = await fetchUserData(Number(id));
+  //       const receiverChatData = await axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${receiverData.email}`);
+  //       const userChatData = await axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${session?.user?.email}`);
+  //       const chat = await axios.post(`https://chat.coryfi.com/api/v1/chat-app/chats/c/${receiverChatData?.data?.data?._id}/${userChatData?.data?.data?._id}`);
+  //       setReceiverId(id);
+  //     }
+  //   }
 
-    if (session?.user?.email) {
-      getUser();
-    }
+  //   if (session?.user?.email) {
+  //     getUser();
+  //   }
     
-  }, [activeFilter, searchParams, session?.user?.email]); 
+  // }, [activeFilter, searchParams, session?.user?.email]); 
   if(!session){
     return (
       <SignupComponent/>
@@ -145,7 +148,7 @@ function Component() {
         </div>
 
         <div
-          className={`absolute left-0 top-0 h-full bg-slate-50  rounded-xl backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex  ${
+          className={`absolute left-0 top-0 h-full bg-slate-50 dark:bg-gray-900 rounded-xl backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex  ${
             isExpanded ? (isMobile ? 'w-full' : 'w-[450px]') : 'w-10 md:w-16'
           }`}
         >
@@ -226,7 +229,7 @@ function Component() {
                   </ScrollArea>
                 </TabsContent>
                 <TabsContent value="chats" className="flex-1 overflow-hidden">
-                  <Chat />
+                  <Chat chatRecieverId={chatRecieverId}/>
                 </TabsContent>
               </div>
             )}

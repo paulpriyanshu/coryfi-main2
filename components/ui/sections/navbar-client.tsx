@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import ThemeSwitcher from "./ThemeSwitcher"
 
 interface NavItemProps {
   icon: React.ReactNode
@@ -86,14 +87,20 @@ export function NavbarClient({ session, userId, userDp, navItems, dashboardLink,
       initial={{ opacity: 0, y: -50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`sticky top-0 z-50 w-full transition-all duration-200 ${isScrolled ? "bg-white/80 backdrop-blur-md shadow-md" : "bg-white"}`}
-    >
+      className={`sticky top-0 z-50 w-full transition-all duration-200 
+          ${isScrolled 
+            ? "bg-white/80 backdrop-blur-md shadow-md dark:bg-black/50 dark:backdrop-blur-md dark:shadow-md" 
+            : "bg-white dark:bg-black/40 dark:backdrop-blur-md"
+          }`}
+            >
+      {/* <ThemeSwitcher/> */}
       <div className="container mx-auto px-4">
         <div className="flex h-12 md:h-16 items-center justify-between">
           <div className="flex items-center">
             <Sheet>
               <SheetTrigger asChild className="md:hidden">
                 <Button variant="ghost" size="icon" className="mr-2">
+                  
                   <Menu className="h-5 w-5" />
                   <span className="sr-only">Toggle menu</span>
                 </Button>
@@ -198,7 +205,7 @@ export function NavbarClient({ session, userId, userDp, navItems, dashboardLink,
             </div>
             {children && children.slice(1)}
             {session ? (
-              <DropdownMenu>
+              <DropdownMenu >
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="p-px rounded-full h-8 w-8">
                     <Avatar className="h-8 w-8 border border-slate-200">
@@ -240,6 +247,7 @@ export function NavbarClient({ session, userId, userDp, navItems, dashboardLink,
                       <span>Settings</span>
                     </DropdownMenuItem>
                   </Link>
+                  <ThemeSwitcher/>
                   <DropdownMenuItem onSelect={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>

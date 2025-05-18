@@ -26,7 +26,7 @@ export default async function Page() {
 
 
   return (
-    <div className="min-h-screen  md:bg-slate-100">
+    <div className="min-h-screen  md:bg-slate-100 dark:bg-black ">
       <div className="max-w-[1440px] mx-auto py-4   md:px-5">
         <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
           <div className="hidden lg:block lg:col-span-2">
@@ -34,7 +34,7 @@ export default async function Page() {
               <LeftSidebar userEmail={session.user.email} />
             </div>
           </div>
-          <div className="lg:col-span-3 space-y-5">
+          <div className="lg:col-span-3 space-y-5 dark:bg-black">
             <SearchBar />
             <EnhancedInfiniteScrollNetwork initialPosts={initialPosts} session={session} userId={userId} />
           </div>

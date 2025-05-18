@@ -1,13 +1,16 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { Home, PlusSquare, Zap, User, Network, Store } from "lucide-react"
+import { Home, PlusSquare, Zap, User, Network, Store, MessageCircle } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import CreatePostModal from "./CreatePostModal"
 import DraftAlert from "./DraftAlert"
 import { useAppSelector } from "@/app/libs/store/hooks"
+import Chat from "./sections/Chat"
+
+const hiddenRoutes=["/c"]
 
 export default function MobileFooter() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
@@ -16,6 +19,12 @@ export default function MobileFooter() {
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const router = useRouter()
+  const pathname = usePathname()
+  const isMobileChatOpen = useAppSelector((state) => state.chat.isMobileChatOpen)
+  
+  const shouldHideFooter = hiddenRoutes.some((route) =>
+    pathname.startsWith(route)
+  ) || isMobileChatOpen;
 
   useEffect(() => {
     const draft = localStorage.getItem("postDraft")
@@ -42,12 +51,6 @@ export default function MobileFooter() {
     if (hasDraft) {
       setHasDraft(true)
     }
-  }
-
-  const isMobileChatOpen = useAppSelector((state) => state.chat.isMobileChatOpen)
-
-  if (isMobileChatOpen) {
-    return null
   }
 
   function NavButton({ icon, label, isActive, onClick, href }) {
@@ -95,6 +98,11 @@ export default function MobileFooter() {
     )
   }
 
+  // If the footer should be hidden, return null after all hooks have been defined
+  if (shouldHideFooter) {
+    return null;
+  }
+
   return (
     <AnimatePresence>
       {isVisible && (
@@ -130,11 +138,11 @@ export default function MobileFooter() {
                 href="/explore"
               />
               <NavButton
-                icon={<User />}
+                icon={<MessageCircle/>}
                 label="Profile"
                 isActive={activePage === "profile"}
                 onClick={() => setActivePage("profile")}
-                href="/profile"
+                href={`/?tab=chats&expand=true`}
               />
             </nav>
           </footer>
@@ -145,4 +153,3 @@ export default function MobileFooter() {
     </AnimatePresence>
   )
 }
-

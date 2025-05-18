@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react"
-import { Search, X, Clock, TrendingUp, User} from "lucide-react"
+import { Search, X, Clock, TrendingUp, User } from "lucide-react"
 import Link from "next/link"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/button"
@@ -39,7 +39,7 @@ export default function SearchBar() {
   const searchRef = useRef<HTMLDivElement>(null)
   const { data: session } = useSession()
   const router = useRouter()
-  
+
   // Cached users with faster initial search
   const [allUsers, setAllUsers] = useState<SearchResult[]>([])
   const [isUsersCached, setIsUsersCached] = useState(false)
@@ -49,7 +49,7 @@ export default function SearchBar() {
     const loadUsers = async () => {
       try {
         // Check if users are in localStorage to improve initial load
-        const cachedUsers = localStorage.getItem('searchUsers')
+        const cachedUsers = localStorage.getItem("searchUsers")
         if (cachedUsers) {
           const parsedUsers = JSON.parse(cachedUsers)
           setAllUsers(parsedUsers)
@@ -59,9 +59,9 @@ export default function SearchBar() {
         // Always fetch fresh data in background
         const resdata = await fetchAllUsers()
         setAllUsers(resdata)
-        
+
         // Update localStorage for faster subsequent loads
-        localStorage.setItem('searchUsers', JSON.stringify(resdata))
+        localStorage.setItem("searchUsers", JSON.stringify(resdata))
         setIsUsersCached(true)
       } catch (error) {
         console.error("Error fetching users:", error)
@@ -88,44 +88,50 @@ export default function SearchBar() {
   }, [])
 
   // Optimized search function with faster filtering
-  const performSearch = useCallback((term: string) => {
-    const lowercaseTerm = term.toLowerCase()
-    
-    // Early return if term is too short
-    if (lowercaseTerm.length < 2) {
-      setSearchResults([])
-      return
-    }
+  const performSearch = useCallback(
+    (term: string) => {
+      const lowercaseTerm = term.toLowerCase()
 
-    // Use faster filtering method
-    const filteredResults = allUsers.filter(user => {
-      const matchName = user.name.toLowerCase().includes(lowercaseTerm)
-      const matchEmail = user.email.toLowerCase().includes(lowercaseTerm)
-      return matchName || matchEmail
-    }).slice(0, 10) // Limit results to prevent performance issues
+      // Early return if term is too short
+      if (lowercaseTerm.length < 2) {
+        setSearchResults([])
+        return
+      }
 
-    setSearchResults(filteredResults)
-  }, [allUsers])
+      // Use faster filtering method
+      const filteredResults = allUsers
+        .filter((user) => {
+          const matchName = user.name.toLowerCase().includes(lowercaseTerm)
+          const matchEmail = user.email.toLowerCase().includes(lowercaseTerm)
+          return matchName || matchEmail
+        })
+        .slice(0, 10) // Limit results to prevent performance issues
+
+      setSearchResults(filteredResults)
+    },
+    [allUsers],
+  )
 
   // Memoized debounced search with faster response
-  const debouncedSearch = useMemo(() => 
-    debounce((term: string) => {
-      // Immediately show results if cached
-      if (isUsersCached && term.length >= 2) {
-        setIsLoading(true)
-        try {
-          performSearch(term)
-        } catch (error) {
-          console.error("Error searching:", error)
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((term: string) => {
+        // Immediately show results if cached
+        if (isUsersCached && term.length >= 2) {
+          setIsLoading(true)
+          try {
+            performSearch(term)
+          } catch (error) {
+            console.error("Error searching:", error)
+            setSearchResults([])
+          } finally {
+            setIsLoading(false)
+          }
+        } else {
           setSearchResults([])
-        } finally {
-          setIsLoading(false)
         }
-      } else {
-        setSearchResults([])
-      }
-    }, 100), // Reduced debounce time
-    [performSearch, isUsersCached]
+      }, 100), // Reduced debounce time
+    [performSearch, isUsersCached],
   )
 
   // Trigger search on term change
@@ -153,8 +159,8 @@ export default function SearchBar() {
   }
 
   return (
-    <div ref={searchRef} className="hidden md:block relative mb-6">
-      <Card className="p-2 shadow-lg">
+    <div ref={searchRef} className="hidden md:block relative mb-6 dark:bg-black dark:text-white">
+      <Card className="p-2 shadow-lg dark:bg-black dark:border border">
         <form
           onSubmit={(e) => {
             e.preventDefault()
@@ -173,14 +179,14 @@ export default function SearchBar() {
                 setShowSuggestions(true)
               }}
               onFocus={() => setShowSuggestions(true)}
-              className="pl-9 pr-12"
+              className="pl-9 pr-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
             />
             {searchTerm && (
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent dark:bg-gray-700 dark:hover:bg-gray-600"
                 onClick={handleClearSearch}
               >
                 <X className="h-4 w-4 text-muted-foreground" />
@@ -188,25 +194,25 @@ export default function SearchBar() {
               </Button>
             )}
           </div>
-          <Button type="submit" className="bg-primary">
+          <Button type="submit" className="bg-primary dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">
             Search
           </Button>
         </form>
       </Card>
       {showSuggestions && (
-        <Card className="absolute z-10 w-full mt-1 p-2 shadow-lg">
-          <Command>
+        <Card className="absolute z-10 w-full mt-1 p-2 shadow-lg dark:bg-gray-800 dark:border-gray-700">
+          <Command className="dark:bg-gray-800">
             <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
+              <CommandEmpty className="dark:text-gray-400">No results found.</CommandEmpty>
               {isLoading ? (
                 <CommandItem disabled>Loading...</CommandItem>
               ) : (
                 <>
                   {searchResults.length > 0 && (
-                    <CommandGroup heading="Search Results">
+                    <CommandGroup heading="Search Results" className="dark:text-gray-300">
                       {searchResults.map((result) => (
-                        <Link 
-                          key={result.id} 
+                        <Link
+                          key={result.id}
                           // onSelect={() => handleUserRoute(result.id)}
                           href={`/userProfile/${result.id}`}
                         >
@@ -226,24 +232,35 @@ export default function SearchBar() {
                     </CommandGroup>
                   )}
                   {searchTerm && searchResults.length === 0 && (
-                    <CommandGroup heading="Suggestions">
-                      <CommandItem onSelect={() => handleSearch(searchTerm)}>
+                    <CommandGroup heading="Suggestions" className="dark:text-gray-300">
+                      <CommandItem
+                        onSelect={() => handleSearch(searchTerm)}
+                        className="dark:text-gray-300 dark:hover:bg-gray-700"
+                      >
                         <Search className="mr-2 h-4 w-4" />
                         Search for "{searchTerm}"
                       </CommandItem>
                     </CommandGroup>
                   )}
-                  <CommandGroup heading="Recent Searches">
+                  <CommandGroup heading="Recent Searches" className="dark:text-gray-300">
                     {recentSearches.map((term) => (
-                      <CommandItem key={term} onSelect={() => handleSearch(term)}>
+                      <CommandItem
+                        key={term}
+                        onSelect={() => handleSearch(term)}
+                        className="dark:text-gray-300 dark:hover:bg-gray-700"
+                      >
                         <Clock className="mr-2 h-4 w-4" />
                         {term}
                       </CommandItem>
                     ))}
                   </CommandGroup>
-                  <CommandGroup heading="Trending Searches">
+                  <CommandGroup heading="Trending Searches" className="dark:text-gray-300">
                     {trendingSearches.map((term) => (
-                      <CommandItem key={term} onSelect={() => handleSearch(term)}>
+                      <CommandItem
+                        key={term}
+                        onSelect={() => handleSearch(term)}
+                        className="dark:text-gray-300 dark:hover:bg-gray-700"
+                      >
                         <TrendingUp className="mr-2 h-4 w-4" />
                         {term}
                       </CommandItem>

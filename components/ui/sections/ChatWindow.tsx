@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Loader2, PaperclipIcon, SendIcon, Trash2 } from 'lucide-react'
+import { Loader2, PaperclipIcon, SendIcon, Trash2, X } from 'lucide-react'
 import { getChatMessages, sendMessage, deleteMessage } from './api'
 import { toast } from 'react-hot-toast'
 import { format } from 'date-fns'
 import { messagesent } from '@/app/api/actions/network'
 import { useSession } from 'next-auth/react'
+import { current } from '@reduxjs/toolkit'
 
 const TYPING_EVENT = "typing"
 const STOP_TYPING_EVENT = "stopTyping"
@@ -20,7 +21,7 @@ const MESSAGE_RECEIVED_EVENT = "messageReceived"
 const JOIN_CHAT_EVENT = "joinChat"
 const MESSAGE_DELETE_EVENT = "messageDeleted"
 
-export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetchMessages, onMessagesFetched }) {
+export function ChatWindow({ chat, currentUserId,chatRecieverId, onClose, onChatUpdated, refetchMessages, onMessagesFetched }) {
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
   const [attachments, setAttachments] = useState([])
@@ -31,6 +32,10 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
   const {data:session,status}=useSession()
   const [sending,setSending]=useState(false)
   const { socket } = useSocket()
+  console.log("here is chat",chat)
+  console.log("current chat user id",currentUserId)
+  console.log("reciever id",chatRecieverId)
+
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -219,12 +224,25 @@ export function ChatWindow({ chat, currentUserId, onClose, onChatUpdated, refetc
   }
   // console.log("chats",chat)
   return (
-    <Card className="flex flex-col h-full w-full">
+    <Card className="flex flex-col h-full w-full dark:bg-gray-700">
       <CardHeader className="px-4 py-2">
         <CardTitle className="text-lg font-semibold flex justify-between items-center">
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            Close
+          
+          {chat.participants
+            .filter(p => p._id === chatRecieverId[0]._id)
+            .map(p => (
+              <span key={p._id} className='flex items-center'>
+                 <img src={p.avatar.url} className='w-10 h-10 rounded-full m-2'/>
+                {p.username}
+               
+              </span>
+                
+            ))}
+            <Button variant="ghost" size="sm" onClick={onClose}>
+            <X/>
           </Button>
+        
+          {/* {chat.participants.filter(p=>p._id!==chat.admin)} */}
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-grow p-4 overflow-hidden">

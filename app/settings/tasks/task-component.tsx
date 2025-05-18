@@ -175,12 +175,12 @@ export default function TaskComponent({ sampleData }) {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-6 space-y-6 ">
       <h1 className="text-2xl font-bold">Delivery Tasks</h1>
 
       <div className="grid grid-cols-1 gap-4">
         {tasks?.map((task) => (
-          <Card key={task.id} className={`overflow-hidden ${task.status === "completed" ? "bg-muted/50" : ""}`}>
+          <Card key={task.id} className={`overflow-hidden dark:bg-gray-700 ${task.status === "completed" ? " bg-green-400" : ""}`}>
             <CardHeader className="pb-2">
               <div className="flex justify-between items-center">
                 <div>

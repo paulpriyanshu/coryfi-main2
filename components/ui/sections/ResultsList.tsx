@@ -60,7 +60,7 @@ export default function ResultsList() {
 
   if (noPathsFound) {
     return (
-      <Card className="bg-background/50 hover:bg-background/80 transition-colors duration-200">
+      <Card className="bg-background/50 hover:bg-background/80 transition-colors duration-200 dark:bg-gray-900">
         <CardContent className="p-8 flex flex-col items-center justify-center text-center">
           <AlertCircle className="w-12 h-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">No Paths Found</h3>

@@ -1,3 +1,4 @@
+// app/layout.tsx
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Script from "next/script";
@@ -8,12 +9,9 @@ import MobileFooter from "@/components/ui/MobileFooter";
 import { store } from "./libs/store/store";
 import StoreProvider from "./StoreProvider";
 import { SocketProvider } from "@/components/ui/sections/context/SocketContext";
-// import { getServerSession } from "next-auth";
-// import { authOptions } from "./api/auth/[...nextauth]/route";
-// import SignupComponent from "./signup/SignupComponent";
-// import ServerNav from "@/components/ui/sections/navbar-client";
+import { ThemeProvider } from "next-themes";
 
-// Import local fonts
+// Load fonts
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -25,25 +23,23 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-// Define metadata for the application
+// App metadata
 export const metadata: Metadata = {
   title: {
-    default:"Coryfi Connect",
-    template:"%s - Coryfi"
+    default: "Coryfi Connect",
+    template: "%s - Coryfi",
   },
   description: "We remove the 'Cold' from Cold Approach",
 };
 
-// Root layout component
+// ✅ FIXED ROOT LAYOUT
 export default async function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
-  // const session = await getServerSession(authOptions);
-
+}) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <Script
           async
@@ -60,27 +56,25 @@ export default async function RootLayout({
         </Script>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <Providers>
-          <StoreProvider>
-            <SocketProvider>
-              {/* Show SignupComponent if user is not logged in */}
-              
-                <>
-                  {/* Desktop Header */}
-                  <Header/>
+        {/* ✅ ThemeProvider should wrap the WHOLE app content inside body */}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <Providers>
+            <StoreProvider>
+              <SocketProvider>
+                {/* Header */}
+                <Header />
 
-                  {/* Page-specific content */}
-                  {children}
+                {/* Page Content */}
+                {children}
 
-                  {/* Mobile Footer - Visible only on small screens */}
-                  <div className="md:hidden">
-                    <MobileFooter />
-                  </div>
-                </>
-              
-            </SocketProvider>
-          </StoreProvider>
-        </Providers>
+                {/* Mobile Footer */}
+                <div className="md:hidden">
+                  <MobileFooter />
+                </div>
+              </SocketProvider>
+            </StoreProvider>
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );

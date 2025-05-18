@@ -266,7 +266,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 p-8">
+    <div className="min-h-screen bg-gradient-to-br  dark:bg-black p-8">
       <Toaster
         position="top-center"
         toastOptions={{
@@ -289,7 +289,7 @@ export default function ProfilePage() {
           },
         }}
       />
-      <Card className="max-w-4xl mx-auto bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden">
+      <Card className="max-w-4xl mx-auto bg-white dark:bg-black shadow-2xl rounded-2xl overflow-hidden">
         <CardContent className="p-8">
           <h1 className="text-4xl font-bold mb-8 text-center text-gray-800 dark:text-gray-200">Your Profile</h1>
 
@@ -305,7 +305,7 @@ export default function ProfilePage() {
                   <img
                     src={editedImage || profileImageUrl}
                     alt="Profile Picture"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover dark:bg-gray-700"
                   />
                 </div>
               </div>

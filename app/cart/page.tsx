@@ -107,7 +107,7 @@ export default async function CartPage() {
             </Alert>
           )}
           {groupedItems.map((item, index) => (
-            <Card key={index} className={`overflow-hidden border-muted/40 ${item.stock === 0 ? "border-destructive border-2" : ""}`}>
+            <Card key={index} className={`overflow-hidden border-muted/40 dark:bg-gray-900 ${item.stock === 0 ? "border-destructive border-2" : ""}`}>
               <CardContent className="p-0">
                 <div className="flex flex-col sm:flex-row">
                   <div className="relative w-full sm:w-32 h-48 sm:h-auto bg-muted/20">
@@ -273,7 +273,7 @@ export default async function CartPage() {
         </div>
 
         <div className="space-y-6">
-          <Card className="border-muted/40 overflow-hidden">
+          <Card className="border-muted/40 overflow-hidden dark:bg-gray-900">
             <CardHeader className="bg-muted/10 pb-4">
               <CardTitle>Order Summary</CardTitle>
             </CardHeader>
@@ -313,7 +313,7 @@ export default async function CartPage() {
             </CardFooter>
           </Card>
 
-          <Card className="border-muted/30 bg-muted/5">
+          {/* <Card className="border-muted/30 bg-muted/5">
             <CardContent className="pt-6">
               <div className="space-y-4">
                 <div className="flex items-center">
@@ -337,7 +337,7 @@ export default async function CartPage() {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
       </div>
     </div>

@@ -147,7 +147,7 @@ export default function ContentCreator({ userId, maxImages = 4 }: ContentCreator
   }
 
   return (
-    <Card className="bg-white shadow-lg">
+    <Card className="bg-white dark:bg-black dark:border border dark:text-white shadow-lg">
       <CardContent className="p-4">
         {notification && (
           <Alert variant={notification.type === 'error' ? 'destructive' : 'default'} className="mb-4">
@@ -179,7 +179,7 @@ export default function ContentCreator({ userId, maxImages = 4 }: ContentCreator
                   ['clean'],
                 ],
               }}
-              className="bg-white"
+              className="bg-white dark:bg-gray-900 dark:text-white rounded-md"
             />
 
             {images.length > 0 && (

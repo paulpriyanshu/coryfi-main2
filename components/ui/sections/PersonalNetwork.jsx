@@ -534,7 +534,7 @@ export default function PersonalNetwork({ data: propData }) {
         </Button>
       </div>
       <div className="flex flex-1 w-full overflow-hidden">
-        <div className="bg-white rounded-lg shadow-md h-full w-full" style={{ minHeight: "500px" }}>
+        <div className="bg-white dark:bg-black rounded-lg shadow-md h-full w-full" style={{ minHeight: "500px" }}>
           <svg ref={svgRef} className="w-full h-full"></svg>
         </div>
       </div>

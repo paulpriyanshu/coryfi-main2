@@ -146,7 +146,7 @@ function Orderdetails({ orderData }) {
 
       <div className="space-y-6">
         {orderData.data.map((order) => (
-          <Card key={order.id} className="overflow-hidden">
+          <Card key={order.id} className="overflow-hidden dark:bg-gray-700">
             {/* Separate div for click handling to avoid nested component issues */}
             <div
               className="cursor-pointer"
@@ -182,7 +182,7 @@ function Orderdetails({ orderData }) {
                                 </span>
                               ))}
                             </span>
-                            <Badge variant="outline" className="ml-1 text-xs bg-green-100">
+                            <Badge  className="ml-1 text-xs bg-green-100 text-black">
                               OTP: {otp}
                             </Badge>
                           </span>
@@ -222,7 +222,7 @@ function Orderdetails({ orderData }) {
                     // Render each OTP group
                     return Object.entries(otpGroups).map(([otp, items]) => (
                       <div key={otp} className="flex flex-col items-center border rounded-md p-2 bg-muted/20">
-                        <Badge variant="secondary" className="mb-2 bg-green-100">
+                        <Badge  className="mb-2 bg-green-100  text-black">
                           OTP: {otp}
                         </Badge>
                         <div className="flex gap-1">
@@ -258,10 +258,10 @@ function Orderdetails({ orderData }) {
 
             {expandedOrders[order.id] && (
               <>
-                <CardContent className="pt-6">
+                <CardContent className="pt-6 dark:bg-gray-900">
                   <div className="grid gap-6 md:grid-cols-3">
                     <div className="md:col-span-2 space-y-6">
-                      <Card>
+                      <Card className="dark:bg-gray-900">
                         <CardHeader>
                           <CardTitle className="flex items-center justify-between">
                             <span>Order Items</span>
@@ -274,10 +274,10 @@ function Orderdetails({ orderData }) {
                           {order.orderItems.map((item, index) => (
                             <div
                               key={index}
-                              className={item.productFulfillmentStatus === "fulfilled" ? "bg-green-50 rounded-md" : ""}
+                              className={item.productFulfillmentStatus === "fulfilled" ? "bg-green-100 dark:bg-green-200  text-black rounded-md" : ""}
                             >
                               <div className="flex gap-4 p-2">
-                                <div className="w-20 h-20 relative rounded-md overflow-hidden flex-shrink-0 bg-muted">
+                                <div className="w-20 h-20 relative rounded-md overflow-hidden flex-shrink-0 bg-muted dark:bg-gray-900">
                                   <Image
                                     src={item.product.images[0] || "/placeholder.svg"}
                                     alt={item.product.name}
@@ -286,12 +286,12 @@ function Orderdetails({ orderData }) {
                                     className="object-cover"
                                   />
                                 </div>
-                                <div className="flex-1">
-                                  <div className="flex justify-between">
-                                    <h3 className="font-medium capitalize">
+                                <div className="flex-1 ">
+                                  <div className="flex justify-between ">
+                                    <h3 className="font-medium capitalize"> 
                                       {item.product.name}
                                       {item.OTP && (
-                                        <Badge variant="secondary" className="ml-2 bg-green-100">
+                                        <Badge variant="secondary" className="ml-2 bg-green-100 text-black">
                                           OTP: {item.OTP}
                                         </Badge>
                                       )}
@@ -445,7 +445,7 @@ function Orderdetails({ orderData }) {
                     </div>
 
                     <div className="space-y-6">
-                      <Card>
+                      <Card className="dark:bg-gray-900">
                         <CardHeader>
                           <CardTitle>Order Summary</CardTitle>
                         </CardHeader>
@@ -469,49 +469,8 @@ function Orderdetails({ orderData }) {
                         </CardContent>
                       </Card>
 
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Order Status</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            <div className="flex items-center gap-4">
-                              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-                                <Check className="h-4 w-4" />
-                              </div>
-                              <div className="flex-1">
-                                <p className="font-medium">Order Placed</p>
-                                <p className="text-sm text-muted-foreground">{formatDate(order.createdAt)}</p>
-                              </div>
-                            </div>
-
-                            <div className="w-0.5 h-6 bg-border ml-4"></div>
-
-                            <div className="flex items-center gap-4">
-                              <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary flex items-center justify-center text-primary">
-                                <ChevronRight className="h-4 w-4" />
-                              </div>
-                              <div className="flex-1">
-                                <p className="font-medium">Processing</p>
-                                <p className="text-sm text-muted-foreground">In progress</p>
-                              </div>
-                            </div>
-
-                            <div className="w-0.5 h-6 bg-border ml-4"></div>
-
-                            <div className="flex items-center gap-4">
-                              <div className="w-8 h-8 rounded-full bg-muted border border-muted-foreground flex items-center justify-center opacity-50">
-                                <ChevronRight className="h-4 w-4" />
-                              </div>
-                              <div className="flex-1">
-                                <p className="font-medium">Completed</p>
-                                <p className="text-sm text-muted-foreground">Pending</p>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                      <Card>
+                  
+                      <Card className="dark:bg-gray-900">
                         <CardHeader>
                           <CardTitle>Invoices</CardTitle>
                         </CardHeader>
@@ -526,7 +485,7 @@ function Orderdetails({ orderData }) {
                                     {group.otps.length > 0 && (
                                       <div className="flex flex-wrap gap-1 mt-1">
                                         {group.otps.map((otp) => (
-                                          <Badge key={otp} variant="outline" className="text-xs bg-green-50">
+                                          <Badge key={otp} variant="outline" className="text-xs bg-green-100 text-black">
                                             OTP: {otp}
                                           </Badge>
                                         ))}

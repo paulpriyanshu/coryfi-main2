@@ -38,36 +38,54 @@ export default function CollaborativeEvaluationModal({ isOpen, onClose, path }) 
   const dispatch=useDispatch()
   const router=useRouter()
 
-  const handleConfirm = async () => {
-    setIsProcessing(true)
-    try {
-      const data = await createConnectionRequest(path.nodes[0].email, path.nodes[1].email, path.nodes.slice(3, path.nodes.length))
-      console.log("this is create connection data", data)
-      await intermediaryUserList(path.nodes.slice(3, path.nodes.length))
-      setEvaluationId(data?.evaluationId)
-      console.log("Starting collaborative evaluation for path:", path)
-      
-      toast.success('Path has started! Go to chat section', {
-        icon: '🚀',
-        style: {
-          borderRadius: '10px',
-          background: '#333',
-          color: '#fff',
-        },
-      })
+const handleConfirm = async () => {
+  setIsProcessing(true)
+  try {
+    const data = await createConnectionRequest(
+      path.nodes[0].email,
+      path.nodes[1].email,
+      path.nodes.slice(3)
+    )
+    await intermediaryUserList(path.nodes.slice(3))
+    setEvaluationId(data?.evaluationId)
 
-      onClose()
-      dispatch(setResponseData(path))
+    let currentUserId = data.chatDetails.participants.filter(
+      (p) => p._id === data.chatDetails.admin
+    )
+    let recieverId = data.chatDetails.participants.filter(
+      (p) => p._id !== data.chatDetails.admin
+    )
 
-     router.push(`/?tab=chats&expand=true`)
-      
-    } catch (error) {
-      console.error("Error starting collaborative evaluation:", error)
-      toast.error('Failed to start collaborative evaluation. Please try again.')
-    } finally {
-      setIsProcessing(false)
+    toast.success('Path has started! Go to chat section', {
+      icon: '🚀',
+      style: {
+        borderRadius: '10px',
+        background: '#333',
+        color: '#fff',
+      },
+    })
+
+    onClose()
+    dispatch(setResponseData(path))
+
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+
+    if (isMobile) {
+      router.push(
+        `/c/${data.chatDetails._id}/?id=${currentUserId[0]._id}&rid=${recieverId[0]._id}`
+      )
+    } else {
+      router.push(
+        `/?tab=chats&expand=true&cid=${data.chatDetails._id}&id=${currentUserId[0]._id}&rid=${recieverId[0]._id}`
+      )
     }
+  } catch (error) {
+    console.error("Error starting collaborative evaluation:", error)
+    toast.error('Failed to start collaborative evaluation. Please try again.')
+  } finally {
+    setIsProcessing(false)
   }
+}
  
   const updatedPath = path.nodes.slice(2)
 
