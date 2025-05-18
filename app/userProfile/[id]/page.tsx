@@ -28,7 +28,7 @@ async function UserProfilePage({ params }: { params: { id: string } }) {
   }
 
   if (!userData) {
-    return <div className="flex justify-center items-center h-screen">User not found</div>
+    return <div className="flex justify-center items-center h-screen dark:text-white dark:bg-black">User not found</div>
   }
  
 
@@ -39,7 +39,7 @@ async function UserProfilePage({ params }: { params: { id: string } }) {
         Back to Network
       </Link>
 
-      <Card className="w-full overflow-hidden">
+      <Card className="w-full overflow-hidden dark:bg-black">
         <div className="relative h-48 bg-gradient-to-r from-blue-300 to-black-800">
           {userData.banner && (
             <Image 

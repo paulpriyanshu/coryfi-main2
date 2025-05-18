@@ -83,7 +83,7 @@ export default function Page() {
         Back to Network
       </Link>
 
-      <Card className="w-full overflow-hidden">
+      <Card className="w-full overflow-hidden dark:bg-black">
         <div className="relative h-48 bg-gradient-to-r from-blue-300 to-blue-800">
           {user.banner && (
             <Image src={user.banner} alt="Profile banner" layout="fill" objectFit="cover" />
@@ -133,7 +133,7 @@ export default function Page() {
             {posts && posts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {posts.map((post, index) => (
-                  <Card key={index} className="overflow-hidden cursor-pointer" onClick={() => handlePostClick(post)}>
+                  <Card key={index} className="overflow-hidden cursor-pointer dark:bg-black" onClick={() => handlePostClick(post)}>
                     <CardContent className="p-4">
                       {post?.imageUrl && post.imageUrl.length > 0 && (
                         <div className="mb-4">

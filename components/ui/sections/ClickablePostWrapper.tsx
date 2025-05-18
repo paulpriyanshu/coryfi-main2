@@ -21,13 +21,13 @@ interface ClickablePostWrapperProps {
   userId: { id: string }
 }
 
-export default function ClickablePostWrapper({ children, post, userId }: ClickablePostWrapperProps) {
+export default function   ClickablePostWrapper({ children, post, userId }: ClickablePostWrapperProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   return (
    <div
   className="bg-white dark:bg-black border border-slate-100 dark:border-gray-700 
-             my-2 rounded-none md:rounded-lg md:p-4 transition-colors duration-300"
+             my-2 rounded-sm md:rounded-lg md:p-4 transition-colors duration-300"
   onClick={() => setIsModalOpen(true)}
 >
       {children}

@@ -6,8 +6,10 @@ export default function SignupPage() {
  
 
   return (
-    <Suspense fallback={<div>Loading signup page...</div>}>
+    <div className='dark:bg-black'>
+    <Suspense fallback={<div>Loading signup page...</div>} >
       <SignupComponent />
     </Suspense>
+    </div>
   )
 }

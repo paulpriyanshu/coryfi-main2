@@ -317,15 +317,15 @@ export default function PostModal({ post, userId, isOpen, onClose }) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <Button variant="ghost" size="sm" onClick={handleLikeToggle} className="flex items-center gap-1">
-                        <ThumbsUp className={`w-6 h-6 ${isLiked ? "fill-red-500 text-red-500" : ""}`} />
+                        <ThumbsUp className={`w-6 h-6  dark:text-white ${isLiked ? "fill-red-500 text-red-500" : ""}`} />
                         <span>{likesCount}</span>
                       </Button>
                       <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                        <MessageCircle className="w-6 h-6" />
+                        <MessageCircle className="w-6 h-6 dark:text-white" />
                         <span>{commentsCount}</span>
                       </Button>
                       <Button variant="ghost" size="icon" onClick={(e) => handleShare(e, post.id)}>
-                        <Share className="w-6 h-6" />
+                        <Share className="w-6 h-6 dark:text-white" />
                       </Button>
                     </div>
                   </div>
