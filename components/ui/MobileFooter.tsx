@@ -111,19 +111,19 @@ export default function MobileFooter() {
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ duration: 0.3 }}
-          className="fixed bottom-0 left-0 right-0 z-10"
+          className="fixed bottom-0 left-0 right-0 z-10 dark:bg-black"
         >
-          <footer className="bg-white border-t border-gray-200">
+          <footer className="bg-white dark:bg-black">
             <nav className="flex justify-around items-center h-11 pb-2 pt-2">
               <NavButton
-                icon={<Home />}
+                icon={<Home className="dark:text-white"/>}
                 label="Home"
                 isActive={activePage === "home"}
                 onClick={() => setActivePage("home")}
                 href="/feed"
               />
               <NavButton
-                icon={<Network />}
+                icon={<Network className="dark:text-white"/>}
                 label="Network"
                 isActive={activePage === "network"}
                 onClick={() => setActivePage("network")}
@@ -131,14 +131,14 @@ export default function MobileFooter() {
               />
               <CreateButton onClick={() => setIsCreateModalOpen(true)} />
               <NavButton
-                icon={<Store/>}
+                icon={<Store className="dark:text-white"/>}
                 label="Explore"
                 isActive={activePage === "explore"}
                 onClick={() => setActivePage("explore")}
                 href="/explore"
               />
               <NavButton
-                icon={<MessageCircle/>}
+                icon={<MessageCircle className="dark:text-white"/>}
                 label="Profile"
                 isActive={activePage === "profile"}
                 onClick={() => setActivePage("profile")}

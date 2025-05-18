@@ -148,7 +148,7 @@ function Component() {
         </div>
 
         <div
-          className={`absolute left-0 top-0 h-full bg-slate-50 dark:bg-gray-900 rounded-xl backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex  ${
+          className={`absolute left-0 top-0 h-full bg-slate-50 dark:bg-black rounded-xl backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex  ${
             isExpanded ? (isMobile ? 'w-full' : 'w-[450px]') : 'w-10 md:w-16'
           }`}
         >
@@ -160,13 +160,13 @@ function Component() {
           >
             <TabsList className="h-full w-10 md:w-16 flex flex-col items-center py-4 space-y-4 bg-muted/50">
               <TabsTrigger value="results" className="w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Search className="md:w-8 md:h-8 w-4 h-4" />
+                <Search className="md:w-8 md:h-8 w-4 h-4 dark:text-white" />
               </TabsTrigger>
               <TabsTrigger
                   value="collab"
                   className="relative w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 >
-                  <User className="w-4 h-4 md:w-8 md:h-8" />
+                  <User className="w-4 h-4 md:w-8 md:h-8 dark:text-white" />
                   
                   {collabCount > 0 && (
                     <Badge 
@@ -181,7 +181,7 @@ function Component() {
                   value="recents"
                   className="relative w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 >
-                  <Clock className="w-4 h-4 md:w-8 md:h-8" />
+                  <Clock className="w-4 h-4 md:w-8 md:h-8 dark:text-white" />
                   
                   {evaluationCount > 0 && (
                     <Badge 
@@ -193,7 +193,7 @@ function Component() {
                   )}
                 </TabsTrigger>
               <TabsTrigger value="chats" className="w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <ChatBubbleIcon className="w-4 h-4 md:w-8 md:h-8" />
+                <ChatBubbleIcon className="w-4 h-4 md:w-8 md:h-8 dark:text-white" />
               </TabsTrigger>
               <Button
                 variant="ghost"
