@@ -64,7 +64,7 @@ export default async function PostPage({ params }: { params: { id: string } }) {
   const initialPost = await fetchOnlyPost(Number(id))
 
   return (
-    <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Loading...</div>}>
+    <Suspense fallback={<div className="flex justify-center items-center min-h-screen  dark:bg-black">Loading...</div>}>
       <PostDetail initialPost={initialPost} postId={id} />
     </Suspense>
   )

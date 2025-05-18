@@ -231,10 +231,10 @@ export default function PostDetail({ initialPost, postId }) {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
+    <div className="flex justify-center items-center min-h-screen bg-gray-100  dark:bg-black p-4">
       <Toaster />
 
-      <Card className="w-full max-w-4xl overflow-hidden">
+      <Card className="w-full max-w-4xl overflow-hidden  dark:bg-black">
         <div className="flex flex-col md:flex-row w-full h-full">
           {post?.imageUrl?.length > 0 && (
             <div
