@@ -198,6 +198,7 @@ export const verifyMerchant = async (userId: number) => {
     });
 
     if (isMerchant) {
+      // console.log("isMerchant",JSON.stringify(isMerchant,null,2))
       return { success: true, data: isMerchant };
     }
     return false;
@@ -241,6 +242,7 @@ export const getAllBusinessPage = async (businessId) => {
     });
     
     if (pageData) {
+      // console.log("page Data",pageData)
       return { success: true, pageData }
     }
     return { success: false, business: null, message: "Page not found" };
@@ -444,6 +446,8 @@ export async function connectBusinessToExistingLayout(businessId: string, layout
 
 export const getBusinessPageDetails=async(pageId)=>{
   try {
+    // console.log("hello")
+    // console.log("getting details of page",pageId)
     const pageData=await db.businessPageLayout.findUnique({
       where:{
         pageId
@@ -454,6 +458,7 @@ export const getBusinessPageDetails=async(pageId)=>{
       }
     })
     if(pageData) {
+      // console.log("pageData",pageData)
       return {success:true,pageData}
     }
     return { success: false, business: null, message: "Page not found" };

@@ -6,14 +6,17 @@ import { revalidatePath } from "next/cache";
 export const fulfillItemsByOtp = async (
     orderId: string, // This is Order.id (a string)
     otp: string,
-    employeeId: number
+    employeeId: number,
+
   ) => {
     try {
+      console.log("this is order id",orderId)
       // 1. Mark relevant OrderItems as fulfilled
       const updatedItems = await db.orderItem.updateMany({
         where: {
           orderId,
           OTP: otp,
+
         },
         data: {
           productFulfillmentStatus: "fulfilled",
@@ -136,9 +139,14 @@ export const  checkAllItemsFulfilled = async (orderId: string) => {
           productFulfillmentStatus: "fulfilled",
         },
       })
-  
+     
       // Return true if all items are fulfilled
-      return totalItems > 0 && totalItems === fulfilledItems
+      if (totalItems > 0 && totalItems === fulfilledItems) {
+        revalidatePath('/settings/tasks')
+        return true
+    }
+    return false
+
     } catch (error) {
       console.error("Error checking order fulfillment status:", error)
       return false

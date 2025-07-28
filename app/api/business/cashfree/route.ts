@@ -70,11 +70,11 @@ export async function POST(req: NextRequest) {
       if (businessInfo.success && businessInfo.businessIds?.length) {
         const taskName = orderData.id || "New Task";
 
-        await assignTaskToAllEmployees({
-          businessIds: businessInfo.businessIds,
-          orderId: order_id,
-          taskName,
-        });
+        // await assignTaskToAllEmployees({
+        //   businessIds: businessInfo.businessIds,
+        //   orderId: order_id,
+        //   taskName,
+        // });
       }
     } catch (taskErr) {
       console.warn("Task assignment failed:", taskErr);

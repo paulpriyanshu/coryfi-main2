@@ -51,7 +51,7 @@ export async function markTaskCompleted(taskId: number) {
           }
         }
       });
-      console.log("found task",task)
+      // console.log("found task",task)
 
       if (task?.order?.id) {
         return await db.order.update({
@@ -63,6 +63,17 @@ export async function markTaskCompleted(taskId: number) {
       throw new Error('Order not found for the given task.');
     
 }
+
+// export async function EmployeeCheck(userId:number){
+//   try{
+//     const employee = await db.employee.findMany({
+//       where:{}
+//     })
+//   }catch(error){
+
+//   }
+
+// }
 
 export async function getAllEmployees() {
     return await db.employee.findMany({
@@ -76,6 +87,7 @@ export async function getAllEmployees() {
 }
 
 export async function getAllEmployeesByBusiness(businessPageId) {
+  console.log("business id for employees",businessPageId)
     return await db.employee.findMany({
         where:{
             businessId:businessPageId
@@ -150,7 +162,7 @@ export async function getEmployeesByBusiness(businessId) {
     jobId?: number; // jobId is now optional
   }) {
     try {
-      console.log("Employee details:", userEmail, businessId, jobId);
+      // console.log("Employee details:", userEmail, businessId, jobId);
   
       if (!userEmail || !businessId) {
         throw new Error("Both userEmail and businessId are required.");
@@ -203,66 +215,89 @@ export async function getEmployeesByBusiness(businessId) {
   }
 
 
-  export async function assignTaskToEmployee({
-    employeeId,
-    companyId,
-    businessId,
-    orderId,
-    taskName,
-  }: {
-    employeeId: number;
-    companyId:string,
-    businessId: string;
-    orderId: string;
-    taskName: string;
-  }) {
-    try {
-      const employee = await db.employee.findFirst({
-        where: {
-          id: employeeId,
-          businessId,
-        },
-      });
-  
-      if (!employee) {
-        throw new Error("Employee not found in this business.");
-      }
-  
-      const order = await db.order.findUnique({
-        where: {
-          order_id: orderId,
-        },
-      });
-  
-      if (!order) {
-        throw new Error("Order not found.");
-      }
-  
-      const task = await db.task.create({
-        data: {
-          name: taskName,
-          task_id: orderId, // This is the string that references order.order_id
-          employeeId,       // Directly assigning FK
-        },
-      });
-      revalidatePath(`/dashboard/${companyId}/${businessId}/orders`)
-  
-      return {
-        success: true,
-        message: "Task successfully assigned.",
-        data: task,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : "Unexpected error occurred.",
-      };
+export async function assignTaskToEmployee({
+  employeeId,
+  companyId,
+  businessId,
+  orderId,
+  taskName,
+}: {
+  employeeId: number;
+  companyId: string;
+  businessId: string;
+  orderId: string;
+  taskName: string;
+}) {
+  try {
+    console.log("entered the task function");
+
+    // Check if the employee exists in the business
+    const employee = await db.employee.findFirst({
+      where: { id: employeeId, businessId },
+    });
+    console.log("employee found", employee);
+
+    if (!employee) {
+      throw new Error("Employee not found in this business.");
     }
+
+    // Check if the order exists
+    const order = await db.order.findUnique({
+      where: { order_id: orderId },
+    });
+    console.log("order found", order);
+
+    if (!order) {
+      throw new Error("Order not found.");
+    }
+
+    // Check if any task has ever been created for this order
+    const taskExists = await db.task.findFirst({
+      where: { task_id: orderId,businessId },
+    });
+    
+  if (taskExists) {
+       await db.task.updateMany({
+        where:  {task_id:orderId,businessId},
+        data:{
+          status: "cancelled"
+        }
+      })
   }
 
+    // Create new task entry every time
+    const task = await db.task.create({
+      data: {
+        name: taskName,
+        task_id: orderId,
+        employeeId,
+        businessId,
+        status: taskExists ? "reassigned" : "pending",
+      },
+    });
 
+    console.log(taskExists ? "task reassigned" : "task assigned", task);
 
-  export async function assignTaskToAllEmployees({
+    // Trigger UI update if needed
+    revalidatePath(`/dashboard/${companyId}/${businessId}/orders`);
+
+    return {
+      success: true,
+      data: task,
+      message: taskExists ? "Task reassigned." : "Task successfully assigned.",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Unexpected error occurred.",
+    };
+  }
+}
+
+// 
+
+export async function assignTaskToAllEmployees({
     businessIds,
     orderId,
     taskName,
@@ -375,144 +410,198 @@ export async function getBusinessInfoFromOrder(orderId: string) {
       };
     }
   }
-  
 
-  export async function getAssignedTasksForEmployee(userId: number) {
-    try {
-      const employees = await db.employee.findMany({
-        where: { userId },
-        select: {
-          id: true,
-          businessId: true,
-        },
-      });
+
+
   
-      if (!employees.length) {
-        return {
-          success: false,
-          message: "No employee record found for this user.",
-          data: [],
-        };
+export async function getAllOrdersForEmployee(userId:number){
+  try {
+     const employees = await db.employee.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        businessId: true,
+        business:{
+
+        }
       }
-  
-      const employeeMap = new Map<number, string>();
-      employees.forEach((emp) => {
-        employeeMap.set(emp.id, emp.businessId);
-      });
-  
-      const tasks = await db.task.findMany({
-        where: {
-          employeeId: {
-            in: Array.from(employeeMap.keys()),
-          },
-        },
+      
+   })
+     if (!employees.length) {
+      return {
+        success: false,
+        message: "No employee record found for this user.",
+        data: [],
+      };
+    }
+  } catch (error) {
+    
+  }
+}
+
+export async function getAssignedTasksForEmployee(userId: number) {
+  try {
+    const employees = await db.employee.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        businessId: true,
+      },
+    });
+
+    if (!employees.length) {
+      return {
+        success: false,
+        message: "No employee record found for this user.",
+        data: [],
+      };
+    }
+
+    const employeeMap = new Map<number, string>();
+    employees.forEach((emp) => {
+      employeeMap.set(emp.id, emp.businessId);
+    });
+
+    const employeeIds = Array.from(employeeMap.keys());
+    console.log("enploye ids",employeeIds)
+    // 🔹 Fetch all tasks ever assigned to this employee
+    const allMyTasks = await db.task.findMany({
+      where: {
+        employeeId: { in: employeeIds },
+      },
+    include: {
+  order: {
+    select: {
+      userId: true, // ✅ this directly includes userId
+      orderItems: {
         include: {
-          order: {
+          product: {
             include: {
-              orderItems: {
-                include: {
-                  product: {
-                    include: {
-                      business: {
-                        select: {
-                          name: true,
-                          dpImageUrl: true,
-                        },
-                      },
-                    },
-                  },
+              business: {
+                select: {
+                  name: true,
+                  dpImageUrl: true,
                 },
               },
             },
           },
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      });
-  
-      // Get all unique userIds from the tasks
-      const userIds = Array.from(new Set(tasks.map((task) => task.order.userId)));
-  
-      // Fetch user names in bulk
-      const users = await db.user.findMany({
-        where: {
-          id: { in: userIds },
-        },
-        select: {
-          id: true,
-          name: true,
-        },
-      });
-  
-      // Map userId to name
-      const userMap = new Map(users.map((u) => [u.id, u.name]));
-  
-      const filteredTasks = tasks
-        .map((task) => {
-          const businessId = employeeMap.get(task.employeeId);
-          const filteredItems = task.order.orderItems.filter(
-            (item) =>
-              item.product?.businessPageId === businessId &&
-              item.recieveBy?.type !== "TAKEAWAY" &&
-              item.recieveBy?.type !== "DINEIN"
-          );
-  
-          return {
-            id: task.id,
-            name: task.name,
-            status: task.status,
-            createdAt: task.createdAt,
-            updatedAt: task.updatedAt,
-            task_id: task.task_id,
-            employeeId: task.employeeId,
-            businessId,
-            order: {
-              id: task.order.id,
-              order_id: task.order.order_id,
-              userId: task.order.userId,
-              userName: userMap.get(task.order.userId) || null, // ✅ add user name here
-              totalCost: task.order.totalCost,
-              status: task.order.status,
-              fulfillmentStatus: task.order.fulfillmentStatus,
-              address: task.order.address,
-              createdAt: task.order.createdAt,
-              updatedAt: task.order.updatedAt,
-              orderItems: filteredItems.map((item) => ({
-                id: item.id,
-                quantity: item.quantity,
-                details: item.details,
-                productFulfillmentStatus: item.productFulfillmentStatus,
-                otp: item.OTP,
-                customization: item.customization,
-                recieveBy: item.recieveBy,
-                product: item.product,
-                outForDelivery:item.outForDelivery,
-                businessImage:item.product.business.dpImageUrl,
-                businessName:item.product.business.name
-              })),
+      },
+    },
+  },
+},
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
-            },
-          };
-        })
-        .filter((task) => task.order.orderItems.length > 0);
-  
-      return {
-        success: true,
-        message: `${filteredTasks.length} task(s) retrieved.`,
-        data: filteredTasks,
-      };
-    } catch (error) {
-      console.error("Error fetching assigned tasks:", error);
-      return {
-        success: false,
-        message:
-          error instanceof Error ? error.message : "Unexpected error occurred.",
-        data: [],
-      };
+    // 🔹 Get all unique task_ids from those assigned to this employee
+    const taskIds = Array.from(new Set(allMyTasks.map((t) => t.task_id)));
+
+    // 🔹 Get the latest assignment for each task_id (globally)
+    const latestAssignments = await db.task.findMany({
+      where: {
+        task_id: { in: taskIds },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const latestTaskMap = new Map<string, number>(); // task_id → employeeId
+    for (const task of latestAssignments) {
+      if (!latestTaskMap.has(task.task_id)) {
+        latestTaskMap.set(task.task_id, task.employeeId);
+      }
     }
+       const uniqueUserIds = Array.from(new Set(allMyTasks.map((task) => task.order.userId)));
+      const users = await db.user.findMany({
+      where: {
+        id: { in: uniqueUserIds },
+      },
+      select: {
+        id: true,
+        name: true,
+        userDetails:{
+          select:{
+            phoneNumber:true,
+            addresses:true
+          }
+        }
+      }
+  })
+   const userMap = new Map<number, { name: string; phone: string,address:any }>();
+    users.forEach((u) => {
+      userMap.set(u.id, { name: u.name, phone: u.userDetails.phoneNumber , address: u.userDetails.addresses  });
+    });
+
+    // 🔹 Attach "isCurrentAssignment" and structure data
+    const formattedTasks = allMyTasks.map((task) => {
+      const businessId = employeeMap.get(task.employeeId);
+      const filteredItems = task.order.orderItems.filter(
+        (item) =>
+          item.product?.businessPageId === businessId &&
+          item.recieveBy?.type !== "TAKEAWAY" &&
+          item.recieveBy?.type !== "DINEIN"
+      );
+      const userInfo = userMap.get(task.order.userId) || { name: "", phone: "",address:"" };
+
+      return {
+        id: task.id,
+        name: task.name,
+        status: task.status,
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt,
+        task_id: task.task_id,
+        employeeId: task.employeeId,
+        businessId,
+        isCurrentAssignment: latestTaskMap.get(task.task_id) === task.employeeId,
+        order: {
+          id: task.order.id,
+          order_id: task.order.order_id,
+          userId: task.order.userId,
+          username: userInfo.name,
+          userPhone: userInfo.phone,
+          userAddress:userInfo.address,
+          totalCost: task.order.totalCost,
+          status: task.order.status,
+          fulfillmentStatus: task.order.fulfillmentStatus,
+          address: task.order.address,
+          createdAt: task.order.createdAt,
+          updatedAt: task.order.updatedAt,
+          orderItems: filteredItems.map((item) => ({
+            id: item.id,
+            quantity: item.quantity,
+            details: item.details,
+            productFulfillmentStatus: item.productFulfillmentStatus,
+            otp: item.OTP,
+            customization: item.customization,
+            recieveBy: item.recieveBy,
+            product: item.product,
+            outForDelivery: item.outForDelivery,
+            businessImage: item.product.business.dpImageUrl,
+            businessName: item.product.business.name,
+          })),
+        },
+      };
+    });
+
+    return {
+      success: true,
+      message: `${formattedTasks.length} task(s) retrieved.`,
+      data: formattedTasks,
+    };
+  } catch (error) {
+    console.error("Error fetching assigned tasks:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Unexpected error occurred.",
+      data: [],
+    };
   }
-  export async function deleteTaskAssignment(taskId: string, employeeId: number , businessPageId,businessId) {
+}
+
+export async function deleteTaskAssignment(taskId: string, employeeId: number , businessPageId,businessId) {
     try {
       const deletedTask = await db.task.delete({
         where: {
@@ -523,7 +612,7 @@ export async function getBusinessInfoFromOrder(orderId: string) {
         },
       });
   
-      console.log('Task assignment deleted:', deletedTask);
+      // console.log('Task assignment deleted:', deletedTask);
       revalidatePath(`/dashboard/${businessId}/${businessPageId}/employees`)
       return deletedTask;
     } catch (error) {

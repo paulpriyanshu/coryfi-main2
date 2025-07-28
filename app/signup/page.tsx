@@ -1,15 +1,16 @@
-import React from 'react'
-import SignupComponent from './SignupComponent'
-import { Suspense } from 'react'
+import SignupComponent from "./SignupComponent"
+import { Suspense } from "react"
+import NetworkBackground from "./NetworkBackground"
 
 export default function SignupPage() {
- 
-
   return (
-    <div className='dark:bg-black'>
-    <Suspense fallback={<div>Loading signup page...</div>} >
-      <SignupComponent />
-    </Suspense>
+    <div className="relative min-h-screen dark:bg-black overflow-hidden">
+      <NetworkBackground />
+      <div className="relative z-10">
+        <Suspense fallback={<div>Loading signup page...</div>}>
+          <SignupComponent />
+        </Suspense>
+      </div>
     </div>
   )
 }

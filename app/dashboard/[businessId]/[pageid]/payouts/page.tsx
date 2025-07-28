@@ -76,6 +76,7 @@ export default async function PayoutsPage({
   ])
 
   console.log("Payouts API result:", payoutsResult)
+  // console.log("Orders API result:", ordersResult)
 
   let orders = []
   let payouts = []
@@ -151,7 +152,7 @@ export default async function PayoutsPage({
   const totalPayoutAmount = payouts.reduce((sum, payout: any) => {
     return sum + (typeof payout.payoutAmount === "number" ? payout.payoutAmount : 0)
   }, 0)
-
+  // console.log("this is orders",orders)
   const totalOrderCount = orders.length
 
   // Count days with payouts
@@ -175,8 +176,8 @@ export default async function PayoutsPage({
       <h1 className="text-3xl font-bold mb-6">Payouts Dashboard</h1>
       <Suspense fallback={<PayoutsPageSkeleton />}>
         <PayoutsDashboardClient
-          orders={orders}
-          payouts={payouts}
+          orders={ordersResult}
+          payouts={payoutsResult}
           dateRange={dateRange}
           filterType={filterType}
           totalPayoutAmount={totalPayoutAmount}

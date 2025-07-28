@@ -4,7 +4,9 @@ import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
-import { ChevronDown, ChevronRight, Home, ShoppingBag, Users, Users2,BarChart2, DollarSign, Settings,Package} from "lucide-react"
+import {
+  ChevronDown, ChevronRight, Home, ShoppingBag, Users, Users2, BarChart2, DollarSign, Settings, Package
+} from "lucide-react"
 
 const iconMap = {
   Home,
@@ -14,7 +16,7 @@ const iconMap = {
   BarChart2,
   DollarSign,
   Settings,
-  Package
+  Package,
 }
 
 export default function SidebarClient({ menuItems }: { menuItems: any[] }) {
@@ -33,7 +35,7 @@ export default function SidebarClient({ menuItems }: { menuItems: any[] }) {
       <div
         className={`transition-all duration-300 ease-in-out ${
           isCollapsed ? "w-10 md:w-16" : "w-screen md:w-64"
-        } bg-white border-r border-gray-200 flex flex-col min-h-screen`}
+        } bg-background text-foreground border-r border-border flex flex-col min-h-screen`}
       >
         <div className={`flex-1 ${isCollapsed ? "px-2 py-4" : "p-6"}`}>
           <nav>
@@ -50,8 +52,8 @@ export default function SidebarClient({ menuItems }: { menuItems: any[] }) {
                         <button
                           className={`flex items-center gap-3 p-3 rounded-lg transition-all w-full ${
                             pathname === item.href
-                              ? "bg-blue-50 text-blue-600 shadow-sm"
-                              : "text-gray-600 hover:bg-gray-50"
+                              ? "bg-muted text-foreground shadow-sm"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
                           } ${isCollapsed ? "justify-center px-2" : ""}`}
                           title={isCollapsed ? item.name : ""}
                         >
@@ -75,27 +77,29 @@ export default function SidebarClient({ menuItems }: { menuItems: any[] }) {
 
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-1/2 transform -translate-y-1/2 bg-white border border-gray-200 rounded-full p-1.5 shadow-md hover:shadow-lg transition-shadow z-50"
+        className="absolute -right-3 top-1/2 transform -translate-y-1/2 bg-background border border-border rounded-full p-1.5 shadow-md hover:shadow-lg transition-shadow z-50"
       >
         <motion.div animate={{ rotate: isCollapsed ? 0 : 180 }} transition={{ duration: 0.3 }}>
-          <ChevronRight className="h-4 w-4 text-gray-600" />
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </motion.div>
       </button>
     </div>
   )
 }
 
-function DropdownMenuItem({ item, pathname }) {
+function DropdownMenuItem({ item, pathname }: any) {
   const [isOpen, setIsOpen] = React.useState(false)
   const isActive = item.subItems?.some((subItem) => subItem.href === pathname)
-  const IconComponent = iconMap[item.icon] ?? null // Fixed icon issue
+  const IconComponent = iconMap[item.icon] ?? null
 
   return (
     <div>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center justify-between w-full p-3 rounded-lg transition-all ${
-          isActive ? "bg-blue-50 text-blue-600 shadow-sm" : "text-gray-600 hover:bg-gray-50"
+          isActive
+            ? "bg-muted text-foreground shadow-sm"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground"
         }`}
       >
         <div className="flex items-center gap-3">
@@ -106,6 +110,7 @@ function DropdownMenuItem({ item, pathname }) {
           <ChevronDown className="h-4 w-4 flex-shrink-0" />
         </motion.div>
       </button>
+
       <motion.div
         initial={{ height: 0, opacity: 0 }}
         animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0 }}
@@ -118,7 +123,9 @@ function DropdownMenuItem({ item, pathname }) {
               <Link href={subItem.href} className="block">
                 <button
                   className={`block w-full text-left p-2 rounded-md transition-all ${
-                    pathname === subItem.href ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-50"
+                    pathname === subItem.href
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
                   {subItem.name}

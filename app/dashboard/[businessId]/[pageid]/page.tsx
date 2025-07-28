@@ -13,35 +13,37 @@ interface PageProps {
 }
 
 export default async function Page({ params }) {
-  const slug=params
-  // console.log("params",slug)
+
+  console.log("params",params)
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) {
     return <div>Unauthorized</div>
   }
 
   // Extract businessId and pageId from params
-  const slugArray = params.slug || [];
+  // const slugArray = params.slug || [];
   // console.log("Slug Array:", slugArray);
   
-  const businessId = slug.businessId
-  const pageId = slug.pageid
+const {businessId, pageid} = params
   
-  // console.log("Business ID:", businessId);
-  // console.log("Page ID:", pageId);
+  console.log("Business ID:", businessId);
+  console.log("Page ID:", pageid);
   
-  if (!businessId || !pageId) {
+  if (!businessId || !pageid) {
     return <div>Invalid Request</div>;
   }
 
   // Fetch user ID based on email
   const userData = await fetchUserId(session.user.email)
-  // console.log("user id",userData)
+  console.log("user id",userData)
+  console.log("hey")
   if (!userData) {
     return <div>Invalid User</div>
   }
+
   const isMerchant = await verifyMerchant(userData.id)
-  console.log("Merchant Data",isMerchant)
+  console.log("Merchant Data")
+  console.log("hey")
   if (!isMerchant) {
     return <div>Not Authorized</div>
   }
@@ -59,7 +61,7 @@ const hasPage = isMerchant.data.businesses?.some(
   business =>
     business.Business_Id === businessId &&
     business.businessToPageLayouts.some(relation => 
-      relation.businessPageLayout.pageId === pageId
+      relation.businessPageLayout.pageId === pageid
     )
 );
 
@@ -86,7 +88,7 @@ if (!hasBusiness || !hasPage) {
 
   return (
     <div>
-      <BusinessProfile isMerchant={isMerchant} userId={userData.id} businessId={businessId} pageId={pageId}/>
+      <BusinessProfile isMerchant={isMerchant} userId={userData.id} businessId={businessId} pageId={pageid}/>
     </div>
   )
 }

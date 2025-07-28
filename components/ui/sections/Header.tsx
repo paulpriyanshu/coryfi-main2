@@ -58,7 +58,7 @@ export default async function Header() {
   }
 
   const navItems = [
-    { icon: <Home className="h-5 w-5 dark:text-white" />, href: "/feed", tooltip: "Home" },
+    { icon: <Home className="h-5 w-5 dark:text-white " />, href: "/feed", tooltip: "Home" },
     { icon: <Network className="h-5 w-5 dark:text-white" />, href: "/", tooltip: "Network" },
     { icon: <Store className="h-5 w-5 dark:text-white" />, href: "/explore", tooltip: "Businesses" },
   ]

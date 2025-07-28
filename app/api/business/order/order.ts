@@ -1,5 +1,7 @@
 "use server"
+import { subDays,startOfDay } from "date-fns"; // if you're not already importing it
 import db from "@/db"
+import { parseTwoDigitYear } from "moment";
 export const generateOrderId = () => {
   const timestamp = Date.now().toString(36); // millisecond time in base36
   const random = Math.floor(Math.random() * 1e6).toString(36); // 6-digit random in base36
@@ -56,7 +58,238 @@ export const getOrders = async (userId: number) => {
   };
 
 
-  export const getOrdersByBusinessPage = async (businessPageId: string) => {
+
+
+
+export const getLatestOrdersByBusinessPage = async (businessPageId: string) => {
+  try {
+    console.log("Fetching latest orders for business:", businessPageId);
+
+    const now = new Date();
+    const sevenDaysAgo = startOfDay(subDays(now, 7));
+
+    // 1. Get all orders for the business page within the last 7 days
+    const orders = await db.order.findMany({
+      where: {
+        createdAt: {
+          gte: sevenDaysAgo,
+        },
+        orderItems: {
+          some: {
+            product: {
+              businessPageId,
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        order_id: true,
+        userId: true,
+        totalCost: true,
+        createdAt: true,
+        fulfillmentStatus: true,
+        address: true,
+        tasks: {
+          where:{
+            businessId:businessPageId
+          },
+          include: {
+            employee: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                    userdp: true,
+                    userDetails: {
+                      select: {
+                        phoneNumber: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        orderItems: {
+          where: {
+            product: {
+              businessPageId,
+            },
+          },
+          select: {
+            id: true,
+            quantity: true,
+            customization: true,
+            details: true,
+            recieveBy: true,
+            OTP: true,
+            productFulfillmentStatus: true,
+            outForDelivery: true,
+            product: {
+              select: {
+                id: true,
+                name: true,
+                businessPageId: true,
+                business: {
+                  select: {
+                    name: true,
+                    dpImageUrl: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // 2. Extract unique userIds from those orders
+    const userIds = Array.from(new Set(orders.map((order) => order.userId)));
+
+    // 3. Fetch user details separately
+    const users = await db.user.findMany({
+      where: {
+        id: { in: userIds },
+      },
+      select: {
+        id: true,
+        name: true,
+        userDetails: {
+          select: {
+            phoneNumber: true,
+            addresses: true,
+          },
+        },
+      },
+    });
+
+    // 4. Map userId → user info
+    const userMap = new Map<number, { name: string; phoneNumber: string; addresses: any[] }>();
+    users.forEach((u) => {
+      userMap.set(u.id, {
+        name: u.name || "",
+        phoneNumber: u.userDetails?.phoneNumber || "",
+        addresses: JSON.parse(JSON.stringify(u.userDetails?.addresses || [])), // ensure serializable
+      });
+    });
+
+    // 5. Format the final response
+    const formattedOrders = orders.map((order) => {
+      const userInfo = userMap.get(order.userId) || {
+        name: "",
+        phoneNumber: "",
+        addresses: [],
+      };
+
+      return {
+        id: order.id,
+        order_id: order.order_id,
+        userId: order.userId,
+        totalCost: order.totalCost,
+        createdAt: order.createdAt.toISOString(),
+        fulfillmentStatus: order.fulfillmentStatus,
+        address: order.address,
+        username: userInfo.name,
+        userPhone: userInfo.phoneNumber,
+        userAddress: userInfo.addresses,
+        tasks: order.tasks.map((task) => ({
+          ...task,
+          employee: {
+            ...task.employee,
+            user: {
+              name: task.employee.user?.name || "",
+              email: task.employee.user?.email || "",
+              userdp: task.employee.user?.userdp || "",
+              phoneNumber: task.employee.user?.userDetails?.phoneNumber || "",
+            },
+          },
+        })),
+        orderItems: order.orderItems.map((item) => ({
+          id: item.id,
+          quantity: item.quantity,
+          customization: item.customization,
+          details: item.details,
+          recieveBy: item.recieveBy,
+          OTP: item.OTP,
+          productFulfillmentStatus: item.productFulfillmentStatus,
+          outForDelivery: item.outForDelivery,
+          product: {
+            id: item.product.id,
+            name: item.product.name,
+            businessPageId: item.product.businessPageId,
+            businessName: item.product.business.name,
+            businessImage: item.product.business.dpImageUrl,
+          },
+        })),
+      };
+    });
+
+    return {
+      success: true,
+      data: formattedOrders,
+    };
+  } catch (error) {
+    console.error("❌ Failed to fetch latest orders:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unexpected error",
+    };
+  }
+};
+
+// Alternative function to check specific date ranges for debugging
+export const debugOrdersByDateRange = async (businessPageId: string, startDate: Date, endDate: Date) => {
+  try {
+    console.log("Debugging orders between:", startDate.toISOString(), "and", endDate.toISOString());
+    
+    const orders = await db.order.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+        orderItems: {
+          some: {
+            product: {
+              businessPageId: businessPageId,
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+        order_id: true,
+        createdAt: true,
+        orderItems: {
+          select: {
+            product: {
+              select: {
+                name: true,
+                businessPageId: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    console.log("Orders found in date range:", orders);
+    return orders;
+  } catch (error) {
+    console.error("Debug query failed:", error);
+    return [];
+  }
+};
+export const getOrdersByBusinessPage = async (businessPageId: string) => {
     try {
       const orders = await db.order.findMany({
         where: {
@@ -80,6 +313,9 @@ export const getOrders = async (userId: number) => {
           createdAt: true,
           fulfillmentStatus:true,
           tasks: {
+            where:{
+              businessId:businessPageId
+            },
             include: {
               employee: {
                 include: {
@@ -134,18 +370,18 @@ export const getOrders = async (userId: number) => {
   };
 
 
-  export const MarkOutForDelivery = async (id: number): Promise<boolean> => {
+  export const MarkOutForDelivery = async (id) => {
     try {
       const updated = await db.orderItem.update({
         where: {
-          id,
+          id
         },
         data: {
           outForDelivery: "TRUE",
         },
       });
-  
-      return !!updated; // returns true if the update was successful
+      // console.log("delivery data",updated)
+       return !!updated
     } catch (error) {
       console.error("Error marking item out for delivery", error);
       return false;

@@ -8,8 +8,8 @@ export default async function EmployeesPage({params}) {
   const employees = await getAllEmployeesByBusiness(pageId)
 
   return (
-    <div className="container py-10">
-      <h1 className="text-3xl font-bold mb-6">Employees Management</h1>
+    <div className="container py-10 dark:bg-black w-full h-screen p-2">
+      <h1 className="text-3xl font-bold mb-6 ">Employees Management</h1>
       <EmployeesList initialEmployees={employees}  pageId={pageId}/>
     </div>
   )

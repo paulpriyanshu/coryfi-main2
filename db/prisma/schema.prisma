@@ -362,6 +362,7 @@ model BusinessPageLayout {
   payouts             Payout[]
 
   // posts               Post[]
+  task                Task[]
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
 
@@ -423,15 +424,17 @@ model Employee {
 model Task {
   id          Int      @id @default(autoincrement())
   name        String?
-  status      String   @default("pending") // or "completed"
+  status      String   @default("pending") // or "completed" or "pending" or "reassigned"
   task_id     String
   order       Order    @relation(fields: [task_id], references: [order_id])
   employee    Employee @relation(fields: [employeeId], references: [id])
   employeeId  Int
+  business    BusinessPageLayout? @relation(fields: [businessId], references: [pageId])
+  businessId  String?             // <-- Add this
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @default(now())
 
-  @@unique([task_id, employeeId]) // Prevent duplicate employee assignment to same order
+  // @@unique([task_id, employeeId,status]) // Prevent duplicate employee assignment to same order
 }
 model Job {
   id          Int        @id @default(autoincrement())

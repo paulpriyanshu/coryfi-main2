@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import {
   approve_request,
@@ -56,58 +56,66 @@ export default function ConnectionRequestsDropdown() {
   const [expandedPosts, setExpandedPosts] = useState<Record<number, boolean>>({})
   const router = useRouter()
 
+  // Memoize the fetchRequests function to prevent unnecessary re-renders
+  const fetchRequests = useCallback(async () => {
+    if (!session?.user?.email) return
+
+    try {
+      const result = await get_new_requests(session.user.email)
+      const notify = await get_notifications(session.user.email)
+
+      if (result.success) {
+        const sortedNotifications = notify.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        )
+        setRequests(sortedNotifications)
+        console.log("notify", sortedNotifications)
+      } else {
+        throw new Error("Failed to fetch requests")
+      }
+    } catch (error) {
+      toast.error("Failed to load notifications")
+    } finally {
+      setLoading(false)
+    }
+  }, [session?.user?.email]) // Only depend on session.user.email
+
+  // Separate useEffect for initial fetch and interval setup
   useEffect(() => {
     if (!session?.user?.email) return
 
-    let intervalId: NodeJS.Timeout
-
-    const fetchRequests = async () => {
-      try {
-        const result = await get_new_requests(session.user.email)
-        const notify = await get_notifications(session.user.email)
-
-        if (result.success) {
-          const sortedNotifications = notify.sort(
-            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-          )
-          setRequests(sortedNotifications)
-          console.log("notify", sortedNotifications)
-        } else {
-          throw new Error("Failed to fetch requests")
-        }
-      } catch (error) {
-        toast.error("Failed to load notifications")
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchRequests()
-    intervalId = setInterval(fetchRequests, 3000) // fetch every 30 seconds
 
-    return () => clearInterval(intervalId) // cleanup on unmount
-  }, [session?.user?.email])
+    const intervalId = setInterval(fetchRequests, 10000) // fetch every 10 seconds
 
+    return () => clearInterval(intervalId)
+  }, [fetchRequests]) // Now depends on the memoized fetchRequests
+
+  // Separate useEffect for marking notifications as read
   useEffect(() => {
-    if (open && requests.length > 0 && session?.user?.email) {
-      // Get IDs of unread notifications of type "Like Post" or "Comment"
-      const unreadIds = requests
-        .filter((req) => !req.isRead && (req.type === "Like Post" || req.type === "Comment"))
-        .map((req) => req.id)
+    if (!open || requests.length === 0 || !session?.user?.email) return
 
-      if (unreadIds.length > 0) {
-        // Mark notifications as read
-        read_notifications(session.user.email, unreadIds)
-          .then(() => {
-            // Update local state to reflect read status
-            setRequests((prev) => prev.map((req) => (unreadIds.includes(req.id) ? { ...req, isRead: true } : req)))
-          })
-          .catch((error) => {
-            console.error("Failed to mark notifications as read:", error)
-          })
-      }
-    }
-  }, [open, requests, session?.user?.email])
+    // Get IDs of unread notifications of type "Like Post" or "Comment"
+    const unreadIds = requests
+      .filter((req) => !req.isRead && (req.type === "Like Post" || req.type === "Comment"))
+      .map((req) => req.id)
+
+    if (unreadIds.length === 0) return
+
+    // Mark notifications as read
+    read_notifications(session.user.email, unreadIds)
+      .then(() => {
+        // Update local state to reflect read status
+        setRequests((prev) => 
+          prev.map((req) => 
+            unreadIds.includes(req.id) ? { ...req, isRead: true } : req
+          )
+        )
+      })
+      .catch((error) => {
+        console.error("Failed to mark notifications as read:", error)
+      })
+  }, [open, session?.user?.email]) // Removed requests from dependencies to prevent infinite loop
 
   const handleAccept = async (e: React.MouseEvent, request: Request) => {
     e.preventDefault()
@@ -116,14 +124,16 @@ export default function ConnectionRequestsDropdown() {
     if (!session?.user?.email) return
 
     try {
-      const updatedRequests = requests.map((req) =>
-        req.id === request.id ? { ...req, status: "accepted", createdAt: new Date().toISOString() } : req,
-      )
-      // Sort again to ensure the newly accepted request moves to the top
-      const sortedRequests = updatedRequests.sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      )
-      setRequests(sortedRequests)
+      // Optimistically update the UI
+      setRequests(prev => {
+        const updatedRequests = prev.map((req) =>
+          req.id === request.id ? { ...req, status: "accepted" as const, createdAt: new Date().toISOString() } : req
+        )
+        // Sort again to ensure the newly accepted request moves to the top
+        return updatedRequests.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+      })
 
       const result = await approve_request(request.senderMail, session.user.email, session.user.name, request.id)
 
@@ -139,7 +149,12 @@ export default function ConnectionRequestsDropdown() {
         throw new Error(result.error)
       }
     } catch (error) {
-      setRequests(requests.map((req) => (req.id === request.id ? { ...req, status: "pending" } : req)))
+      // Revert optimistic update on error
+      setRequests(prev => 
+        prev.map((req) => 
+          req.id === request.id ? { ...req, status: "pending" as const } : req
+        )
+      )
       toast.error("Failed to accept request")
     }
   }
@@ -151,14 +166,16 @@ export default function ConnectionRequestsDropdown() {
     if (!session?.user?.email || !request.senderMail) return
 
     try {
-      const updatedRequests = requests.map((req) =>
-        req.id === request.id ? { ...req, status: "rejected", createdAt: new Date().toISOString() } : req,
-      )
-      // Sort again to ensure the newly rejected request moves to the top
-      const sortedRequests = updatedRequests.sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      )
-      setRequests(sortedRequests)
+      // Optimistically update the UI
+      setRequests(prev => {
+        const updatedRequests = prev.map((req) =>
+          req.id === request.id ? { ...req, status: "rejected" as const, createdAt: new Date().toISOString() } : req
+        )
+        // Sort again to ensure the newly rejected request moves to the top
+        return updatedRequests.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+      })
 
       const result = await reject_request(request.senderMail, session.user.email, request.id)
 
@@ -168,7 +185,12 @@ export default function ConnectionRequestsDropdown() {
         throw new Error(result.error)
       }
     } catch (error) {
-      setRequests(requests.map((req) => (req.id === request.id ? { ...req, status: "pending" } : req)))
+      // Revert optimistic update on error
+      setRequests(prev => 
+        prev.map((req) => 
+          req.id === request.id ? { ...req, status: "pending" as const } : req
+        )
+      )
       toast.error("Failed to reject request")
     }
   }

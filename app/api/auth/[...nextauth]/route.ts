@@ -58,12 +58,12 @@ export const authOptions: NextAuthOptions = {
         const existingUser = await db.user.findUnique({
           where: { email: user.email },
         });
-        await axios.post("https://chat.coryfi.com/api/v1/users/register", {
+        await axios.post("http://localhost:8080/api/v1/users/register", {
           email: user.email,
           username: user.name,
           userdp: user?.image,
         });
-        await axios.post("https://neo.coryfi.com/api/v1/create/User", {
+        await axios.post("http://localhost:3003/api/v1/create/User", {
           email: user.email,
           name: user.name,
         });
@@ -160,7 +160,7 @@ export const authOptions: NextAuthOptions = {
           
           // Security check for the callbackUrl
           if (callbackUrl.startsWith('/')) {
-            console.log("Redirecting to callback path:", callbackUrl);
+            // console.log("Redirecting to callback path:", callbackUrl);
             return `${baseUrl}${callbackUrl.startsWith('/') ? callbackUrl : `/${callbackUrl}`}`;
           }
         } catch (error) {
@@ -171,18 +171,18 @@ export const authOptions: NextAuthOptions = {
       
       // If we reach here, use the original URL if it's safe
       if (url.startsWith(baseUrl)) {
-        console.log("Redirecting to original URL:", url);
+        // console.log("Redirecting to original URL:", url);
         return url;
       }
       
       // Add baseUrl to relative paths
       if (url.startsWith('/')) {
-        console.log("Redirecting to path:", url);
+        // console.log("Redirecting to path:", url);
         return `${baseUrl}${url}`;
       }
       
       // Default fallback
-      console.log("Redirecting to base URL:", baseUrl);
+      // console.log("Redirecting to base URL:", baseUrl);
       return baseUrl;
     },
   },

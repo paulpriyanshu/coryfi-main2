@@ -35,7 +35,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, href, isActive, tooltip }) => {
     <Link
       href={href}
       className={`relative inline-flex items-center justify-center w-12 h-12 rounded-full ${
-        isActive ? "text-white bg-slate-800" : "text-gray-500 hover:text-black hover:bg-slate-300"
+        isActive ? "text-white bg-slate-800" : "text-gray-500 hover:text-black hover:bg-slate-700"
       } transition-all duration-200 ease-in-out`}
     >
       {icon}
@@ -115,7 +115,7 @@ export function NavbarClient({ session, userId, userDp, navItems, dashboardLink,
                           className="flex items-center text-lg font-bold space-x-2 text-black hover:text-black"
                           onClick={() => document.querySelector("[data-state=open]")?.click()}
                         >
-                          {item.icon}
+                          {item.icon} 
                           <span>{item.tooltip}</span>
                         </Link>
                       </motion.div>

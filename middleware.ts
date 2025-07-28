@@ -48,7 +48,7 @@ export async function middleware(request: NextRequest) {
     url.pathname = '/signup';
     url.searchParams.set('callbackUrl', callbackUrl);
 
-    console.log('Redirecting to signup with callback:', url.toString());
+    // console.log('Redirecting to signup with callback:', url.toString());
     return NextResponse.redirect(url);
   }
 

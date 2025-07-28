@@ -19,7 +19,7 @@ export async function GET(req: NextRequest, { params }: { params: { pageId: stri
     }
 
     const { pageData } = await res.json()
-    console.log("business data",pageData)
+    // console.log("business data",pageData)
 
     // Make sure we have full absolute URLs for images
     const imageUrl = pageData?.dpImageUrl 

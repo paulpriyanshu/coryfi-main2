@@ -160,7 +160,7 @@ export default function EmployeesList({ initialEmployees, pageId }) {
     try {
       // Refresh the employees list for the current business
       const refreshedEmployees = await getEmployeesByBusiness(businessId)
-      console.log("refreshed emplyees",refreshedEmployees)
+      // console.log("refreshed emplyees",refreshedEmployees)
       setEmployees(refreshedEmployees)
     } catch (error) {
       console.error("Failed to reset search:", error)
@@ -169,7 +169,7 @@ export default function EmployeesList({ initialEmployees, pageId }) {
   }
 
   return (
-    <div>
+    <div className="dark:bg-black ">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">All Employees</h2>
         <Button onClick={() => setIsCreateDialogOpen(true)}>

@@ -62,7 +62,7 @@ function Component() {
     const id = searchParams.get('rid');
     
     if (id) {
-      console.log('ID from query:', id);
+      // console.log('ID from query:', id);
       setchatRecieverId(id)
 
     }
@@ -141,7 +141,7 @@ function Component() {
     )
   }
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    // <Suspense fallback={<div>Loading...</div>}>
       <div className="h-screen w-screen bg-background relative overflow-hidden">
         <div className="absolute inset-0">
           <PersonalNetwork data={structuredData} />
@@ -251,15 +251,17 @@ function Component() {
           onClose={() => setIsSignInDialogOpen(false)}
         />
       </div>
-    </Suspense>
+    // </Suspense>
   );
 }
 
 export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <Component />
-    </Suspense>
+    <>
+    <Component />
+    </>
+      
+
   );
 }
 

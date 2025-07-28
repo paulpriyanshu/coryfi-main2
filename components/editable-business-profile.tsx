@@ -116,11 +116,14 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
       router.push(`/becomeMerchant/${userId}`)
       return
     }
-
+    console.log("hello")
     async function fetchBusinessDetails() {
+      console.log("hello")
       setIsLoading(true)
       try {
+        
         const data = await getBusinessPageDetails(pageId)
+        console.log("data",data)
         if (data) {
           setBusinessData(data)
 
@@ -146,7 +149,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
     }
 
     fetchBusinessDetails()
-  }, [businessId, isMerchant, router, userId, pageId])
+  }, [businessId, router, pageId])
 
   useEffect(() => {
     // In a real app, you would fetch categories from an API
@@ -200,6 +203,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
       const timestamp = Date.now()
       const uniqueFilename = `${timestamp}_${file.name}`
       const uploadUrlResponse = await axios.get(`https://media.coryfi.com/api/imageUpload/${uniqueFilename}`)
+      console.log("response",uploadUrlResponse)
       const { url, filename } = uploadUrlResponse.data
 
       await axios.put(url, file, {
@@ -211,8 +215,10 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
       })
 
       // Get the final URL
+
       const previewResponse = await axios.get(`https://media.coryfi.com/api/image/${filename}`)
       const previewUrl = previewResponse.data.url // Extract the actual image URL
+      console.log("preview url",previewUrl)
 
       // Update the state by replacing tempPreview with previewUrl
       setBannerImage((prev) => {
@@ -540,28 +546,29 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
   }
 
   return (
-    <div className="flex flex-col w-full">
+   <div className="flex flex-col w-full dark:bg-black dark:text-white">
+
       <div className="flex justify-end m-2">
-        <Button className="m-1 px-2 py-1 text-xs md:px-4 md:py-2 md:text-base" onClick={openNewPageModal}>
+        <Button className="m-1 px-2 py-1 text-xs md:px-4 md:py-2 md:text-base dark:bg-gray-800 dark:text-white dark:border-gray-600" onClick={openNewPageModal}>
           <PlusCircle className="mr-2 w-3 h-3 md:h-4 md:w-4" />
           New Page
         </Button>
-        <Button className="m-1 px-2 py-1 text-xs md:px-4 md:py-2 md:text-base" onClick={openDuplicateModal}>
+        <Button className="m-1 px-2 py-1 text-xs md:px-4 md:py-2 md:text-base dark:bg-gray-800 dark:text-white dark:border-gray-600" onClick={openDuplicateModal}>
           <Copy className="mr-2 w-3 h-3 md:h-4 md:w-4" />
           Duplicate a Page
         </Button>
-        <Button className="m-1 px-2 py-1 text-xs md:px-4 md:py-2 md:text-base bg-red-500" onClick={()=>handleDeletePage(pageId)}>
+        <Button className="m-1 px-2 py-1 text-xs md:px-4 md:py-2 md:text-base bg-red-500 dark:bg-red-700 dark:text-white" onClick={()=>handleDeletePage(pageId)}>
           <Trash className="mr-2 w-3 h-3 md:h-4 md:w-4" />
           Delete Page
         </Button>
       </div>
 
       {/* Banner Section */}
-      <div className="relative w-full overflow-hidden">
+      <div className="relative w-full overflow-hidden dark:bg-gray-900">
         {/* Upload Banner Button - Positioned at top right */}
         <Button
           variant="secondary"
-          className="absolute bottom-4 right-4 shadow-lg bg-white/90 hover:bg-white z-20 flex items-center gap-2"
+          className="absolute bottom-4 right-4 shadow-lg bg-white/90 hover:bg-white z-20 flex items-center gap-2 dark:bg-gray-800/90 dark:hover:bg-gray-800 dark:text-white"
           onClick={handleBannerClick}
           disabled={isBannerUploading}
         >
@@ -596,7 +603,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                       <Button
                         variant="destructive"
                         size="icon"
-                        className="absolute top-2 right-2 h-8 w-8 rounded-full opacity-80 hover:opacity-100"
+                        className="absolute top-2 right-2 h-8 w-8 rounded-full opacity-80 hover:opacity-100 dark:bg-red-700"
                         onClick={() => removeBannerImage(index)}
                       >
                         <X className="h-4 w-4" />
@@ -612,7 +619,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                   <Button
                     variant="secondary"
                     size="icon"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 shadow-md z-10"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 shadow-md z-10 dark:bg-gray-800/70 dark:hover:bg-gray-800/90 dark:text-white"
                     onClick={goToPrevSlide}
                   >
                     <ChevronLeft className="h-6 w-6" />
@@ -620,7 +627,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                   <Button
                     variant="secondary"
                     size="icon"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 shadow-md z-10"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/70 hover:bg-white/90 shadow-md z-10 dark:bg-gray-800/70 dark:hover:bg-gray-800/90 dark:text-white"
                     onClick={goToNextSlide}
                   >
                     <ChevronRight className="h-6 w-6" />
@@ -629,10 +636,10 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
               )}
             </div>
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-muted">
+            <div className="w-full h-full flex items-center justify-center bg-muted dark:bg-gray-800">
               <div className="text-center">
-                <ImageIcon className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-muted-foreground">No banner images</p>
+                <ImageIcon className="h-12 w-12 mx-auto mb-2 text-muted-foreground dark:text-gray-400" />
+                <p className="text-muted-foreground dark:text-gray-400">No banner images</p>
               </div>
             </div>
           )}
@@ -641,14 +648,14 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
 
       {/* Profile Section */}
       <div className="max-w-4xl mx-auto w-full px-4 -mt-12 sm:-mt-16 relative z-10">
-        <Card className="shadow-lg">
+        <Card className="shadow-lg dark:bg-gray-800 dark:border-gray-700">
           <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col md:flex-row gap-6">
               {/* Profile Picture */}
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <div
-                    className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-white bg-gray-100 shadow-md cursor-pointer group"
+                    className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-white bg-gray-100 shadow-md cursor-pointer group dark:border-gray-600 dark:bg-gray-700"
                     onClick={handleProfileClick}
                   >
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10 rounded-full">
@@ -663,7 +670,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                   <Button
                     variant="secondary"
                     size="icon"
-                    className="absolute bottom-0 right-0 rounded-full h-6 w-6 sm:h-8 sm:w-8 bg-primary hover:bg-primary/90 shadow-md"
+                    className="absolute bottom-0 right-0 rounded-full h-6 w-6 sm:h-8 sm:w-8 bg-primary hover:bg-primary/90 shadow-md dark:bg-blue-600 dark:hover:bg-blue-700"
                     onClick={(e) => {
                       e.stopPropagation()
                       profileInputRef.current?.click()
@@ -688,8 +695,8 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                 {/* Profile Upload Progress */}
                 {isProfileUploading && (
                   <div className="w-full mt-2">
-                    <Progress value={profileUploadProgress} className="h-1 sm:h-2" />
-                    <p className="text-xs text-center mt-1">{profileUploadProgress}%</p>
+                    <Progress value={profileUploadProgress} className="h-1 sm:h-2 dark:bg-gray-700" />
+                    <p className="text-xs text-center mt-1 dark:text-gray-300">{profileUploadProgress}%</p>
                   </div>
                 )}
               </div>
@@ -697,7 +704,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
               {/* Business Information */}
               <div className="flex-1 space-y-3 sm:space-y-4 mt-4 md:mt-0">
                 <div>
-                  <label htmlFor="business-name" className="block text-xs sm:text-sm font-medium mb-1">
+                  <label htmlFor="business-name" className="block text-xs sm:text-sm font-medium mb-1 dark:text-white">
                     Business Name
                   </label>
                   <Input
@@ -705,11 +712,11 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                     placeholder="Enter your business name"
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
-                    className="text-sm"
+                    className="text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                   />
                 </div>
                 <div>
-                  <label htmlFor="business-description" className="block text-xs sm:text-sm font-medium mb-1">
+                  <label htmlFor="business-description" className="block text-xs sm:text-sm font-medium mb-1 dark:text-white">
                     Business Description
                   </label>
                   <Textarea
@@ -718,12 +725,12 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                     rows={3}
                     value={businessDescription}
                     onChange={(e) => setBusinessDescription(e.target.value)}
-                    className="resize-none text-sm"
+                    className="resize-none text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                   />
                 </div>
                 <Button
                   id="save-profile-button"
-                  className="mt-3 sm:mt-4 w-full sm:w-auto text-sm"
+                  className="mt-3 sm:mt-4 w-full sm:w-auto text-sm dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white"
                   onClick={saveBusinessProfile}
                 >
                   Save Profile
@@ -734,11 +741,11 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
         </Card>
 
         {/* Category Carousel - Modernized */}
-        <Card className="shadow-lg mt-4 sm:mt-6 overflow-hidden">
-          <CardHeader className="pb-2 bg-gradient-to-r from-primary/10 to-transparent">
-            <CardTitle className="text-lg flex items-center">
+        <Card className="shadow-lg mt-4 sm:mt-6 overflow-hidden dark:bg-gray-800 dark:border-gray-700">
+          <CardHeader className="pb-2 bg-gradient-to-r from-primary/10 to-transparent dark:from-blue-900/20">
+            <CardTitle className="text-lg flex items-center dark:text-white">
               <span className="mr-2">Business Categories</span>
-              <Badge variant="outline" className="text-xs font-normal">
+              <Badge variant="outline" className="text-xs font-normal dark:border-gray-600 dark:text-gray-300">
                 {categories.length} categories
               </Badge>
             </CardTitle>
@@ -749,7 +756,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
               <div className="space-y-3">
                 {/* Category Dropdown */}
                 <div className="flex flex-col gap-2">
-                  <label htmlFor="category-select" className="text-sm font-medium">
+                  <label htmlFor="category-select" className="text-sm font-medium dark:text-white">
                     Select from existing categories
                   </label>
                   <div className="flex gap-2">
@@ -757,7 +764,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                       id="category-select"
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     >
                       <option value="">Select a category</option>
                       {categories.map((category) => (
@@ -769,7 +776,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                     <Button
                       onClick={() => handleCategorySelect(selectedCategory)}
                       size="sm"
-                      className="shrink-0 shadow-sm"
+                      className="shrink-0 shadow-sm dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white"
                       disabled={!selectedCategory}
                     >
                       Add Selected
@@ -779,7 +786,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
               </div>
 
               {/* Categories Display */}
-              <div className="border rounded-md p-3 bg-muted/30">
+              <div className="border rounded-md p-3 bg-muted/30 dark:bg-gray-700/30 dark:border-gray-600">
                 <ScrollArea className="w-full">
                   <div
                     className="flex flex-wrap gap-2 p-1 min-h-[60px]"
@@ -788,7 +795,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                   >
                     {addedCategories?.length === 0 ? (
                       <div className="w-full flex items-center justify-center p-4 text-center">
-                        <div className="text-sm text-muted-foreground bg-background/80 p-3 rounded-lg border border-dashed">
+                        <div className="text-sm text-muted-foreground bg-background/80 p-3 rounded-lg border border-dashed dark:bg-gray-800/80 dark:text-gray-400 dark:border-gray-600">
                           <Plus className="h-5 w-5 mx-auto mb-1 opacity-50" />
                           No categories added yet. Add your first category above.
                         </div>
@@ -801,8 +808,8 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                           onDragStart={() => handleDragStart(category)}
                           onDragOver={(e) => handleDragOver(e, category.id)}
                           className={`
-                            flex items-center gap-1 px-1 py-1 rounded-md border bg-background
-                            ${dragOverItemId === category.id ? "border-primary shadow-md" : "border-transparent"}
+                            flex items-center gap-1 px-1 py-1 rounded-md border bg-background dark:bg-gray-800
+                            ${dragOverItemId === category.id ? "border-primary shadow-md dark:border-blue-500" : "border-transparent"}
                             ${draggedItem?.id === category.id ? "opacity-50" : "opacity-100"}
                             transition-all duration-200 hover:shadow-sm
                           `}
@@ -812,7 +819,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                           transition={{ duration: 0.2 }}
                         >
                           <div className="flex items-center cursor-grab active:cursor-grabbing p-1">
-                            <GripVertical className="h-4 w-4 text-muted-foreground" />
+                            <GripVertical className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
                           </div>
                           <Badge className={`${randomColor} text-white px-3 py-1 shadow-sm`} variant="secondary">
                             {category.name}
@@ -820,7 +827,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6 rounded-full hover:bg-destructive/10 ml-1"
+                            className="h-6 w-6 rounded-full hover:bg-destructive/10 ml-1 dark:hover:bg-red-900/20"
                             onClick={() => removeCategory(Number.parseInt(category.id))}
                           >
                             <X className="h-3 w-3" />
@@ -832,7 +839,7 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                   </div>
                   <ScrollBar orientation="horizontal" className="h-2" />
                 </ScrollArea>
-                <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground dark:text-gray-400">
                   <GripVertical className="h-3 w-3" />
                   <p>Drag and drop categories to rearrange them</p>
                 </div>
@@ -844,14 +851,14 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
 
       {/* New Page Modal */}
       <Dialog open={isNewPageModalOpen} onOpenChange={setIsNewPageModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle>Create New Page</DialogTitle>
-            <DialogDescription>Enter the details for your new page.</DialogDescription>
+            <DialogTitle className="dark:text-white">Create New Page</DialogTitle>
+            <DialogDescription className="dark:text-gray-300">Enter the details for your new page.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label htmlFor="page-name" className="text-sm font-medium">
+              <label htmlFor="page-name" className="text-sm font-medium dark:text-white">
                 Page Name
               </label>
               <Input
@@ -859,10 +866,11 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                 placeholder="Enter page name"
                 value={newPageName}
                 onChange={(e) => setNewPageName(e.target.value)}
+                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="page-description" className="text-sm font-medium">
+              <label htmlFor="page-description" className="text-sm font-medium dark:text-white">
                 Page Description
               </label>
               <Textarea
@@ -871,14 +879,15 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
                 rows={3}
                 value={newPageDescription}
                 onChange={(e) => setNewPageDescription(e.target.value)}
+                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsNewPageModalOpen(false)}>
+            <Button variant="outline" onClick={() => setIsNewPageModalOpen(false)} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
               Cancel
             </Button>
-            <Button onClick={handleCreateNewPage} disabled={!newPageName.trim() || isCreatingPage}>
+            <Button onClick={handleCreateNewPage} disabled={!newPageName.trim() || isCreatingPage} className="dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white">
               {isCreatingPage ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -894,18 +903,18 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
 
       {/* Duplicate Page Modal */}
       <Dialog open={isDuplicateModalOpen} onOpenChange={setIsDuplicateModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle>Duplicate a Page</DialogTitle>
-            <DialogDescription>Select a page to duplicate.</DialogDescription>
+            <DialogTitle className="dark:text-white">Duplicate a Page</DialogTitle>
+            <DialogDescription className="dark:text-gray-300">Select a page to duplicate.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="flex items-center justify-center h-full">
-              <p className="text-muted-foreground">No pages available to duplicate</p>
+              <p className="text-muted-foreground dark:text-gray-400">No pages available to duplicate</p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDuplicateModalOpen(false)}>
+            <Button variant="outline" onClick={() => setIsDuplicateModalOpen(false)} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
               Cancel
             </Button>
           </DialogFooter>
@@ -914,26 +923,26 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
 
       {/* Confirm Duplicate Modal */}
       <Dialog open={isConfirmDuplicateModalOpen} onOpenChange={setIsConfirmDuplicateModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle>Confirm Duplication</DialogTitle>
-            <DialogDescription>Are you sure you want to duplicate this page?</DialogDescription>
+            <DialogTitle className="dark:text-white">Confirm Duplication</DialogTitle>
+            <DialogDescription className="dark:text-gray-300">Are you sure you want to duplicate this page?</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             {selectedPageToDuplicate && (
-              <Card className="bg-muted/30">
+              <Card className="bg-muted/30 dark:bg-gray-700/30 dark:border-gray-600">
                 <CardContent className="p-4">
-                  <h3 className="font-medium">{selectedPageToDuplicate.name}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">{selectedPageToDuplicate.description}</p>
+                  <h3 className="font-medium dark:text-white">{selectedPageToDuplicate.name}</h3>
+                  <p className="text-sm text-muted-foreground mt-1 dark:text-gray-400">{selectedPageToDuplicate.description}</p>
                 </CardContent>
               </Card>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsConfirmDuplicateModalOpen(false)}>
+            <Button variant="outline" onClick={() => setIsConfirmDuplicateModalOpen(false)} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
               Cancel
             </Button>
-            <Button onClick={handleConfirmDuplicate}>
+            <Button onClick={handleConfirmDuplicate} className="dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white">
               <Check className="mr-2 h-4 w-4" />
               Confirm Duplicate
             </Button>
@@ -941,6 +950,6 @@ export default function BusinessProfile({ isMerchant, userId, businessId, pageId
         </DialogContent>
       </Dialog>
     </div>
+    
   )
-}
-
+    }

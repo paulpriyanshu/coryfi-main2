@@ -59,7 +59,7 @@ function BusinessPageCard({ page ,businessId}) {
 }
 
 function BusinessPageListItem({ page,businessId }) {
-    console.log("business",businessId,page.pageId)
+    // console.log("business",businessId,page.pageId)
   return (
     <Card>
       <div className="flex items-center p-4">

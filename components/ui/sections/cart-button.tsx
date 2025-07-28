@@ -32,7 +32,7 @@ export default function CartButton({ userId }) {
 
     // Call the function every 5 seconds
     fetchCart() // Initial call
-    const interval = setInterval(fetchCart, 5000)
+    const interval = setInterval(fetchCart, 10000)
 
     return () => clearInterval(interval) // Cleanup on unmount
   }, [userid])

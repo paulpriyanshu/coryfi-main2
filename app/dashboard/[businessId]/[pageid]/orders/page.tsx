@@ -1,9 +1,5 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import OrdersDashboard from './order-dashboard'
-import { getOrdersByBusinessPage } from '@/app/api/business/order/order'
-// import { fetchOrdersServer } from '@/app/actions/get-orders' // adjust path accordingly
+import { getAllEmployeesByBusiness } from '@/app/api/actions/employees'
 
 interface OrdersPageProps {
   params: {
@@ -12,35 +8,31 @@ interface OrdersPageProps {
   }
 }
 
-export default function OrdersPage({ params }: OrdersPageProps) {
+export default async function OrdersPage({ params }: OrdersPageProps) {
   const { businessId, pageid } = params
-  const [ordersData, setOrdersData] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const allEmployees=await getAllEmployeesByBusiness(pageid)
+  // console.log("all employees",allEmployees)
 
-  const fetchOrders = async () => {
-    try {
-      const data = await getOrdersByBusinessPage(pageid)
-      setOrdersData(data)
-      setLoading(false)
-    } catch (err) {
-      console.error("Error fetching orders:", err)
-    }
-  }
-
-  useEffect(() => {
-    fetchOrders()
-    const interval = setInterval(fetchOrders, 5000)
-
-    return () => clearInterval(interval)
-  }, [])
-
-  if (loading) return <div>Loading orders...</div>
-
+  const transformedEmployees = allEmployees.map(emp => ({
+  id: emp.id,
+  name: emp.user.name,
+  dp: emp.user.userdp,
+  email: emp.user.email,
+}))
+// console.log("transformed employees",transformedEmployees)
   return (
-    <OrdersDashboard
-      ordersData={ordersData}
+    <>
+    <div className='dark:bg-black w-full'>
+        <OrdersDashboard
+      // ordersData={ordersData}
+      employees={transformedEmployees}
       pageId={pageid}
       businessId={businessId}
     />
+
+    </div>
+    
+  
+    </>
   )
 }
