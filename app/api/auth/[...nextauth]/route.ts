@@ -63,7 +63,7 @@ export const authOptions: NextAuthOptions = {
           username: user.name,
           userdp: user?.image,
         });
-        await axios.post("http://neo.coryfi.com/api/v1/create/User", {
+        await axios.post("https://neo.coryfi.com/api/v1/create/User", {
           email: user.email,
           name: user.name,
         });
