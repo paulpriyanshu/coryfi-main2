@@ -160,7 +160,7 @@ export default function PersonalNetwork({ data: propData }) {
       }
     } else {
       try {
-        const response = await fetch("http://localhost:3003/api/v1/getnetwork", {
+        const response = await fetch("https://neo.coryfi.com/api/v1/getnetwork", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: session?.user?.email || "" }),

@@ -58,12 +58,12 @@ export const authOptions: NextAuthOptions = {
         const existingUser = await db.user.findUnique({
           where: { email: user.email },
         });
-        await axios.post("http://localhost:8080/api/v1/users/register", {
+        await axios.post("https://chat.coryfi.com/api/v1/users/register", {
           email: user.email,
           username: user.name,
           userdp: user?.image,
         });
-        await axios.post("http://localhost:3003/api/v1/create/User", {
+        await axios.post("http://neo.coryfi.com/api/v1/create/User", {
           email: user.email,
           name: user.name,
         });
