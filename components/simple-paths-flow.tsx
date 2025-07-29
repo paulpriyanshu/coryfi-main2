@@ -169,7 +169,13 @@ export default function SimplePathsFlow({ users }: any) {
   }
 
   const renderStep1 = () => (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen 
+  bg-gradient-to-br 
+  from-blue-200 via-blue-300 to-blue-400 
+  dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 
+  flex flex-col items-center justify-center 
+  p-4 sm:p-6 lg:p-8"
+>
       {/* Header */}
       <div className="text-center mb-6 sm:mb-8 px-4">
         <div className="flex justify-center mb-10">
