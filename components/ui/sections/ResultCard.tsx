@@ -27,17 +27,21 @@ export default function ResultCard({ index, path }: { index: number; path }) {
   // Fetch display pictures for all nodes
   useEffect(() => {
     const fetchDisplayPictures = async () => {
-      const dpPromises = path.nodes.map(async (node) => {
-        const dp = await fetchUserDp(node.email)
-        console.log("user dp",dp)
-        return { email: node.email, dp }
-      })
+       const emails = path.nodes.map((node) => node.email)
+       const dpResults=await fetchUserDp(emails)
 
-      const dpResults = await Promise.all(dpPromises)
+      // const dpPromises = path.nodes.map(async (node) => {
+      //   const dp = await fetchUserDp(node.email)
+      //   console.log("user dp",dp)
+      //   return { email: node.email, dp }
+      // })
+
+      // const dpResults = await Promise.all(dpPromises)
+      console.log("user dps",dpResults)
       
       const dpMap = dpResults.reduce((acc, result) => {
-        if (result.dp) {
-          acc[result.email] = result.dp
+        if (result.userdp) {
+          acc[result.email] = result.userdp
         }
         return acc
       }, {})
@@ -66,10 +70,10 @@ useEffect(()=>{
   return (
     <>
       <Card 
-        className="bg-background/50 hover:bg-background/80 transition-colors duration-200 hover:cursor-pointer hover:bg-slate-100"
+        className="bg-background/50 hover:bg-background/80 transition-colors duration-200 hover:cursor-pointer hover:bg-slate-100 dark:bg-slate-900 dark:text-white"
         onClick={handlePathClick}
       >
-        <CardContent className="p-4">
+        <CardContent className="p-4  dark:text-white">
           <div className="flex items-center space-x-4 mb-4">
             <Avatar className="w-10 h-10">
               <AvatarImage 
@@ -87,12 +91,12 @@ useEffect(()=>{
             </div>
             <Button 
               onClick={handleCollaborativeEvaluation}
-              className="ml-auto"
+              className="ml-auto "
               variant="outline"
               size="sm"
             >
               <img src='/icon.png' className="w-5 h-5" />
-              <div className='font-sans text-extrabold text-slate-700'>Start</div>
+              <div className='font-sans text-extrabold text-slate-700  dark:text-white'>Start</div>
             </Button>
           </div>
           <ConnectionPathCard 

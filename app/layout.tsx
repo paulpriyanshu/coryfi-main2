@@ -10,6 +10,12 @@ import { store } from "./libs/store/store";
 import StoreProvider from "./StoreProvider";
 import { SocketProvider } from "@/components/ui/sections/context/SocketContext";
 import { ThemeProvider } from "next-themes";
+import { checkPathsFlow, getTop8MostConnectedUsers } from "./api/actions/user";
+import { authOptions } from "./api/auth/[...nextauth]/route";
+import { getServerSession } from 'next-auth'
+
+// ✅ Import your onboarding flow component
+import SimplePathsFlow from "@/components/simple-paths-flow";
 
 // Load fonts
 const geistSans = localFont({
@@ -32,12 +38,28 @@ export const metadata: Metadata = {
   description: "We remove the 'Cold' from Cold Approach",
 };
 
-// ✅ FIXED ROOT LAYOUT
+// ✅ Final Layout
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+let users: Boolean | any = {};
+
+const session = await getServerSession(authOptions)
+if (session) {
+  users=await getTop8MostConnectedUsers(session?.user?.email)
+users = {
+  ...users,
+  users: users?.users?.map((user) => ({
+    ...user,
+    requestSent: false,
+  })),
+};
+  console.log("top users",users)
+}
+
+// console.log("paths flow",await checkPathsFlow(session?.user?.email))
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -56,17 +78,16 @@ export default async function RootLayout({
         </Script>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {/* ✅ ThemeProvider should wrap the WHOLE app content inside body */}
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <Providers>
             <StoreProvider>
               <SocketProvider>
                 {/* Header */}
-                <Header />
+                {/* <Header /> */}
+                {(session?.user?.email && !await checkPathsFlow(session?.user?.email)) ? null : <Header/>}
 
-                {/* Page Content */}
-                {children}
-
+                {/* ✅ Always show onboarding flow */}
+                {(session?.user?.email && !await checkPathsFlow(session?.user?.email)) ? <SimplePathsFlow users={users}/> : children}
                 {/* Mobile Footer */}
                 <div className="md:hidden">
                   <MobileFooter />

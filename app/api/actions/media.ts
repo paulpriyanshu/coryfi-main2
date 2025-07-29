@@ -323,13 +323,19 @@ export const fetchUserId=async(email:string)=>{
 
   }
 
-  export const fetchUserDp=async(email:string)=>{
-    const user=await db.user.findFirst({
+  export const fetchUserDp=async(emails:string[])=>{
+    const user=await db.user.findMany({
         where:{
-            email
+            email:{
+              in: emails
+            }
+        },
+        select:{
+          email:true,
+          userdp:true
         }
     })
-    return user?.userdp || null
+    return user || null
 
 
   }

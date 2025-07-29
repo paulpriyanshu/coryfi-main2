@@ -12,6 +12,7 @@ model User {
   userdp                    String?
   email                     String                  @unique
   name                      String
+  introductoryFlow          Boolean                 @default(false)
   notifications             Notification[]          @relation("UserNotifications") // Added missing relation
   SenderNotifications             Notification[]          @relation("SenderUserNotifications") // Added missing relation
   posts                     Post[]                  @relation("UserPosts")
@@ -27,6 +28,7 @@ model User {
   userDetails               UserDetails?
   createdAt                 DateTime @default(now()) // Fixed nullable issue
   employees                 Employee[]
+
 
   @@index([email])
   @@index([id])
