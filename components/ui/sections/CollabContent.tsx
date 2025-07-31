@@ -984,7 +984,7 @@ export default function CollabContent() {
                     <p>No oncoming paths at the moment.</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-4 pb-24">
                     {regularRequests
                       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                       .map((request) => (
