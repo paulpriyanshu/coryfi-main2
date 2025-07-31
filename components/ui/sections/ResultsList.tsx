@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect, useMemo } from "react"
 import { AlertCircle, Loader2, Users, ArrowRight, Star, Loader2Icon, Crown, Lock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -85,11 +84,11 @@ export default function ResultsList() {
     nodes: data?.nodes || [],
     links: data?.links || [],
   }
-  console.log("redux data",data)
-const startEmail = useMemo(() => structuredData.nodes[0]?.email, [structuredData.nodes[0]?.email]);
-const endEmail = useMemo(() => structuredData.nodes[1]?.email, [structuredData.nodes[1]?.email]);
-  // const startEmail = structuredData.nodes[0]?.email
-  // const endEmail = structuredData.nodes[1]?.email
+
+  console.log("redux data", data)
+
+  const startEmail = useMemo(() => structuredData.nodes[0]?.email, [structuredData.nodes[0]?.email])
+  const endEmail = useMemo(() => structuredData.nodes[1]?.email, [structuredData.nodes[1]?.email])
 
   const pathRequests = Array.from({ length: pathCount }, (_, index) => ({
     index,
@@ -150,8 +149,11 @@ const endEmail = useMemo(() => structuredData.nodes[1]?.email, [structuredData.n
     fetchSuggested()
   }, [session])
 
-  const suggestedProfiles = suggestedData?.data || []
-  const displayedSuggestions = showAllSuggested ? suggestedProfiles : suggestedProfiles.slice(0, 3)
+  const sortedSuggestions = [...(suggestedData?.data || [])].sort(
+    (a, b) => (b.totalConnections || 0) - (a.totalConnections || 0),
+  )
+
+  const displayedSuggestions = showAllSuggested ? sortedSuggestions : sortedSuggestions.slice(0, 3)
 
   const dispatch = useAppDispatch()
   const [loading, setIsLoading] = useState(false)
@@ -162,25 +164,45 @@ const endEmail = useMemo(() => structuredData.nodes[1]?.email, [structuredData.n
   const validPaths = pathsData?.filter((path) => path && path.nodes && path.nodes.length > 0) || []
   const noPathsFound = isComplete && validPaths.length === 0
 
-  // Calculate unique users from remaining paths (excluding first 4)
+  // Calculate unique users from remaining paths (excluding first 3)
   const getUniqueUsersFromRemainingPaths = () => {
-    if (!pathsData || pathsData.length <= 4) return 0
+    if (!pathsData || pathsData.length <= 3) return 0
 
-    const remainingPaths = pathsData.slice(4).filter((path) => path && path.nodes)
+    // Get all intermediate nodes from the first 3 displayed paths
+    const displayedIntermediateNodes = new Set<string>()
+    const displayedPaths = validPaths.slice(0, 3)
+
+    displayedPaths.forEach((path) => {
+      if (path.nodes && path.nodes.length > 2) {
+        // Get intermediate nodes (exclude start and end nodes)
+        const middleNodes = path.nodes.slice(1, -1)
+        middleNodes.forEach((node) => {
+          if (node.email) {
+            displayedIntermediateNodes.add(node.email)
+          }
+        })
+      }
+    })
+
+    // Now count unique users in remaining paths, excluding those already displayed
+    const remainingPaths = pathsData.slice(3).filter((path) => path && path.nodes)
     const uniqueUsers = new Set<string>()
+
+    console.log("Displayed intermediate nodes:", displayedIntermediateNodes)
 
     remainingPaths.forEach((path) => {
       if (path.nodes && path.nodes.length > 2) {
         // Exclude start and end nodes (first and last)
         const middleNodes = path.nodes.slice(1, -1)
         middleNodes.forEach((node) => {
-          if (node.email) {
+          if (node.email && !displayedIntermediateNodes.has(node.email)) {
             uniqueUsers.add(node.email)
           }
         })
       }
     })
 
+    console.log("Unique users in remaining paths:", uniqueUsers)
     return uniqueUsers.size
   }
 
@@ -195,7 +217,6 @@ const endEmail = useMemo(() => structuredData.nodes[1]?.email, [structuredData.n
     }
 
     setIsLoading(true)
-
     if (session.user.email) {
       try {
         console.log("entered the function")
@@ -235,7 +256,7 @@ const endEmail = useMemo(() => structuredData.nodes[1]?.email, [structuredData.n
   const PremiumModal = () =>
     showPremiumModal && (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <Card className="w-full max-w-md mx-4">
+        <Card className="w-full max-w-md mx-4 dark:bg-black dark:text-white">
           <CardHeader className="text-center">
             <div className="mx-auto w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mb-4">
               <Crown className="w-8 h-8 text-white" />
@@ -277,6 +298,10 @@ const endEmail = useMemo(() => structuredData.nodes[1]?.email, [structuredData.n
       </div>
     )
 
+  const handleClickOnProfile = async (id: number) => {
+    router.push(`/userProfile/${id}`)
+  }
+
   const SuggestionsSection = () => {
     if (!session?.user?.email) {
       return null
@@ -284,7 +309,7 @@ const endEmail = useMemo(() => structuredData.nodes[1]?.email, [structuredData.n
 
     return (
       <div className="mt-12 space-y-6 block">
-        <Card className="bg-gradient-to-r  dark:bg-black border-blue-200 dark:border-blue-800">
+        <Card className="bg-gradient-to-r dark:bg-black border-blue-200 dark:border-blue-800">
           <CardHeader>
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
@@ -315,79 +340,82 @@ const endEmail = useMemo(() => structuredData.nodes[1]?.email, [structuredData.n
                 <span className="text-sm">No suggestions available</span>
               </div>
             ) : (
-              [...displayedSuggestions]
-                .sort((a, b) => (b.totalConnections || 0) - (a.totalConnections || 0))
-                .map((profile) => (
-                  <Card
-                    key={profile.id}
-                    className="bg-white/80 m-2 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 transition-all duration-200 border-gray-200 dark:border-gray-700 dark:bg-slate-900"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-4">
-                        <Avatar className="w-12 h-12">
-                          <AvatarImage src={profile.userdp || "/placeholder.svg"} alt={profile.name} />
-                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                            {profile.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-semibold text-gray-900 dark:text-gray-100 truncate">{profile.name}</h4>
-                            {profile.userDetails?.isVerified && (
-                              <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
-                            {profile.userDetails?.bio.slice(0, 50)}
-                          </p>
-                          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mb-3">
-                            <span>{profile.totalConnections || 0} connections</span>
-                            {profile.userDetails?.location && (
+              displayedSuggestions.map((profile) => (
+                <Card
+                  key={profile.id}
+                  className="bg-white/80 m-2 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 transition-all duration-200 border-gray-200 dark:border-gray-700 dark:bg-slate-900"
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-4">
+                      <Avatar className="w-12 h-12">
+                        <AvatarImage
+                          src={profile.userdp || "/placeholder.svg"}
+                          onClick={() => handleClickOnProfile(profile.id)}
+                          alt={profile.name}
+                        />
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                          {profile.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div
+                          className="flex items-center gap-2 mb-1 hover:cursor-pointer"
+                          onClick={() => handleClickOnProfile(profile.id)}
+                        >
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 truncate">{profile.name}</h4>
+                          {profile.userDetails?.isVerified && <Star className="w-4 h-4 text-yellow-500 fill-current" />}
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+                          {profile.userDetails?.bio.slice(0, 50)}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mb-3">
+                          <span>{profile.totalConnections || 0} connections</span>
+                          {profile.userDetails?.location && (
+                            <>
+                              <span>•</span>
+                              <span>{profile.userDetails.location}</span>
+                            </>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          {profile.userDetails?.industry && (
+                            <Badge variant="secondary" className="text-xs">
+                              {profile.userDetails.industry}
+                            </Badge>
+                          )}
+                          <Button
+                            size="sm"
+                            onClick={() => handleFindPath(profile)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white ml-auto"
+                            disabled={loading}
+                          >
+                            {loading ? (
+                              <Loader2Icon className="w-4 h-4 animate-spin" />
+                            ) : (
                               <>
-                                <span>•</span>
-                                <span>{profile.userDetails.location}</span>
+                                Find Path
+                                <ArrowRight className="w-3 h-3 ml-1" />
                               </>
                             )}
-                          </div>
-                          <div className="flex items-center justify-between">
-                            {profile.userDetails?.industry && (
-                              <Badge variant="secondary" className="text-xs">
-                                {profile.userDetails.industry}
-                              </Badge>
-                            )}
-                            <Button
-                              size="sm"
-                              onClick={() => handleFindPath(profile)}
-                              className="bg-blue-600 hover:bg-blue-700 text-white ml-auto"
-                              disabled={loading}
-                            >
-                              {loading ? (
-                                <Loader2Icon className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <>
-                                  Find Path
-                                  <ArrowRight className="w-3 h-3 ml-1" />
-                                </>
-                              )}
-                            </Button>
-                          </div>
+                          </Button>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
             )}
-            {suggestedProfiles.length > 3 && !suggestedLoading && (
+            {sortedSuggestions.length > 3 && !suggestedLoading && (
               <div className="flex justify-center pt-4 pb-24">
                 <Button
                   variant="outline"
                   onClick={() => setShowAllSuggested(!showAllSuggested)}
                   className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-950"
                 >
-                  {showAllSuggested ? "Show Less" : `Show ${suggestedProfiles.length - 3} More Suggestions`}
+                  {showAllSuggested ? "Show Less" : `Show ${sortedSuggestions.length - 3} More Suggestions`}
                 </Button>
               </div>
             )}
@@ -407,12 +435,19 @@ const endEmail = useMemo(() => structuredData.nodes[1]?.email, [structuredData.n
             <p className="text-sm text-muted-foreground">Unable to find connection paths between the selected nodes.</p>
           </CardContent>
         </Card>
-        {suggestedProfiles.length > 0 && <SuggestionsSection />}
+        {suggestedLoading ? (
+          <div className="flex items-center justify-center p-8 bg-white dark:bg-black">
+            <Loader2 className="h-6 w-6 animate-spin text-blue-600 dark:text-white" />
+            <span className="ml-2 text-sm text-blue-700 dark:text-white">Loading suggestions...</span>
+          </div>
+        ) : (
+          displayedSuggestions.length > 0 && <SuggestionsSection />
+        )}
       </>
     )
   }
 
-  // Show only first 4 paths
+  // Show only first 3 paths
   const displayedPaths = validPaths.slice(0, 3)
   const remainingPathsCount = Math.max(0, validPaths.length - 3)
   const uniqueUsersInRemaining = getUniqueUsersFromRemainingPaths()
@@ -422,10 +457,10 @@ const endEmail = useMemo(() => structuredData.nodes[1]?.email, [structuredData.n
       <Toaster position="top-center" />
       <PremiumModal />
 
-      {/* Main Results Section - Show only 4 paths */}
+      {/* Main Results Section - Show only 3 paths */}
       <div className="space-y-4">
         {pathsLoading
-          ? // Show 4 loading cards
+          ? // Show 3 loading cards
             Array.from({ length: 3 }).map((_, index) => (
               <Card
                 key={`loading-${index}`}
@@ -447,7 +482,7 @@ const endEmail = useMemo(() => structuredData.nodes[1]?.email, [structuredData.n
 
         {/* Path Statistics */}
         {!pathsLoading && validPaths.length > 0 && (
-          <Card className="bg-gradient-to-r pb-24   dark:bg-black">
+          <Card className="bg-gradient-to-r pb-24 dark:bg-black">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -461,7 +496,6 @@ const endEmail = useMemo(() => structuredData.nodes[1]?.email, [structuredData.n
                     </p>
                   )}
                 </div>
-
                 {remainingPathsCount > 0 && (
                   <Button
                     onClick={handleSeeMore}

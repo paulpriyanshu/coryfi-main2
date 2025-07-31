@@ -13,13 +13,13 @@ import ResultsList from "@/components/ui/sections/ResultsList"
 import CollabContent from "@/components/ui/sections/CollabContent"
 import RecentsContent from "@/components/ui/sections/RecentsContent"
 import Chat from "@/components/ui/sections/Chat"
-import { useIsMobile } from "./hooks/use-mobile"
+import { useIsMobile } from "../hooks/use-mobile"
 import { useSession } from "next-auth/react"
 import { SignInDialog } from "@/components/ui/sections/SigninDialog"
 import { MessageCircleIcon as ChatBubbleIcon } from "lucide-react"
-import { ChevronDoubleLeftIcon } from "@heroicons/react/24/outline"
+import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/react/24/outline"
 import { Badge } from "@/components/ui/badge"
-import { fetchRequestsForIntermediary, getOngoingEvaluations } from "@/app/api/actions/network"
+import { fetchReachableNodes, fetchRequestsForIntermediary, getOngoingEvaluations } from "@/app/api/actions/network"
 import SignupComponent from "./signup/SignupComponent"
 
 type FilterType = "results" | "collab" | "recents" | "chats"
@@ -46,6 +46,8 @@ function Component() {
   const [collabCount, setCollabCount] = useState(0)
   const [evaluationCount, setEvaluationCount] = useState(0)
   const [chatRecieverId, setchatRecieverId] = useState(null)
+  const [suggestionCount, setSuggestionCount] = useState(0)
+
   const router = useRouter()
   const searchParams = useSearchParams()
   const data = useAppSelector(selectResponseData)
@@ -75,7 +77,7 @@ function Component() {
     async function fetchCollabCount() {
       if (session?.user?.email) {
         const collabData = await fetchRequestsForIntermediary(session.user.email)
-        console.log("collab data",collabData)
+        console.log("collab data", collabData)
         if (collabData?.success && collabData?.data) {
           setCollabCount(collabData.data.length)
         }
@@ -91,10 +93,18 @@ function Component() {
       }
     }
 
+    async function suggestionsCount() {
+      if (session?.user?.email) {
+        const result = await fetchReachableNodes(session.user.email)
+        if (result.data.length > 0) {
+          setSuggestionCount(result.data.length)
+        }
+      }
+    }
+
     EvaluationCount()
     fetchCollabCount()
-    const intervalId = setInterval(fetchCollabCount, 5 * 60 * 1000) // Refresh every 5 minutes
-    return () => clearInterval(intervalId)
+    suggestionsCount()
   }, [session])
 
   const toggleSidebar = () => {
@@ -108,6 +118,7 @@ function Component() {
       setIsSignInDialogOpen(true)
       return
     }
+
     setActiveFilter(value)
     setIsExpanded(true)
     router.replace(`/?tab=${value}&expand=true`)
@@ -129,7 +140,7 @@ function Component() {
         </div>
 
         <div
-          className={`absolute left-0 top-0 h-full bg-slate-50 dark:bg-black rounded-xl backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex  ${
+          className={`absolute left-0 top-0 h-full bg-slate-50 dark:bg-black rounded-xl backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex ${
             isExpanded ? (isMobile ? "w-full" : "w-[480px]") : "w-10 md:w-16"
           }`}
         >
@@ -142,22 +153,30 @@ function Component() {
             <TabsList className="h-full w-10 md:w-16 flex flex-col items-center py-4 space-y-4 bg-muted/50">
               <TabsTrigger
                 value="results"
-                className="w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-white dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-black"
+                className="relative w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-white dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-black"
               >
-                <Search className="md:w-8 md:h-8 w-4 h-4 text-gray-400 data-[state=active]:text-white dark:text-white dark:data-[state=active]:text-black" />
+                <Search className="w-4 h-4 md:w-8 md:h-8 text-gray-400 data-[state=active]:text-white dark:text-white dark:data-[state=active]:text-black" />
+                {suggestionCount > 0 && (
+                  <Badge
+                    className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 flex items-center justify-center text-[10px] font-semibold min-w-[16px] md:min-w-[20px] px-1"
+                    variant="destructive"
+                  >
+                    {suggestionCount > 10 ? "9+" : suggestionCount}
+                  </Badge>
+                )}
               </TabsTrigger>
 
               <TabsTrigger
                 value="collab"
                 className="relative w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-slate-600 dark:data-[state=active]:text-black"
               >
-                <User className="w-4 h-4 md:w-8 md:h-8  text-gray-400 dark:text-white dark:data-[state=active]:text-black" />
+                <User className="w-4 h-4 md:w-8 md:h-8 text-gray-400 dark:text-white dark:data-[state=active]:text-black" />
                 {collabCount > 0 && (
                   <Badge
-                    className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 flex items-center justify-center text-[10px]"
+                    className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 flex items-center justify-center text-[10px] font-semibold min-w-[16px] md:min-w-[20px] px-1"
                     variant="destructive"
                   >
-                    {collabCount}
+                    {collabCount > 99 ? "99+" : collabCount}
                   </Badge>
                 )}
               </TabsTrigger>
@@ -166,13 +185,13 @@ function Component() {
                 value="recents"
                 className="relative w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-slate-600 dark:data-[state=active]:text-black"
               >
-                <Clock className="w-4 h-4 md:w-8 md:h-8  text-gray-400 dark:text-white dark:data-[state=active]:text-black" />
+                <Clock className="w-4 h-4 md:w-8 md:h-8 text-gray-400 dark:text-white dark:data-[state=active]:text-black" />
                 {evaluationCount > 0 && (
                   <Badge
-                    className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 flex items-center justify-center text-[10px]"
+                    className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 flex items-center justify-center text-[10px] font-semibold min-w-[16px] md:min-w-[20px] px-1"
                     variant="destructive"
                   >
-                    {evaluationCount}
+                    {evaluationCount > 99 ? "99+" : evaluationCount}
                   </Badge>
                 )}
               </TabsTrigger>
@@ -181,12 +200,12 @@ function Component() {
                 value="chats"
                 className="w-7 h-7 md:w-8 md:h-8 p-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-slate-600 dark:data-[state=active]:text-black"
               >
-                <ChatBubbleIcon className="w-4 h-4 md:w-8 md:h-8  text-gray-400 dark:text-white dark:data-[state=active]:text-black" />
+                <ChatBubbleIcon className="w-4 h-4 md:w-8 md:h-8 text-gray-400 dark:text-white dark:data-[state=active]:text-black" />
               </TabsTrigger>
 
               <Button variant="ghost" size="icon" className="w-5 h-5 p-0 md:hidden" onClick={toggleSidebar}>
                 {isExpanded ? (
-                  <ChevronDoubleLeftIcon className="h-5 w-5 text-red-400" />
+                  <ChevronDoubleLeftIcon className="h-5 w-5 text-red-400 animate-bounce-horizontal" />
                 ) : (
                   <ChevronRight className="h-5 w-5" />
                 )}
@@ -226,7 +245,7 @@ function Component() {
             )}
           </Tabs>
 
-          <Button
+        <Button
             variant="secondary"
             size="icon"
             className={`absolute -right-6 top-1/2 transform -translate-y-1/2 h-24 w-6 rounded-l-none rounded-r-lg shadow-lg border-l-0 flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors ${
@@ -234,7 +253,11 @@ function Component() {
             }`}
             onClick={toggleSidebar}
           >
-            {isExpanded ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            {isExpanded ? (
+              <ChevronLeft className="h-4 w-4" />
+            ) : (
+              <ChevronDoubleRightIcon className="h-4 w-4 animate-bounce-horizontal text-black dark:text-blue-500 font-semibold" />
+            )}
           </Button>
         </div>
 
