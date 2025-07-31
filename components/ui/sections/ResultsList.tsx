@@ -362,22 +362,25 @@ export default function ResultsList() {
 
       {/* Pagination Controls */}
       {pathRequests.length > resultsPerPage && (
-        <div className="flex justify-center gap-4 mt-4">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
-            disabled={currentPage === 0}
-          >
-            Previous
-          </Button>
-          <Button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))
-            }
-            disabled={currentPage >= totalPages - 1}
-          >
-            Next
-          </Button>
+       <div className="pb-24"> {/* Adjust padding as per footer height */}
+          {/* ... your content, including the pagination */}
+          <div className="flex justify-center gap-4 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
+              disabled={currentPage === 0}
+            >
+              Previous
+            </Button>
+            <Button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))
+              }
+              disabled={currentPage >= totalPages - 1}
+            >
+              Next
+            </Button>
+          </div>
         </div>
       )}
     </div>
