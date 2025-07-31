@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 // Individual Business Card Skeleton
 export function BusinessCardSkeleton() {
   return (
-    <Card className="overflow-hidden h-full flex flex-col">
+    <Card className="overflow-hidden h-full flex flex-col dark:bg-slate-900">
       {/* Image placeholder */}
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
         <Skeleton className="absolute top-3 left-3 h-5 w-20" />
@@ -56,7 +56,7 @@ export function FeedSkeleton({ count = 3 }: { count?: number }) {
   return (
     <div className="space-y-4 w-full max-w-3xl mx-auto">
       {/* Post composer skeleton */}
-      <Card className="w-full">
+      <Card className="w-full dark:bg-slate-900">
         <CardHeader className="p-4 flex flex-row items-center gap-3">
           <Skeleton className="h-10 w-10 rounded-full" />
           <Skeleton className="h-8 w-full rounded-md" />
@@ -68,7 +68,7 @@ export function FeedSkeleton({ count = 3 }: { count?: number }) {
 
       {/* Feed posts skeletons */}
       {Array.from({ length: count }).map((_, index) => (
-        <Card key={index} className="w-full">
+        <Card key={index} className="w-full dark:bg-slate-900">
           <CardHeader className="p-4 flex flex-row items-center gap-3">
             <Skeleton className="h-10 w-10 rounded-full" />
             <div className="space-y-2 flex-1">
@@ -96,7 +96,7 @@ export function FeedSkeleton({ count = 3 }: { count?: number }) {
 // People List Sidebar Skeleton
 export function PeopleListSkeleton({ count = 5 }: { count?: number }) {
   return (
-    <Card className="w-full">
+    <Card className="w-full dark:bg-slate-900">
       <CardHeader className="p-4">
         <Skeleton className="h-6 w-40" />
       </CardHeader>
@@ -121,7 +121,7 @@ export function PeopleListSkeleton({ count = 5 }: { count?: number }) {
 // Profile Sidebar Skeleton
 export function ProfileSkeleton() {
   return (
-    <Card className="w-full">
+    <Card className="w-full dark:bg-slate-900">
       <CardContent className="p-6">
         <div className="flex flex-col items-center space-y-4">
           <Skeleton className="h-20 w-20 rounded-full" />
@@ -141,8 +141,8 @@ export function MobileUserListSkeleton({ count = 5 }: { count?: number }) {
       <div className="flex space-x-4">
         {Array.from({ length: count }).map((_, index) => (
           <div key={index} className="flex flex-col items-center space-y-2 w-16">
-            <Skeleton className="h-16 w-16 rounded-full" />
-            <Skeleton className="h-4 w-14" />
+            <Skeleton className="h-16 w-16 rounded-full dark:bg-slate-900" />
+            <Skeleton className="h-4 w-14 dark:bg-slate-900" />
           </div>
         ))}
       </div>

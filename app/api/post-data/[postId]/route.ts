@@ -6,9 +6,11 @@ export async function GET(
   { params }: { params: { postId: string } }
 ) {
   const id = parseInt(params.postId);
+  console.log("post id",id)
+  console.log("hello")
 
   try {
-    const data = await db.post.findUnique({
+    const data = await db.post.findFirst({
       where: { id },
       select: {
         id: true,
@@ -27,7 +29,7 @@ export async function GET(
         },
       },
     });
-
+    console.log("post data",data)
     if (!data) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }

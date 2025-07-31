@@ -266,7 +266,7 @@ export default function ConnectionRequestsDropdown() {
               {requests.map((request) => (
                 <DropdownMenuItem
                   key={request.id}
-                  className={`flex items-start justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors duration-150 ease-in-out focus:bg-gray-100 ${
+                  className={`flex items-start justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors duration-150 ease-in-out focus:bg-gray-100 ${
                     request.type === "Like Post" ? "cursor-pointer" : ""
                   } ${!request.isRead ? "bg-blue-50" : ""}`}
                   onSelect={(e) => {

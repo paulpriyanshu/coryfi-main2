@@ -1053,7 +1053,9 @@ export async function getOngoingEvaluations(email:string) {
     const ongoingEvaluations = await db.evaluation.findMany({
       where: {
         OR: [{ requesterId: userData.id }],
-        status: "ONGOING",
+        status: {
+          in : ["ONGOING" , "COMPLETED" , "REJECTED"]
+        },
       },
       include: {
         paths: {
@@ -1067,6 +1069,9 @@ export async function getOngoingEvaluations(email:string) {
     // Filter evaluations that are not completed
     const incompleteEvaluations = ongoingEvaluations.filter(
       (evaluation) => evaluation.status !== "COMPLETED"
+    );
+    const completeEvaluations = ongoingEvaluations.filter(
+      (evaluation) => evaluation.status === "COMPLETED"
     );
 
     // Extract intermediaries from incomplete evaluations
@@ -1112,6 +1117,7 @@ export async function getOngoingEvaluations(email:string) {
       userData,
       ongoingEvaluations,
       incompleteEvaluations,
+      completeEvaluations,
       intermediaries,
       // evaluationsById
     };
@@ -1462,6 +1468,58 @@ export const handleApproval = async (
     return { success: false, error: error.message };
   }
 };
+
+
+
+export const fetchReachableNodes = async (userEmail: string) => {
+  try {
+    // Step 1: Fetch reachable emails from your graph service
+    const response = await axios.post("https://neo.coryfi.com/api/v1/searchReachableNodes", {
+      sourceEmail: userEmail
+    });
+
+    const emails: string[] = response.data || [];
+    console.log("reachable emails",response.data)
+
+    if (emails.length === 0) {
+      return { success: "true", data: [] }; // No reachable users
+    }
+
+    // Step 2: Query user table to get full user info
+   const users = await db.user.findMany({
+  where: {
+    email: { in: emails },
+  },
+  select: {
+    id: true,
+    name: true,
+    email: true,
+    userdp: true,
+    userDetails: true,
+    _count: {
+      select: {
+        connections: {
+          where: { status: "APPROVED" },
+        },
+        connectionsReceived: {
+          where: { status: "APPROVED" },
+        },
+      },
+    },
+  },
+});
+const usersWithConnectionCount = users.map(user => ({
+  ...user,
+  totalConnections:
+    user._count.connections + user._count.connectionsReceived,
+}));
+
+    return { success: "true", data: usersWithConnectionCount };
+  } catch (error) {
+    console.error("Error while finding nodes", error);
+    return { success: "false", error };
+  }
+};
 export async function fetchRequestsForIntermediary(intermediaryEmail: string) {
   try {
     console.log("Fetching requests for", intermediaryEmail);
@@ -1471,13 +1529,97 @@ export async function fetchRequestsForIntermediary(intermediaryEmail: string) {
       throw new Error('Intermediary email is required and must be a string.');
     }
 
-    const requests = await db.path.findMany({
+   const requests = await db.path.findMany({
+  where: {
+    intermediary: {
+      email: intermediaryEmail,
+    },
+    approved: {
+      in: ["FALSE"],
+    },
+    evaluation: {
+      NOT: {
+        status: "REJECTED",
+      },
+      status: "ONGOING",
+    },
+  },
+  include: {
+    evaluation: {
+      include: {
+        requester: {
+          select: { id: true, email: true, name: true },
+        },
+        recipient: {
+          select: { id: true, email: true, name: true },
+        },
+        paths: {
+          select: {
+            id: true,
+            new_order: true,
+            intermediary: {
+              select: { email: true, name: true },
+            },
+          },
+        },
+      },
+    },
+  },
+});
+
+    console.log("Raw requests:", requests);
+
+    // Fetch immediate next intermediary (new_order + 1) for each evaluation
+    const formattedRequests = await Promise.all(
+      requests.map(async (path) => {
+        const nextNode = await db.path.findFirst({
+          where: {
+            evaluationId: path.evaluationId,
+            order: path.order + 1, // Next intermediary in the sequence
+          },
+          select: {
+            intermediary: {
+              select: { email: true, name: true },
+            },
+          },
+        });
+
+        return {
+          evaluationId: path.evaluationId,
+          requester: path.evaluation.requester,
+          recipient: path.evaluation.recipient,
+          nextNode: nextNode ? nextNode.intermediary : null,
+          status: path.evaluation.status,
+          createdAt: path.createdAt,
+        };
+      })
+    );
+
+    console.log("Formatted Requests:", formattedRequests);
+    return { success: true, data: formattedRequests };
+  } catch (error) {
+    console.error("Error fetching requests for intermediary:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function fetchPathsApprovedByIntermediary(intermediaryEmail: string) {
+  try {
+    console.log("Fetching approved paths for intermediary:", intermediaryEmail);
+
+    if (!intermediaryEmail) {
+      throw new Error('Intermediary email is required and must be a string.');
+    }
+
+    // Fetch all paths approved by this intermediary
+    const approvedPaths = await db.path.findMany({
       where: {
         intermediary: {
           email: intermediaryEmail,
         },
-        new_order: 1, // Ensures the intermediary is the first in the chain
-        approved: "FALSE",
+        approved: {
+          in: ["TRUE"],
+        },
       },
       include: {
         evaluation: {
@@ -1494,6 +1636,160 @@ export async function fetchRequestsForIntermediary(intermediaryEmail: string) {
                 new_order: true,
                 intermediary: {
                   select: { email: true, name: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    console.log("Raw approved paths:", approvedPaths);
+
+    // Fetch next node in chain
+    const formatted = await Promise.all(
+      approvedPaths.map(async (path) => {
+        const nextNode = await db.path.findFirst({
+          where: {
+            evaluationId: path.evaluationId,
+            order: path.order + 1,
+          },
+          select: {
+            intermediary: {
+              select: { email: true, name: true },
+            },
+          },
+        });
+
+        return {
+          evaluationId: path.evaluationId,
+          requester: path.evaluation.requester,
+          recipient: path.evaluation.recipient,
+          approvedBy: path.intermediary,
+          nextNode: nextNode?.intermediary || null,
+          status: path.evaluation.status,
+          createdAt: path.createdAt,
+        };
+      })
+    );
+
+    console.log("Formatted approved paths:", formatted);
+    return { success: true, data: formatted };
+  } catch (error) {
+    console.error("Error fetching approved paths:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function fetchApprovedPaths(intermediaryEmail: string) {
+  try {
+    console.log("Fetching requests for", intermediaryEmail);
+
+    // Input validation
+    if (!intermediaryEmail) {
+      throw new Error('Intermediary email is required and must be a string.');
+    }
+
+    const requests = await db.path.findMany({
+      where: {
+        intermediary: {
+          email: intermediaryEmail,
+        },
+        approved: {
+          in : ["TRUE"]
+        },
+      },
+      include: {
+        evaluation: {
+          include: {
+            requester: {
+              select: { id: true, email: true, name: true , userdp:true },
+            },
+            recipient: {
+              select: { id: true, email: true, name: true , userdp:true },
+            },
+            paths: {
+              select: {
+                id: true,
+                new_order: true,
+                intermediary: {
+                  select: { email: true, name: true , userdp:true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    console.log("Raw requests:", requests);
+
+    // Fetch immediate next intermediary (new_order + 1) for each evaluation
+    const formattedRequests = await Promise.all(
+      requests.map(async (path) => {
+        const nextNode = await db.path.findFirst({
+          where: {
+            evaluationId: path.evaluationId,
+            order: path.order + 1, // Next intermediary in the sequence
+          },
+          select: {
+            intermediary: {
+              select: { email: true, name: true },
+            },
+          },
+        });
+
+        return {
+          evaluationId: path.evaluationId,
+          requester: path.evaluation.requester,
+          recipient: path.evaluation.recipient,
+          nextNode: nextNode ? nextNode.intermediary : null,
+          status: path.evaluation.status,
+          createdAt: path.createdAt,
+        };
+      })
+    );
+
+    console.log("Formatted Requests:", formattedRequests);
+    return { success: true, data: formattedRequests };
+  } catch (error) {
+    console.error("Error fetching requests for intermediary:", error);
+    return { success: false, error: error.message };
+  }
+}
+export async function fetchRejectedPaths(intermediaryEmail: string) {
+  try {
+    console.log("Fetching requests for", intermediaryEmail);
+
+    // Input validation
+    if (!intermediaryEmail) {
+      throw new Error('Intermediary email is required and must be a string.');
+    }
+
+    const requests = await db.path.findMany({
+      where: {
+        intermediary: {
+          email: intermediaryEmail,
+        },
+        approved: {
+          in : ["REJECTED"]
+        },
+      },
+      include: {
+        evaluation: {
+          include: {
+            requester: {
+              select: { id: true, email: true, name: true , userdp:true },
+            },
+            recipient: {
+              select: { id: true, email: true, name: true , userdp:true },
+            },
+            paths: {
+              select: {
+                id: true,
+                new_order: true,
+                intermediary: {
+                  select: { email: true, name: true , userdp:true },
                 },
               },
             },
