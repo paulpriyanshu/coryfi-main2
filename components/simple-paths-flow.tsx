@@ -298,7 +298,7 @@ export default function SimplePathsFlow({ users }: any) {
           {users?.users?.map((user) => (
             <Card
               key={user.id}
-              className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm hover:bg-slate-800/70 transition-all duration-300 dark:bg-slate-900 dark:text-white"
+              className="border-slate-700/50 backdrop-blur-sm hover:bg-slate-800/70 transition-all duration-300 dark:bg-slate-900 dark:text-white"
             >
               <CardContent className="p-4 sm:p-6 text-center">
                 {/* Avatar */}
