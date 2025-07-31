@@ -130,7 +130,7 @@ function Component() {
 
         <div
           className={`absolute left-0 top-0 h-full bg-slate-50 dark:bg-black rounded-xl backdrop-blur-sm transition-all duration-300 shadow-lg z-10 flex  ${
-            isExpanded ? (isMobile ? "w-full" : "w-[450px]") : "w-10 md:w-16"
+            isExpanded ? (isMobile ? "w-full" : "w-[480px]") : "w-10 md:w-16"
           }`}
         >
           <Tabs
