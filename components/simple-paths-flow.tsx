@@ -298,7 +298,7 @@ export default function SimplePathsFlow({ users }: any) {
           {users?.users?.map((user) => (
             <Card
               key={user.id}
-              className="border-slate-700/50 backdrop-blur-sm hover:bg-slate-800/70 transition-all duration-300 dark:bg-slate-900 dark:text-white"
+              className="border-slate-700/50 backdrop-blur-sm  transition-all duration-300 dark:bg-slate-900 dark:text-white"
             >
               <CardContent className="p-4 sm:p-6 text-center">
                 {/* Avatar */}
@@ -311,7 +311,7 @@ export default function SimplePathsFlow({ users }: any) {
                 </div>
 
                 {/* User Info */}
-                <h3 className="text-white font-medium mb-2 text-sm sm:text-base truncate">{user.name}</h3>
+                <h3 className="dark:text-white text-black font-medium mb-2 text-sm sm:text-base truncate">{user.name}</h3>
                 {user?.userDetails?.bio && (
                   <p className="text-slate-400 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">{user.userDetails.bio}</p>
                 )}
