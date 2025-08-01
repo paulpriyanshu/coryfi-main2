@@ -16,7 +16,7 @@ export async function findPath(email: string) {
     throw new Error("Failed to find path");
   }
 }
-export async function  getPathRanking(index: number, userEmail: string, targetEmail: string) {
+export async function  getPathRanking(userEmail: string, targetEmail: string, index?:number) {
   try {
     const response = await axios.post('https://neo.coryfi.com/api/v1/getpathranking', {
       sourceEmail: userEmail,

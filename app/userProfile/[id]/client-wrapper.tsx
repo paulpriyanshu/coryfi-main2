@@ -88,15 +88,20 @@ export function ClientWrapper({ userId,userEmail, isConnected: initialIsConnecte
     if(session.user.email){
       try {
         console.log("entered the function")
-        const response = await getPathRanking(0, session.user.email, email);
+        const response = await getPathRanking(session.user.email, email,0);
         console.log("response of user",response)
         if (!response || response.nodes.length === 0) {
           // More specific error handling
           toast.error('No connection path found. Please verify the user email or try again.');
           return;
         }
+          const enrichedResponse = {
+          ...response,
+          startEmail: session.user.email,
+          endEmail: email,
+        };
         router.push('/?tab=results&expand=true');
-        dispatch(setResponseData(response));
+        dispatch(setResponseData(enrichedResponse));
         toast.success('Path data loaded successfully!');
         
       } catch (error) {

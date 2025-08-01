@@ -9,6 +9,7 @@ import CollaborativeEvaluationModal from './CollaborativeEvaluationModal'
 import ConnectionPathCard from './ConnectionPathCard'
 import { fetchUserDp } from '@/app/api/actions/media'
 import { useRouter } from 'next/navigation'
+import { View } from 'lucide-react'
 
 // Function to fetch user display picture
 // export const fetchUserDp = async (email: string) => {
@@ -54,6 +55,7 @@ export default function ResultCard({ index, path }: { index: number; path }) {
 
   const handlePathClick = () => {
     dispatch(setResponseData(path))
+    router.replace("/")
   }
 
   const handleCollaborativeEvaluation = (e: React.MouseEvent) => {
@@ -89,9 +91,20 @@ useEffect(()=>{
               <h3 className="font-semibold text-sm">{lastNode.name}</h3>
               <p className="text-xs text-muted-foreground">Connected through {path.nodes.length - 2} people</p>
             </div>
+             <Button 
+              onClick={handlePathClick}
+              className="ml-auto"
+              variant="outline"
+              size="sm"
+            >
+              {/* <img src='/icon.png' className="w-5 h-5" />
+               */}
+               <View className='w-5 h-5'/>
+              <div className='font-sans text-slate-700  dark:text-white'>View</div>
+            </Button>
             <Button 
-              onClick={handleCollaborativeEvaluation}
-              className="ml-auto "
+            onClick={handleCollaborativeEvaluation}
+              className="ml-auto"
               variant="outline"
               size="sm"
             >

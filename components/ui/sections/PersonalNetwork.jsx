@@ -229,28 +229,28 @@ export default function PersonalNetwork({ data: propData }) {
     [graphData, router],
   )
 
-  const handleFindPath = useCallback(
-    async (email) => {
-      if (session?.user?.email) {
-        try {
-          const response = await fetch("https://neo.coryfi.com/api/v1/connectToUser", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              targetEmail: email,
-              sourceEmail: session.user.email,
-            }),
-          })
+  // const handleFindPath = useCallback(
+  //   async (email) => {
+  //     if (session?.user?.email) {
+  //       try {
+  //         const response = await fetch("https://neo.coryfi.com/api/v1/connectToUser", {
+  //           method: "POST",
+  //           headers: { "Content-Type": "application/json" },
+  //           body: JSON.stringify({
+  //             targetEmail: email,
+  //             sourceEmail: session.user.email,
+  //           }),
+  //         })
 
-          const data = await response.json()
-          dispatch(setResponseData(data))
-        } catch (error) {
-          console.error("Error finding path:", error)
-        }
-      }
-    },
-    [session?.user?.email, dispatch],
-  )
+  //         const data = await response.json()
+  //         dispatch(setResponseData(data))
+  //       } catch (error) {
+  //         console.error("Error finding path:", error)
+  //       }
+  //     }
+  //   },
+  //   [session?.user?.email, dispatch],
+  // )
 
   // Memoize drag behavior
   const drag = useCallback((simulation) => {

@@ -1,5 +1,6 @@
 "use client"
-import { useState, useEffect, useMemo } from "react"
+
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { AlertCircle, Loader2, Users, ArrowRight, Star, Loader2Icon, Crown, Lock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -45,9 +46,9 @@ type ReachableNodesResponse = {
   error?: any
 }
 
-const fetcher = async (index: number, startEmail: string, endEmail: string) => {
+const fetcher = async (startEmail: string, endEmail: string, index?: number) => {
   if (!startEmail || !endEmail) return null
-  return await getPathRanking(index, startEmail, endEmail)
+  return await getPathRanking(startEmail, endEmail)
 }
 
 // Function to check if user is premium
@@ -85,15 +86,22 @@ export default function ResultsList() {
     links: data?.links || [],
   }
 
-  console.log("redux data", data)
+  useEffect(() => {
+  console.log("Redux state after dispatch:", data);
+}, [data]);
 
-  const startEmail = useMemo(() => structuredData.nodes[0]?.email, [structuredData.nodes[0]?.email])
-  const endEmail = useMemo(() => structuredData.nodes[1]?.email, [structuredData.nodes[1]?.email])
+ const startEmail = structuredData.nodes[0]?.email;
+ const endEmail = structuredData.nodes[1]?.email;
 
-  const pathRequests = Array.from({ length: pathCount }, (_, index) => ({
-    index,
-    key: `pathRanking-${index}`,
-  }))
+  // Memoize pathRequests to prevent recreation on every render
+  const pathRequests = useMemo(
+    () =>
+      Array.from({ length: pathCount }, (_, index) => ({
+        index,
+        key: `pathRanking-${index}`,
+      })),
+    [pathCount],
+  )
 
   // Get current user session
   const { data: session } = useSession()
@@ -106,25 +114,29 @@ export default function ResultsList() {
     }
   }, [currentUserEmail])
 
-  // Fetch paths data with useEffect
-  useEffect(() => {
+  // Memoize the fetch function to prevent recreation
+  const fetchPaths = useCallback(async () => {
     if (!startEmail || !endEmail) return
 
-    const fetchPaths = async () => {
-      setPathsLoading(true)
-      setPathsError(null)
-      try {
-        const results = await Promise.all(pathRequests.map((req) => fetcher(req.index, startEmail, endEmail)))
-        setPathsData(results)
-      } catch (error) {
-        setPathsError(error)
-      } finally {
-        setPathsLoading(false)
-      }
-    }
+    setPathsLoading(true)
+    setPathsError(null)
 
-    fetchPaths()
+    try {
+      console.log("Fetching paths - this should only happen once")
+      const results = await fetcher(startEmail, endEmail)
+      console.log("fetcher results",results)
+      setPathsData(results.paths)
+    } catch (error) {
+      setPathsError(error)
+    } finally {
+      setPathsLoading(false)
+    }
   }, [startEmail, endEmail])
+
+  // Fetch paths data with useEffect - now properly memoized
+  useEffect(() => {
+    fetchPaths()
+  }, [startEmail,endEmail])
 
   // Fetch suggested profiles with useEffect
   useEffect(() => {
@@ -133,6 +145,7 @@ export default function ResultsList() {
     const fetchSuggested = async () => {
       setSuggestedLoading(true)
       setSuggestedError(null)
+
       try {
         const result = await fetchReachableNodes(currentUserEmail)
         setSuggestedData(result)
@@ -147,7 +160,7 @@ export default function ResultsList() {
     }
 
     fetchSuggested()
-  }, [session])
+  }, [currentUserEmail]) // Changed from [session] to [currentUserEmail] for more precise dependency
 
   const sortedSuggestions = [...(suggestedData?.data || [])].sort(
     (a, b) => (b.totalConnections || 0) - (a.totalConnections || 0),
@@ -217,19 +230,19 @@ export default function ResultsList() {
     }
 
     setIsLoading(true)
+
     if (session.user.email) {
       try {
         console.log("entered the function")
-        const response = await getPathRanking(0, session.user.email, profile.email)
-        console.log("response of user", response)
-
-        if (!response || response.nodes.length === 0) {
-          toast.error("No connection path found. Please verify the user email or try again.")
-          return
-        }
+        const response=await getPathRanking(session?.user?.email,profile.email,0)
+        const enrichedResponse = {
+          ...response,
+          startEmail: session.user.email,
+          endEmail: profile.email,
+        };
 
         router.push("/?tab=results&expand=true")
-        dispatch(setResponseData(response))
+        dispatch(setResponseData(enrichedResponse))
         toast.success("Path data loaded successfully!")
       } catch (error) {
         console.error("Error finding path:", error)
@@ -448,8 +461,8 @@ export default function ResultsList() {
   }
 
   // Show only first 3 paths
-  const displayedPaths = validPaths.slice(0, 3)
-  const remainingPathsCount = Math.max(0, validPaths.length - 3)
+  const displayedPaths = validPaths.slice(0, 4)
+  const remainingPathsCount = Math.max(0, validPaths.length - 4)
   const uniqueUsersInRemaining = getUniqueUsersFromRemainingPaths()
 
   return (
