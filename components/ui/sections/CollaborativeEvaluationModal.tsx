@@ -50,11 +50,14 @@ const handleConfirm = async () => {
     setEvaluationId(data?.evaluationId)
     console.log("data while starting path",data)
     let currentUserId = data.chatDetails.participants.filter(
-      (p) => p._id === data.chatDetails.admin
+      (p) => p.email === session?.user?.email
     )
+    // let currentUserId=currentUser[0]._id
     let recieverId = data.chatDetails.participants.filter(
       (p) => p._id !== data.chatDetails.admin
     )
+    console.log("current user id ",currentUserId)
+    console.log("reciever user id ",recieverId)
 
     toast.success('Path has started! Go to chat section', {
       icon: '🚀',
