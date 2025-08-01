@@ -102,6 +102,7 @@ export function ChatWindow({ chat, currentUserId,chatRecieverId, onClose, onChat
   useEffect(() => {
     if (refetchMessages) {
       fetchMessages()
+      console.log("this is chat",chat)
     }
   }, [refetchMessages, fetchMessages])
 

@@ -2009,7 +2009,177 @@ export async function handleFinalApproval(
     throw error; // Re-throw to be handled by caller
   }
 }
+export const startEvaluation=async(nodeList:any)=>{
+   const subject = "New Path Started";
+   const senderName=nodeList[0].name
+  const bodyText = `${senderName} has started a path`;
+  console.log("node lists",nodeList)
 
+const bodyHtml = `
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta content="telephone=no" name="format-detection">
+  <title>New Message</title>
+  <style type="text/css">/* [keep your existing styles here] */</style>
+</head>
+<body class="body" style="width:100%;height:100%;padding:0;Margin:0">
+  <div class="es-wrapper-color" style="background-color:#F6F6F6">
+    <table class="es-wrapper" width="100%" cellspacing="0" cellpadding="0">
+      <tr>
+        <td valign="top">
+          <!-- Logo and Header -->
+          <table class="m" align="center" cellspacing="0" cellpadding="0">
+            <tr>
+              <td align="center">
+                <table class="bf" style="width:600px;background-color:#ffffff;" align="center">
+                  <tr>
+                    <td style="padding:10px;">
+                      <table width="100%">
+                        <tr>
+                          <td align="center">
+                            <a href="https://connect.coryfi.com" target="_blank">
+                              <img src="https://ekcpefh.stripocdn.email/content/guids/CABINET_58374735cbe51047ab668e973a968c91de21257e54d4f75892e31f0139faeacb/images/image.png" alt="logo" width="215" height="140" style="display:block;">
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Title -->
+          <table class="l" align="center">
+            <tr>
+              <td align="center">
+                <table class="be" style="width:600px;background-color:#FFFFFF;" align="center">
+                  <tr>
+                    <td style="padding:20px;">
+                      <table width="100%">
+                        <tr>
+                          <td align="center">
+                            <h2 style="font-size:24px;color:#000000;font-family:arial;">New Evaluation</h2>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Sender Info -->
+          <table class="l" align="center">
+            <tr>
+              <td align="center">
+                <table class="be" style="width:600px;background-color:#FFFFFF;" align="center">
+                  <tr>
+                    <td style="padding:5px;">
+                      <table width="100%">
+                        <tr>
+                          <td align="center" style="padding-top:15px;padding-right:25px;padding-bottom:2px">
+                            <h3 style="font-size:20px;color:#000000;">${senderName}</h3>
+                         </tr>
+                        <tr>
+                          <td align="center" style="padding-bottom:10px;">
+                            <p style="font-size:14px;color:#000000;">has started a path</p>
+                          </td>
+                        </tr>
+
+                        <!-- PARTICIPANT MESSAGE -->
+                        <tr>
+                          <td align="center" style="padding-bottom:10px;">
+                            <p style="font-size:14px;color:#000000;">You are a participant in the following connection path:</p>
+                          </td>
+                        </tr>
+
+                        <!-- GRAPH PATH STARTS HERE -->
+                        <tr>
+                          <td align="center" style="padding-bottom:20px;">
+                            <table role="presentation" style="margin: 0 auto;">
+                              <tr>
+                                ${(() => {
+                                  const slicedNodes = nodeList.slice(2);
+                                  return slicedNodes.map((node, index) => `
+                                    <td align="center" style="padding: 10px;">
+                                      <img src="${node.userdp}" alt="${node.name}" width="48" height="48" style="border-radius: 50%; display:block;" />
+                                      <p style="font-family:arial;font-size:12px;color:#000000;margin:5px 0 0;">${node.name}</p>
+                                      <p style="font-family:arial;font-size:11px;color:#666;margin:2px 0 0;">${node.email}</p>
+                                    </td>
+                                    ${index < slicedNodes.length - 1 ? `<td style="padding: 10px;"><span style="font-size:24px;">➡️</span></td>` : ''}
+                                  `).join('');
+                                })()}
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+
+                        <!-- BUTTON -->
+                        <tr>
+                          <td align="center" style="padding-top:10px;padding-bottom:15px;">
+                            <a href="https://connect.coryfi.com/?tab=collab&expand=true" target="_blank" style="background:#000;color:#fff;padding:10px 20px;border-radius:20px;text-decoration:none;font-size:16px;">See Now</a>
+                          </td>
+                        </tr>
+
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Footer -->
+          <table class="n" align="center">
+            <tr>
+              <td align="center">
+                <table class="bd" style="width:600px;background-color:#ffffff;">
+                  <tr>
+                    <td style="padding:20px;">
+                      <table width="100%">
+                        <tr>
+                          <td align="center">
+                            <p style="color:#b2b1b1;font-size:12px;">Coryfi Connect © 2025 Coryfi Connect Pvt Ltd</p>
+                            <p style="color:#b2b1b1;font-size:12px;">All Rights Reserved.</p>
+                            <p style="color:#b2b1b1;font-size:12px;">Contact: support@coryfi.com</p>
+                            <p style="color:#999999;font-size:12px;">If you no longer wish to receive these emails, you can <a href="https://connect.coryfi.com/unsubscribe?email={{USER_EMAIL}}" style="color:#1376C8;">unsubscribe here</a>.</p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>
+`;
+try {
+  await Promise.all(nodeList.slice(2).map(async(users)=>await sendEmail(users.email,subject,bodyText,bodyHtml)))
+  return
+} catch (error) {
+  console.log("Error while sending emails",error)
+  return error
+  
+}
+
+
+
+}
 
 export const messagesent=async(senderName:string,recipientEmail:string)=>{
   console.log("reciever email",recipientEmail)
@@ -2154,6 +2324,7 @@ a[x-apple-data-detectors],
                      </tr>
                      <tr>
                       <td align="center" bgcolor="#ffffff" style="padding:0;Margin:0;padding-right:25px;padding-bottom:10px;padding-top:10px"><p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:21px;letter-spacing:0;color:#000000;font-size:14px">has sent you a message</p></td>
+                      
                      </tr>
                      <tr>
                       <td align="center" bgcolor="#ffffff" style="padding:0;Margin:0;padding-top:10px;padding-right:10px;padding-bottom:15px"><span class="w" style="border-style:solid;border-color:#333333;background:#000000;border-width:0;display:inline-block;border-radius:20px;width:auto;border-left-color:#2cb543"><a href="https://connect.coryfi.com/?tab=chats&expand=true" target="_blank" class="s" style="mso-style-priority:100 !important;text-decoration:none !important;mso-line-height-rule:exactly;color:#FFFFFF;font-size:18px;padding:10px 20px;display:inline-block;background:#000000;border-radius:20px;font-family:arial, 'helvetica neue', helvetica, sans-serif;font-weight:normal;font-style:normal;line-height:21.6px;width:auto;text-align:center;letter-spacing:0;mso-padding-alt:0;mso-border-alt:10px solid #000000">See Now</a></span></td>
@@ -2222,6 +2393,7 @@ a[x-apple-data-detectors],
  </body>
 </html>
   `;
+
 
 
 

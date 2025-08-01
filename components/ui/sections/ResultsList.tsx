@@ -321,7 +321,7 @@ export default function ResultsList() {
     }
 
     return (
-      <div className="mt-12 space-y-6 block">
+      <div className="mt-2 space-y-6 block">
         <Card className="bg-gradient-to-r dark:bg-black border-blue-200 dark:border-blue-800">
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -441,15 +441,8 @@ export default function ResultsList() {
   if (noPathsFound) {
     return (
       <>
-        <Card className="bg-background/50 hover:bg-background/80 transition-colors duration-200 dark:bg-gray-900">
-          <CardContent className="p-8 flex flex-col items-center justify-center text-center">
-            <AlertCircle className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Paths Found</h3>
-            <p className="text-sm text-muted-foreground">Unable to find connection paths between the selected nodes.</p>
-          </CardContent>
-        </Card>
         {suggestedLoading ? (
-          <div className="flex items-center justify-center p-8 bg-white dark:bg-black">
+          <div className="flex items-center justify-center p-2 bg-white dark:bg-black">
             <Loader2 className="h-6 w-6 animate-spin text-blue-600 dark:text-white" />
             <span className="ml-2 text-sm text-blue-700 dark:text-white">Loading suggestions...</span>
           </div>

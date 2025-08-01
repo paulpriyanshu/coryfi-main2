@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ArrowRight } from 'lucide-react'
-import { createConnectionRequest, intermediaryUserList } from '@/app/api/actions/network'
+import { createConnectionRequest, intermediaryUserList, startEvaluation } from '@/app/api/actions/network'
 import { useSession } from 'next-auth/react'
 import toast, { Toaster } from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
@@ -48,7 +48,7 @@ const handleConfirm = async () => {
     )
     await intermediaryUserList(path.nodes.slice(3))
     setEvaluationId(data?.evaluationId)
-
+    console.log("data while starting path",data)
     let currentUserId = data.chatDetails.participants.filter(
       (p) => p._id === data.chatDetails.admin
     )
@@ -64,6 +64,9 @@ const handleConfirm = async () => {
         color: '#fff',
       },
     })
+    console.log("starting path",path)
+    await startEvaluation(path?.nodes)
+
 
     onClose()
     dispatch(setResponseData(path))
@@ -104,7 +107,7 @@ const handleConfirm = async () => {
               {updatedPath.map((node, index) => (
                 <div key={node.id} className="flex flex-col items-center">
                   <Avatar className="w-12 h-12 mb-2">
-                    <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${node.name}`} alt={node.name} />
+                    <AvatarImage src={node.userdp ||`https://api.dicebear.com/6.x/initials/svg?seed=${node.name}`} alt={node.name} />
                     <AvatarFallback>{node.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <span className="text-xs text-center">{node.name}</span>

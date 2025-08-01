@@ -55,6 +55,10 @@ export default function ResultCard({ index, path }: { index: number; path }) {
 
   const handlePathClick = () => {
     dispatch(setResponseData(path))
+
+  }
+   const handlePathClickMobile = () => {
+    dispatch(setResponseData(path))
     router.replace("/")
   }
 
@@ -92,8 +96,8 @@ useEffect(()=>{
               <p className="text-xs text-muted-foreground">Connected through {path.nodes.length - 2} people</p>
             </div>
              <Button 
-              onClick={handlePathClick}
-              className="ml-auto"
+              onClick={handlePathClickMobile}
+              className="ml-auto md:hidden"
               variant="outline"
               size="sm"
             >
@@ -127,7 +131,13 @@ useEffect(()=>{
       <CollaborativeEvaluationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        path={path}
+        path={{
+              ...path, 
+              nodes: path.nodes.map(node => ({
+                ...node,
+                userdp: userDisplayPictures[node.email]
+              }))
+            }} 
       />
     </>
   )
