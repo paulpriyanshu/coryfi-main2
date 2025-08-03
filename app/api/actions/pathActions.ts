@@ -30,7 +30,7 @@ export async function getPathRanking(userEmail: string, targetEmail: string, ind
     }
 
     const start = performance.now();
-    const response = await axios.post('http://localhost:3003/api/v1/getpathranking', payload);
+    const response = await axios.post('https://neo.coryfi.com/api/v1/getpathranking', payload);
     console.log("getPathRanking response time:", performance.now() - start, "ms");
 
     return response.data;
