@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { AlertCircle, Loader2, Users, ArrowRight, Star, Loader2Icon, Crown, Lock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,7 @@ import { fetchReachableNodes } from "@/app/api/actions/network"
 import { setResponseData } from "@/app/libs/features/pathdata/pathSlice"
 import { useRouter } from "next/navigation"
 import { checkUserPremiumStatus } from "@/app/api/actions/user"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 type PathNode = {
   id: number
@@ -47,9 +48,30 @@ type ReachableNodesResponse = {
   error?: any
 }
 
-const fetcher = async (startEmail: string, endEmail: string, index?: number) => {
-  if (!startEmail || !endEmail) return null
-  return await getPathRanking(startEmail, endEmail, index)
+// Helper function to clean and deduplicate path nodes
+const cleanPathNodes = (nodes: PathNode[]): PathNode[] => {
+  if (!nodes || nodes.length === 0) return []
+
+  const seen = new Set<string>()
+  const cleanedNodes: PathNode[] = []
+
+  for (const node of nodes) {
+    if (node && node.email && !seen.has(node.email)) {
+      seen.add(node.email)
+      cleanedNodes.push(node)
+    }
+  }
+
+  return cleanedNodes
+}
+
+// Helper function to get intermediate node count
+const getIntermediateNodeCount = (path: ConnectionPath): number => {
+  if (!path || !path.nodes) return 0
+
+  const cleanedNodes = cleanPathNodes(path.nodes)
+  // Subtract 2 for start and end nodes to get intermediate count
+  return Math.max(0, cleanedNodes.length - 2)
 }
 
 export default function ResultsList() {
@@ -68,112 +90,183 @@ export default function ResultsList() {
   const [suggestedError, setSuggestedError] = useState<any>(null)
   const [suggestedLoading, setSuggestedLoading] = useState(false)
 
+  // Loading state for individual profile path finding
+  const [loadingProfileId, setLoadingProfileId] = useState<number | null>(null)
+
   const data = useAppSelector(selectResponseData)
-  const structuredData = {
-    nodes: data?.nodes || [],
-    links: data?.links || [],
-  }
-
-  useEffect(() => {
-    console.log("Redux state after dispatch:", data)
-  }, [data])
-
-  const startEmail = structuredData.nodes[0]?.email
-  const endEmail = structuredData.nodes[1]?.email
-
-  // Get current user session
+  const dispatch = useAppDispatch()
+  const router = useRouter()
   const { data: session } = useSession()
+
+  // Memoize structured data to prevent unnecessary recalculations
+  const structuredData = useMemo(
+    () => ({
+      nodes: data?.nodes || [],
+      links: data?.links || [],
+    }),
+    [data],
+  )
+
+  // Memoize email values
+  const startEmail = useMemo(() => structuredData.nodes[0]?.email, [structuredData.nodes])
+  const endEmail = useMemo(() => structuredData.nodes[1]?.email, [structuredData.nodes])
   const currentUserEmail = session?.user?.email
 
-  // Check premium status - UNCOMMENTED AND FIXED
+  // Check premium status - optimized with proper dependency
   useEffect(() => {
-    if (currentUserEmail) {
-      setPremiumLoading(true)
-      checkUserPremiumStatus(currentUserEmail)
-        .then((status) => {
+    if (!currentUserEmail) return
+
+    let isMounted = true
+    setPremiumLoading(true)
+
+    checkUserPremiumStatus(currentUserEmail)
+      .then((status) => {
+        if (isMounted) {
           setIsPremium(status)
           console.log("Premium status:", status)
-        })
-        .catch((error) => {
+        }
+      })
+      .catch((error) => {
+        if (isMounted) {
           console.error("Error checking premium status:", error)
           setIsPremium(false)
-        })
-        .finally(() => {
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
           setPremiumLoading(false)
-        })
+        }
+      })
+
+    return () => {
+      isMounted = false
     }
   }, [currentUserEmail])
 
-  // Memoize the fetch function to prevent recreation
+  // Memoized fetch function for paths
   const fetchPaths = useCallback(async () => {
     if (!startEmail || !endEmail) return
+
     setPathsLoading(true)
     setPathsError(null)
+
     try {
-      console.log("Fetching paths - this should only happen once")
-      const results = await fetcher(startEmail, endEmail)
-      console.log("fetcher results", results)
+      console.log("Fetching paths for:", startEmail, "->", endEmail)
+      const results = await getPathRanking(startEmail, endEmail)
+      console.log("Paths fetched:", results)
       setPathsData(results.paths)
     } catch (error) {
+      console.error("Error fetching paths:", error)
       setPathsError(error)
     } finally {
       setPathsLoading(false)
     }
   }, [startEmail, endEmail])
 
-  // Fetch paths data with useEffect - now properly memoized
+  // Fetch paths data - only when emails change
   useEffect(() => {
-    fetchPaths()
-  }, [startEmail, endEmail])
+    if (startEmail && endEmail) {
+      fetchPaths()
+    }
+  }, [fetchPaths])
 
-  // Fetch suggested profiles with useEffect
+  // Fetch suggested profiles - optimized with cleanup
   useEffect(() => {
     if (!currentUserEmail) return
+
+    let isMounted = true
+
     const fetchSuggested = async () => {
       setSuggestedLoading(true)
       setSuggestedError(null)
+
       try {
         const result = await fetchReachableNodes(currentUserEmail)
-        setSuggestedData(result)
-        console.log("Reachable nodes data:", result)
-        console.log("Suggested profiles:", result.data)
+        if (isMounted) {
+          setSuggestedData(result)
+          console.log("Suggested profiles loaded:", result.data?.length || 0)
+        }
       } catch (error) {
-        setSuggestedError(error)
-        console.error("Error fetching suggested profiles:", error)
+        if (isMounted) {
+          setSuggestedError(error)
+          console.error("Error fetching suggested profiles:", error)
+        }
       } finally {
-        setSuggestedLoading(false)
+        if (isMounted) {
+          setSuggestedLoading(false)
+        }
       }
     }
+
     fetchSuggested()
+
+    return () => {
+      isMounted = false
+    }
   }, [currentUserEmail])
 
-  const sortedSuggestions = [...(suggestedData?.data || [])].sort(
-    (a, b) => (b.totalConnections || 0) - (a.totalConnections || 0),
-  )
+  // Memoize sorted suggestions to prevent unnecessary re-sorting
+  const sortedSuggestions = useMemo(() => {
+    return [...(suggestedData?.data || [])].sort((a, b) => (b.totalConnections || 0) - (a.totalConnections || 0))
+  }, [suggestedData?.data])
 
-  const displayedSuggestions = showAllSuggested ? sortedSuggestions : sortedSuggestions.slice(0, 3)
+  const displayedSuggestions = useMemo(() => {
+    return showAllSuggested ? sortedSuggestions : sortedSuggestions.slice(0, 3)
+  }, [showAllSuggested, sortedSuggestions])
 
-  const dispatch = useAppDispatch()
-  const [loading, setIsLoading] = useState(false)
-  const router = useRouter()
-
-  // Check if all requests are complete and no paths found
+  // Optimized path calculations
   const isComplete = !pathsLoading
-  const validPaths = pathsData?.filter((path) => path && path.nodes && path.nodes.length > 0) || []
+  const validPaths = useMemo(() => {
+    return pathsData?.filter((path) => path && path.nodes && path.nodes.length > 0) || []
+  }, [pathsData])
+
   const noPathsFound = isComplete && validPaths.length === 0
 
-  // Calculate unique users from remaining paths (excluding displayed paths)
-  const getUniqueUsersFromRemainingPaths = () => {
+  // Memoize path categorization by intermediate node count
+  const categorizedPaths = useMemo(() => {
+    const categories = {
+      through1: [] as any[],
+      through2: [] as any[],
+      through3: [] as any[],
+    }
+
+    validPaths.forEach((path) => {
+      const intermediateCount = getIntermediateNodeCount(path)
+
+      switch (intermediateCount) {
+        case 1:
+          categories.through1.push(path)
+          break
+        case 2:
+          categories.through2.push(path)
+          break
+        case 3:
+          categories.through3.push(path)
+          break
+        default:
+          // Handle paths with more than 3 intermediate nodes
+          if (intermediateCount > 3) {
+            categories.through3.push(path)
+          }
+          break
+      }
+    })
+
+    return categories
+  }, [validPaths])
+
+  // Optimized unique users calculation
+  const getUniqueUsersFromRemainingPaths = useCallback(() => {
     const displayLimit = isPremium ? 10 : 4
     if (!pathsData || pathsData.length <= displayLimit) return 0
 
-    // Get all intermediate nodes from the displayed paths
     const displayedIntermediateNodes = new Set<string>()
     const displayedPaths = validPaths.slice(0, displayLimit)
+
     displayedPaths.forEach((path) => {
-      if (path.nodes && path.nodes.length > 2) {
-        // Get intermediate nodes (exclude start and end nodes)
-        const middleNodes = path.nodes.slice(1, -1)
+      const cleanedNodes = cleanPathNodes(path.nodes || [])
+      if (cleanedNodes.length > 2) {
+        const middleNodes = cleanedNodes.slice(1, -1)
         middleNodes.forEach((node) => {
           if (node.email) {
             displayedIntermediateNodes.add(node.email)
@@ -182,14 +275,13 @@ export default function ResultsList() {
       }
     })
 
-    // Now count unique users in remaining paths, excluding those already displayed
     const remainingPaths = pathsData.slice(displayLimit).filter((path) => path && path.nodes)
     const uniqueUsers = new Set<string>()
 
     remainingPaths.forEach((path) => {
-      if (path.nodes && path.nodes.length > 2) {
-        // Exclude start and end nodes (first and last)
-        const middleNodes = path.nodes.slice(1, -1)
+      const cleanedNodes = cleanPathNodes(path.nodes || [])
+      if (cleanedNodes.length > 2) {
+        const middleNodes = cleanedNodes.slice(1, -1)
         middleNodes.forEach((node) => {
           if (node.email && !displayedIntermediateNodes.has(node.email)) {
             uniqueUsers.add(node.email)
@@ -199,31 +291,43 @@ export default function ResultsList() {
     })
 
     return uniqueUsers.size
-  }
+  }, [pathsData, validPaths, isPremium])
 
-  const handleConnectProfile = (profile: SuggestedProfile) => {
+  const handleConnectProfile = useCallback((profile: SuggestedProfile) => {
     toast.success(`Connection request sent to ${profile.name}`)
-  }
+  }, [])
 
-  const handleFindPath = async (profile: SuggestedProfile) => {
-    if (!session?.user?.email) {
-      toast.error("Please sign in to find a path.")
-      return
-    }
-    setIsLoading(true)
-    if (session.user.email) {
+  // OPTIMIZED: Fixed the main performance issue
+  const handleFindPath = useCallback(
+    async (profile: SuggestedProfile) => {
+      if (!session?.user?.email) {
+        toast.error("Please sign in to find a path.")
+        return
+      }
+
+      // Prevent multiple simultaneous requests
+      if (loadingProfileId === profile.id) {
+        return
+      }
+
+      setLoadingProfileId(profile.id)
+
       try {
-        console.log("entered the function")
-        const response = await getPathRanking(session?.user?.email, profile.email, 0)
+        console.log("Finding path from", session.user.email, "to", profile.email)
+        // Single API call with proper error handling
+        const response = await getPathRanking(session.user.email, profile.email, 0)
+        console.log("Path response:", response)
+
         const enrichedResponse = {
           ...response,
           startEmail: session.user.email,
           endEmail: profile.email,
         }
+
+        // Update Redux state
         dispatch(setResponseData(enrichedResponse))
-        const isUserPremium = await checkUserPremiumStatus(session?.user?.email)
-        console.log("premium", isUserPremium)
-        setIsPremium(isUserPremium)
+
+        // Navigate after state update
         router.push("/?tab=results&expand=true")
         toast.success("Path data loaded successfully!")
       } catch (error) {
@@ -234,19 +338,32 @@ export default function ResultsList() {
           toast.error("Error finding path. Please try again or check your connection.")
         }
       } finally {
-        setIsLoading(false)
+        setLoadingProfileId(null)
       }
-    }
-  }
+    },
+    [session?.user?.email, dispatch, router, loadingProfileId],
+  )
 
-  const handleSeeMore = () => {
+  const handleSeeMore = useCallback(() => {
     if (isPremium) {
-      // Show more paths for premium users
       toast.success("Loading more paths...")
     } else {
       setShowPremiumModal(true)
     }
-  }
+  }, [isPremium])
+
+  const handleClickOnProfile = useCallback(
+    (id: number) => {
+      router.push(`/userProfile/${id}`)
+    },
+    [router],
+  )
+
+  // Memoize display calculations
+  const displayLimit = isPremium ? 10 : 4
+  const displayedPaths = useMemo(() => validPaths.slice(0, displayLimit), [validPaths, displayLimit])
+  const remainingPathsCount = Math.max(0, validPaths.length - displayLimit)
+  const uniqueUsersInRemaining = getUniqueUsersFromRemainingPaths()
 
   const PremiumModal = () =>
     showPremiumModal && (
@@ -292,10 +409,6 @@ export default function ResultsList() {
         </Card>
       </div>
     )
-
-  const handleClickOnProfile = async (id: number) => {
-    router.push(`/userProfile/${id}`)
-  }
 
   const SuggestionsSection = () => {
     if (!session?.user?.email) {
@@ -385,9 +498,9 @@ export default function ResultsList() {
                             size="sm"
                             onClick={() => handleFindPath(profile)}
                             className="bg-blue-600 hover:bg-blue-700 text-white ml-auto"
-                            disabled={loading}
+                            disabled={loadingProfileId === profile.id}
                           >
-                            {loading ? (
+                            {loadingProfileId === profile.id ? (
                               <Loader2Icon className="w-4 h-4 animate-spin" />
                             ) : (
                               <>
@@ -435,12 +548,6 @@ export default function ResultsList() {
     )
   }
 
-  // UPDATED: Show different number of paths based on premium status
-  const displayLimit = isPremium ? 10 : 4
-  const displayedPaths = validPaths.slice(0, displayLimit)
-  const remainingPathsCount = Math.max(0, validPaths.length - displayLimit)
-  const uniqueUsersInRemaining = getUniqueUsersFromRemainingPaths()
-
   return (
     <>
       <Toaster position="top-center" />
@@ -465,28 +572,104 @@ export default function ResultsList() {
         </div>
       ) : null}
 
-      {/* Main Results Section */}
-      <div className="space-y-4">
-        {pathsLoading
-          ? // Show loading cards based on display limit
-            Array.from({ length: Math.min(displayLimit, 3) }).map((_, index) => (
-              <Card
-                key={`loading-${index}`}
-                className="bg-background/50 hover:bg-background/80 transition-colors duration-200 dark:bg-slate-900"
-              >
-                <CardContent className="p-8 flex flex-col items-center justify-center text-center">
-                  <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground animate-pulse">Loading paths...</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          : displayedPaths.map((pathData, index) => (
-              <div key={`path-${index}`}>
-                <ResultCard index={index} path={pathData} />
-              </div>
-            ))}
+      {/* Main Results Section with Tabs */}
+      <div className="space-y-4 ">
+        {pathsLoading ? (
+          // Show loading cards
+          Array.from({ length: Math.min(displayLimit, 3) }).map((_, index) => (
+            <Card
+              key={`loading-${index}`}
+              className="bg-background/50 hover:bg-background/80 transition-colors duration-200 dark:bg-slate-900"
+            >
+              <CardContent className="p-8 flex flex-col items-center justify-center text-center">
+                <div className="flex flex-col items-center gap-4">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <p className="text-sm text-muted-foreground animate-pulse">Loading paths...</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : validPaths.length > 0 ? (
+          <Tabs defaultValue="through-1" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="through-1" className="flex items-center gap-1">
+                1 Node
+                <Badge variant="secondary">
+                  {categorizedPaths.through1.length}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="through-2" className="flex items-center gap-1">
+                2 Nodes
+                <Badge variant="secondary">
+                  {categorizedPaths.through2.length}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="through-3" className="flex items-center gap-1">
+                3 Nodes
+                <Badge variant="secondary">
+                  {categorizedPaths.through3.length}
+                </Badge>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="through-1" className="space-y-4">
+              {categorizedPaths.through1.slice(0, displayLimit).map((pathData, index) => (
+                <div key={`path-1-${index}`}>
+                  <ResultCard index={index} path={pathData} />
+                </div>
+              ))}
+              {categorizedPaths.through1.length === 0 && (
+                <Card className="bg-background/50 dark:bg-slate-900">
+                  <CardContent className="p-8 flex flex-col items-center justify-center text-center">
+                    <Users className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-lg font-medium text-muted-foreground">No paths through 1 node found</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Looking for paths with 1 intermediate connection (3 total nodes)
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="through-2" className="space-y-4">
+              {categorizedPaths.through2.slice(0, displayLimit).map((pathData, index) => (
+                <div key={`path-2-${index}`}>
+                  <ResultCard index={index} path={pathData} />
+                </div>
+              ))}
+              {categorizedPaths.through2.length === 0 && (
+                <Card className="bg-background/50 dark:bg-slate-900">
+                  <CardContent className="p-8 flex flex-col items-center justify-center text-center">
+                    <Users className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-lg font-medium text-muted-foreground">No paths through 2 nodes found</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Looking for paths with 2 intermediate connections (4 total nodes)
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="through-3" className="space-y-4">
+              {categorizedPaths.through3.slice(0, displayLimit).map((pathData, index) => (
+                <div key={`path-3-${index}`}>
+                  <ResultCard index={index} path={pathData} />
+                </div>
+              ))}
+              {categorizedPaths.through3.length === 0 && (
+                <Card className="bg-background/50 dark:bg-slate-900">
+                  <CardContent className="p-8 flex flex-col items-center justify-center text-center">
+                    <Users className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-lg font-medium text-muted-foreground">No paths through 3 nodes found</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Looking for paths with 3 intermediate connections (5 total nodes)
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
+        ) : null}
 
         {/* Path Statistics */}
         {!pathsLoading && validPaths.length > 0 && (
@@ -499,6 +682,11 @@ export default function ResultsList() {
                     of <span className="text-blue-600 dark:text-blue-400 font-bold">{validPaths.length}</span> paths
                     found
                   </p>
+                  <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                    <span>1-Node: {categorizedPaths.through1.length}</span>
+                    <span>2-Node: {categorizedPaths.through2.length}</span>
+                    <span>3-Node: {categorizedPaths.through3.length}</span>
+                  </div>
                   {!isPremium && remainingPathsCount > 0 && (
                     <p className="text-xs text-gray-600 dark:text-gray-400">
                       {uniqueUsersInRemaining} unique users in {remainingPathsCount} additional paths
@@ -522,8 +710,7 @@ export default function ResultsList() {
         )}
       </div>
 
-      {/* Suggested Profiles Section */}
-      {/* <SuggestionsSection /> */}
+      <SuggestionsSection />
     </>
   )
 }

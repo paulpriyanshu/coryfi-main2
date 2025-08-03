@@ -16,17 +16,24 @@ export async function findPath(email: string) {
     throw new Error("Failed to find path");
   }
 }
-export async function  getPathRanking(userEmail: string, targetEmail: string, index?:number) {
+export async function getPathRanking(userEmail: string, targetEmail: string, index?: number) {
+     console.log("path index",index)
   try {
-    const response = await axios.post('https://neo.coryfi.com/api/v1/getpathranking', {
+    const payload: Record<string, any> = {
       sourceEmail: userEmail,
       targetEmail: targetEmail,
-      pathIndex: index
-    });
+    };
+   
 
-    const data = response.data;
-    console.log("this is network data",data);
-    return data;
+    if (index !== undefined) {
+      payload.pathIndex = index;
+    }
+
+    const start = performance.now();
+    const response = await axios.post('http://localhost:3003/api/v1/getpathranking', payload);
+    console.log("getPathRanking response time:", performance.now() - start, "ms");
+
+    return response.data;
   } catch (error) {
     console.error("Error fetching path ranking:", error);
     return null;

@@ -93,17 +93,17 @@ useEffect(()=>{
             </Avatar>
             <div className="flex-grow">
               <h3 className="font-semibold text-sm">{lastNode.name}</h3>
-              <p className="text-xs text-muted-foreground">Connected through {path.nodes.length - 2} people</p>
+              <p className="text-xs text-muted-foreground">Connected through {path.nodes.length - 4} people</p>
             </div>
              <Button 
               onClick={handlePathClickMobile}
-              className="ml-auto md:hidden"
+              className="md:hidden"
               variant="outline"
               size="sm"
             >
               {/* <img src='/icon.png' className="w-5 h-5" />
                */}
-               <View className='w-5 h-5'/>
+               <View className='w-4 h-4'/>
               <div className='font-sans text-slate-700  dark:text-white'>View</div>
             </Button>
             <Button 
@@ -112,7 +112,7 @@ useEffect(()=>{
               variant="outline"
               size="sm"
             >
-              <img src='/icon.png' className="w-5 h-5" />
+              <img src='/icon.png' className="w-4 h-4" />
               <div className='font-sans text-extrabold text-slate-700  dark:text-white'>Start</div>
             </Button>
           </div>
