@@ -41,7 +41,21 @@ export const  doneIntroductoryFlow=async(email:string)=>{
 
 
 
-
+export const checkUserPremiumStatus = async (userEmail: string): Promise<boolean> => {
+  try {
+    // Replace this with your actual premium check API call
+    const response = await db.user.findFirst({
+      where:{
+        email:userEmail
+      }
+    })
+    console.log("premium",response)
+    return response.premium || false
+  } catch (error) {
+    console.error("Error checking premium status:", error)
+    return false
+  }
+}
 
 export async function getTop8MostConnectedUsers(email: string) {
   // Step 0: Get the current user by email

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { AlertCircle, Loader2, Users, ArrowRight, Star, Loader2Icon, Crown, Lock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,7 @@ import { useSession } from "next-auth/react"
 import { fetchReachableNodes } from "@/app/api/actions/network"
 import { setResponseData } from "@/app/libs/features/pathdata/pathSlice"
 import { useRouter } from "next/navigation"
+import { checkUserPremiumStatus } from "@/app/api/actions/user"
 
 type PathNode = {
   id: number
@@ -48,27 +49,14 @@ type ReachableNodesResponse = {
 
 const fetcher = async (startEmail: string, endEmail: string, index?: number) => {
   if (!startEmail || !endEmail) return null
-  return await getPathRanking(startEmail, endEmail)
-}
-
-// Function to check if user is premium
-const checkUserPremiumStatus = async (userEmail: string): Promise<boolean> => {
-  try {
-    // Replace this with your actual premium check API call
-    const response = await fetch(`/api/user/premium-status?email=${userEmail}`)
-    const data = await response.json()
-    return data.isPremium || false
-  } catch (error) {
-    console.error("Error checking premium status:", error)
-    return false
-  }
+  return await getPathRanking(startEmail, endEmail, index)
 }
 
 export default function ResultsList() {
-  const [pathCount] = useState(20) // Fetch more paths to show total count
   const [showAllSuggested, setShowAllSuggested] = useState(false)
   const [isPremium, setIsPremium] = useState(false)
   const [showPremiumModal, setShowPremiumModal] = useState(false)
+  const [premiumLoading, setPremiumLoading] = useState(false)
 
   // State for paths data
   const [pathsData, setPathsData] = useState<any[] | null>(null)
@@ -87,44 +75,44 @@ export default function ResultsList() {
   }
 
   useEffect(() => {
-  console.log("Redux state after dispatch:", data);
-}, [data]);
+    console.log("Redux state after dispatch:", data)
+  }, [data])
 
- const startEmail = structuredData.nodes[0]?.email;
- const endEmail = structuredData.nodes[1]?.email;
-
-  // Memoize pathRequests to prevent recreation on every render
-  const pathRequests = useMemo(
-    () =>
-      Array.from({ length: pathCount }, (_, index) => ({
-        index,
-        key: `pathRanking-${index}`,
-      })),
-    [pathCount],
-  )
+  const startEmail = structuredData.nodes[0]?.email
+  const endEmail = structuredData.nodes[1]?.email
 
   // Get current user session
   const { data: session } = useSession()
   const currentUserEmail = session?.user?.email
 
-  // Check premium status
+  // Check premium status - UNCOMMENTED AND FIXED
   useEffect(() => {
     if (currentUserEmail) {
-      checkUserPremiumStatus(currentUserEmail).then(setIsPremium)
+      setPremiumLoading(true)
+      checkUserPremiumStatus(currentUserEmail)
+        .then((status) => {
+          setIsPremium(status)
+          console.log("Premium status:", status)
+        })
+        .catch((error) => {
+          console.error("Error checking premium status:", error)
+          setIsPremium(false)
+        })
+        .finally(() => {
+          setPremiumLoading(false)
+        })
     }
   }, [currentUserEmail])
 
   // Memoize the fetch function to prevent recreation
   const fetchPaths = useCallback(async () => {
     if (!startEmail || !endEmail) return
-
     setPathsLoading(true)
     setPathsError(null)
-
     try {
       console.log("Fetching paths - this should only happen once")
       const results = await fetcher(startEmail, endEmail)
-      console.log("fetcher results",results)
+      console.log("fetcher results", results)
       setPathsData(results.paths)
     } catch (error) {
       setPathsError(error)
@@ -136,16 +124,14 @@ export default function ResultsList() {
   // Fetch paths data with useEffect - now properly memoized
   useEffect(() => {
     fetchPaths()
-  }, [startEmail,endEmail])
+  }, [startEmail, endEmail])
 
   // Fetch suggested profiles with useEffect
   useEffect(() => {
     if (!currentUserEmail) return
-
     const fetchSuggested = async () => {
       setSuggestedLoading(true)
       setSuggestedError(null)
-
       try {
         const result = await fetchReachableNodes(currentUserEmail)
         setSuggestedData(result)
@@ -158,9 +144,8 @@ export default function ResultsList() {
         setSuggestedLoading(false)
       }
     }
-
     fetchSuggested()
-  }, [currentUserEmail]) // Changed from [session] to [currentUserEmail] for more precise dependency
+  }, [currentUserEmail])
 
   const sortedSuggestions = [...(suggestedData?.data || [])].sort(
     (a, b) => (b.totalConnections || 0) - (a.totalConnections || 0),
@@ -177,14 +162,14 @@ export default function ResultsList() {
   const validPaths = pathsData?.filter((path) => path && path.nodes && path.nodes.length > 0) || []
   const noPathsFound = isComplete && validPaths.length === 0
 
-  // Calculate unique users from remaining paths (excluding first 3)
+  // Calculate unique users from remaining paths (excluding displayed paths)
   const getUniqueUsersFromRemainingPaths = () => {
-    if (!pathsData || pathsData.length <= 3) return 0
+    const displayLimit = isPremium ? 10 : 4
+    if (!pathsData || pathsData.length <= displayLimit) return 0
 
-    // Get all intermediate nodes from the first 3 displayed paths
+    // Get all intermediate nodes from the displayed paths
     const displayedIntermediateNodes = new Set<string>()
-    const displayedPaths = validPaths.slice(0, 3)
-
+    const displayedPaths = validPaths.slice(0, displayLimit)
     displayedPaths.forEach((path) => {
       if (path.nodes && path.nodes.length > 2) {
         // Get intermediate nodes (exclude start and end nodes)
@@ -198,10 +183,8 @@ export default function ResultsList() {
     })
 
     // Now count unique users in remaining paths, excluding those already displayed
-    const remainingPaths = pathsData.slice(3).filter((path) => path && path.nodes)
+    const remainingPaths = pathsData.slice(displayLimit).filter((path) => path && path.nodes)
     const uniqueUsers = new Set<string>()
-
-    console.log("Displayed intermediate nodes:", displayedIntermediateNodes)
 
     remainingPaths.forEach((path) => {
       if (path.nodes && path.nodes.length > 2) {
@@ -215,7 +198,6 @@ export default function ResultsList() {
       }
     })
 
-    console.log("Unique users in remaining paths:", uniqueUsers)
     return uniqueUsers.size
   }
 
@@ -228,21 +210,21 @@ export default function ResultsList() {
       toast.error("Please sign in to find a path.")
       return
     }
-
     setIsLoading(true)
-
     if (session.user.email) {
       try {
         console.log("entered the function")
-        const response=await getPathRanking(session?.user?.email,profile.email,0)
+        const response = await getPathRanking(session?.user?.email, profile.email, 0)
         const enrichedResponse = {
           ...response,
           startEmail: session.user.email,
           endEmail: profile.email,
-        };
-
-        router.push("/?tab=results&expand=true")
+        }
         dispatch(setResponseData(enrichedResponse))
+        const isUserPremium = await checkUserPremiumStatus(session?.user?.email)
+        console.log("premium", isUserPremium)
+        setIsPremium(isUserPremium)
+        router.push("/?tab=results&expand=true")
         toast.success("Path data loaded successfully!")
       } catch (error) {
         console.error("Error finding path:", error)
@@ -281,7 +263,7 @@ export default function ResultsList() {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm">Unlimited path searches</span>
+                <span className="text-sm">View up to 10 connection paths</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -382,7 +364,7 @@ export default function ResultsList() {
                           {profile.userDetails?.isVerified && <Star className="w-4 h-4 text-yellow-500 fill-current" />}
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
-                          {profile.userDetails?.bio.slice(0, 50)}
+                          {profile.userDetails?.bio?.slice(0, 50)}
                         </p>
                         <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mb-3">
                           <span>{profile.totalConnections || 0} connections</span>
@@ -453,9 +435,10 @@ export default function ResultsList() {
     )
   }
 
-  // Show only first 3 paths
-  const displayedPaths = validPaths.slice(0, 4)
-  const remainingPathsCount = Math.max(0, validPaths.length - 4)
+  // UPDATED: Show different number of paths based on premium status
+  const displayLimit = isPremium ? 10 : 4
+  const displayedPaths = validPaths.slice(0, displayLimit)
+  const remainingPathsCount = Math.max(0, validPaths.length - displayLimit)
   const uniqueUsersInRemaining = getUniqueUsersFromRemainingPaths()
 
   return (
@@ -463,11 +446,30 @@ export default function ResultsList() {
       <Toaster position="top-center" />
       <PremiumModal />
 
-      {/* Main Results Section - Show only 3 paths */}
+      {/* Premium Status Indicator */}
+      {premiumLoading ? (
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+            <span className="text-sm text-blue-700 dark:text-blue-300">Checking premium status...</span>
+          </div>
+        </div>
+      ) : isPremium ? (
+        <div className="mb-4 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950 dark:to-orange-950 rounded-lg border border-yellow-200 dark:border-yellow-800">
+          <div className="flex items-center gap-2">
+            <Crown className="h-4 w-4 text-yellow-600" />
+            <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+              Premium Active - Showing up to 10 paths
+            </span>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Main Results Section */}
       <div className="space-y-4">
         {pathsLoading
-          ? // Show 3 loading cards
-            Array.from({ length: 3 }).map((_, index) => (
+          ? // Show loading cards based on display limit
+            Array.from({ length: Math.min(displayLimit, 3) }).map((_, index) => (
               <Card
                 key={`loading-${index}`}
                 className="bg-background/50 hover:bg-background/80 transition-colors duration-200 dark:bg-slate-900"
@@ -493,23 +495,25 @@ export default function ResultsList() {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    Total Paths Found:{" "}
-                    <span className="text-blue-600 dark:text-blue-400 font-bold">{validPaths.length}</span>
+                    Showing: <span className="text-blue-600 dark:text-blue-400 font-bold">{displayedPaths.length}</span>{" "}
+                    of <span className="text-blue-600 dark:text-blue-400 font-bold">{validPaths.length}</span> paths
+                    found
                   </p>
-                  {remainingPathsCount > 0 && (
+                  {!isPremium && remainingPathsCount > 0 && (
                     <p className="text-xs text-gray-600 dark:text-gray-400">
                       {uniqueUsersInRemaining} unique users in {remainingPathsCount} additional paths
                     </p>
                   )}
                 </div>
-                {remainingPathsCount > 0 && (
+                {!isPremium && remainingPathsCount > 0 && (
                   <Button
                     onClick={handleSeeMore}
                     variant="outline"
                     className="flex items-center gap-2 border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-950 bg-transparent"
                   >
-                    {!isPremium && <Lock className="w-4 h-4" />}
-                    See More ({remainingPathsCount}){!isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
+                    <Lock className="w-4 h-4" />
+                    See More ({remainingPathsCount})
+                    <Crown className="w-4 h-4 text-yellow-500" />
                   </Button>
                 )}
               </div>

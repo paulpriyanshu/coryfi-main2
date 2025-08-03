@@ -1,6 +1,5 @@
 "use client"
-
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -19,15 +18,13 @@ import {
 } from "@/components/ui/dialog"
 import {
   fetchRequestsForIntermediary,
-  fetchRequestsForFinalIntermediary,
   handleApproval,
   handleRejection,
   handleFinalApproval,
   fetchApprovedPaths,
-  fetchRejectedPaths, // Add the rejected paths import
+  fetchRejectedPaths,
 } from "@/app/api/actions/network"
 
-// Update the User interface to include userdp
 interface User {
   id: number
   email: string
@@ -35,42 +32,10 @@ interface User {
   userdp?: string
 }
 
-// Update the Intermediary interface to include userdp
 interface Intermediary {
   email: string
   name: string
   userdp?: string
-}
-
-// Update the PathChainNode interface to include userdp
-interface PathChainNode {
-  id: number
-  evaluationId: number
-  new_order: number
-  intermediary: {
-    email: string
-    name: string
-    userdp?: string
-  }
-}
-
-// Update the FinalPathData interface to include requester and recipient objects
-interface FinalPathData {
-  requesterId: number
-  recipientId: number
-  requester: {
-    id: number
-    email: string
-    name: string
-    userdp?: string
-  }
-  recipient: {
-    id: number
-    email: string
-    name: string
-    userdp?: string
-  }
-  nodes: PathChainNode[]
 }
 
 interface CollaborationRequest {
@@ -87,7 +52,6 @@ interface ProcessedRequest extends CollaborationRequest {
   isFinalPath?: boolean
 }
 
-// Add new interface for approved paths
 interface ApprovedPathRequest {
   evaluationId: number
   requester: User
@@ -97,7 +61,6 @@ interface ApprovedPathRequest {
   createdAt: Date | string
 }
 
-// Add new interface for rejected paths
 interface RejectedPathRequest {
   evaluationId: number
   requester: User
@@ -118,9 +81,9 @@ interface CollabRequestCardProps {
   request: CollaborationRequest
   onApprove: () => void
   onDeny: () => void
+  isApproving: boolean
 }
 
-// Add new component for approved path cards
 function ApprovedPathCard({ request }: { request: ApprovedPathRequest }) {
   return (
     <Card className="w-full dark:bg-gray-700">
@@ -140,11 +103,8 @@ function ApprovedPathCard({ request }: { request: ApprovedPathRequest }) {
             {request.status}
           </Badge>
         </div>
-
-        {/* Simplified mobile path visualization: Requester → YOU → Recipient */}
         <div className="mb-4">
           <div className="flex justify-center space-x-3 items-center">
-            {/* Requester */}
             <div className="flex flex-col items-center">
               <Avatar className="w-10 h-10">
                 {request.requester.userdp ? (
@@ -159,21 +119,15 @@ function ApprovedPathCard({ request }: { request: ApprovedPathRequest }) {
               </Avatar>
               <p className="text-xs text-muted-foreground mt-1">Requester</p>
             </div>
-
             <ArrowRight className="w-4 h-4 text-muted-foreground" />
-
-            {/* YOU */}
             <div className="flex flex-col items-center">
               <Avatar className="w-10 h-10">
-                <AvatarImage src="/your-avatar.png" alt="You" />
+                <AvatarImage src="/placeholder.svg?height=40&width=40" alt="You" />
                 <AvatarFallback>You</AvatarFallback>
               </Avatar>
               <p className="text-xs text-muted-foreground mt-1">You</p>
             </div>
-
             <ArrowRight className="w-4 h-4 text-muted-foreground" />
-
-            {/* Recipient */}
             <div className="flex flex-col items-center">
               <Avatar className="w-10 h-10">
                 {request.recipient.userdp ? (
@@ -190,11 +144,9 @@ function ApprovedPathCard({ request }: { request: ApprovedPathRequest }) {
             </div>
           </div>
         </div>
-
         <p className="text-xs text-muted-foreground mb-2 text-center">
           {request.requester.name} → You → {request.recipient.name}
         </p>
-
         <div className="mt-2 p-2 bg-green-50 rounded-md">
           <p className="text-xs text-green-800 text-center">
             Path {request.status.toLowerCase()} on {new Date(request.createdAt).toLocaleDateString()}
@@ -205,7 +157,6 @@ function ApprovedPathCard({ request }: { request: ApprovedPathRequest }) {
   )
 }
 
-// Add new component for rejected path cards
 function RejectedPathCard({ request }: { request: RejectedPathRequest }) {
   return (
     <Card className="w-full dark:bg-gray-700">
@@ -217,11 +168,8 @@ function RejectedPathCard({ request }: { request: RejectedPathRequest }) {
             REJECTED
           </Badge>
         </div>
-
-        {/* Simplified mobile path visualization: Requester → YOU → Recipient */}
         <div className="mb-4">
           <div className="flex justify-center space-x-3 items-center">
-            {/* Requester */}
             <div className="flex flex-col items-center">
               <Avatar className="w-10 h-10">
                 {request.requester.userdp ? (
@@ -236,21 +184,15 @@ function RejectedPathCard({ request }: { request: RejectedPathRequest }) {
               </Avatar>
               <p className="text-xs text-muted-foreground mt-1">Requester</p>
             </div>
-
             <ArrowRight className="w-4 h-4 text-muted-foreground" />
-
-            {/* YOU */}
             <div className="flex flex-col items-center">
               <Avatar className="w-10 h-10">
-                <AvatarImage src="/your-avatar.png" alt="You" />
+                <AvatarImage src="/placeholder.svg?height=40&width=40" alt="You" />
                 <AvatarFallback>You</AvatarFallback>
               </Avatar>
               <p className="text-xs text-muted-foreground mt-1">You</p>
             </div>
-
             <ArrowRight className="w-4 h-4 text-muted-foreground" />
-
-            {/* Recipient */}
             <div className="flex flex-col items-center">
               <Avatar className="w-10 h-10">
                 {request.recipient.userdp ? (
@@ -267,11 +209,9 @@ function RejectedPathCard({ request }: { request: RejectedPathRequest }) {
             </div>
           </div>
         </div>
-
         <p className="text-xs text-muted-foreground mb-2 text-center">
           {request.requester.name} → You → {request.recipient.name}
         </p>
-
         <div className="mt-2 p-2 bg-red-50 rounded-md">
           <p className="text-xs text-red-800 text-center">
             Path rejected on {new Date(request.createdAt).toLocaleDateString()}
@@ -282,7 +222,6 @@ function RejectedPathCard({ request }: { request: RejectedPathRequest }) {
   )
 }
 
-// EvaluationModal Component - Mobile Only
 function EvaluationModal({ isOpen, onClose, onConfirm, request }: EvaluationModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -294,8 +233,6 @@ function EvaluationModal({ isOpen, onClose, onConfirm, request }: EvaluationModa
             {request.recipient.name}?
           </DialogDescription>
         </DialogHeader>
-
-        {/* Mobile path visualization */}
         <div className="py-4">
           <div className="flex flex-col space-y-4 items-center">
             <div className="text-center flex flex-col items-center">
@@ -313,18 +250,15 @@ function EvaluationModal({ isOpen, onClose, onConfirm, request }: EvaluationModa
               <p className="font-semibold text-sm">{request.requester.name}</p>
               <p className="text-xs text-muted-foreground">Requester</p>
             </div>
-
             <ArrowDown className="w-4 h-4 text-muted-foreground" />
-
             <div className="text-center flex flex-col items-center">
               <Avatar className="w-12 h-12 mb-2">
-                <AvatarImage src="/your-avatar.png" alt="You" />
+                <AvatarImage src="/placeholder.svg?height=48&width=48" alt="You" />
                 <AvatarFallback>You</AvatarFallback>
               </Avatar>
               <p className="font-semibold text-sm">You</p>
               <p className="text-xs text-muted-foreground">Intermediary</p>
             </div>
-
             {request.nextNode && (
               <>
                 <ArrowDown className="w-4 h-4 text-muted-foreground" />
@@ -347,7 +281,6 @@ function EvaluationModal({ isOpen, onClose, onConfirm, request }: EvaluationModa
             )}
           </div>
         </div>
-
         <DialogFooter className="flex flex-col space-y-2">
           <Button variant="outline" onClick={onClose} className="w-full bg-transparent">
             Cancel
@@ -361,8 +294,7 @@ function EvaluationModal({ isOpen, onClose, onConfirm, request }: EvaluationModa
   )
 }
 
-// CollabRequestCard Component - Mobile Only
-function CollabRequestCard({ request, onApprove, onDeny }: CollabRequestCardProps) {
+function CollabRequestCard({ request, onApprove, onDeny, isApproving }: CollabRequestCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const handleApproveClick = () => {
@@ -384,8 +316,6 @@ function CollabRequestCard({ request, onApprove, onDeny }: CollabRequestCardProp
             Pending
           </Badge>
         </div>
-
-        {/* Mobile path visualization */}
         <div className="mb-4">
           <div className="flex justify-center space-x-3 items-center">
             <Avatar className="w-10 h-10">
@@ -399,14 +329,11 @@ function CollabRequestCard({ request, onApprove, onDeny }: CollabRequestCardProp
               )}
               <AvatarFallback>{request.requester.name.charAt(0)}</AvatarFallback>
             </Avatar>
-
             <ArrowRight className="w-4 h-4 text-muted-foreground" />
-
             <Avatar className="w-10 h-10">
-              <AvatarImage src="/your-avatar.png" alt="You" />
+              <AvatarImage src="/placeholder.svg?height=40&width=40" alt="You" />
               <AvatarFallback>You</AvatarFallback>
             </Avatar>
-
             {request.nextNode && (
               <>
                 <ArrowRight className="w-4 h-4 text-muted-foreground" />
@@ -425,23 +352,29 @@ function CollabRequestCard({ request, onApprove, onDeny }: CollabRequestCardProp
             )}
           </div>
         </div>
-
         <p className="text-xs text-muted-foreground mb-4 text-center">
           {request.requester.name} → You {request.nextNode ? `→ ${request.nextNode.name}` : ""}
         </p>
-
         <div className="flex flex-col space-y-2">
           <Button variant="outline" size="sm" className="w-full bg-transparent" onClick={onDeny}>
             <X className="w-4 h-4 mr-2" />
             Deny
           </Button>
-          <Button size="sm" className="w-full" onClick={handleApproveClick}>
-            <Check className="w-4 h-4 mr-2" />
-            Approve
+          <Button size="sm" className="w-full" onClick={handleApproveClick} disabled={isApproving}>
+            {isApproving ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Approving...
+              </>
+            ) : (
+              <>
+                <Check className="w-4 h-4 mr-2" />
+                Approve
+              </>
+            )}
           </Button>
         </div>
       </CardContent>
-
       <EvaluationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -452,113 +385,19 @@ function CollabRequestCard({ request, onApprove, onDeny }: CollabRequestCardProp
   )
 }
 
-// ProcessedRequestCard Component - Mobile Only
-function ProcessedRequestCard({
-  request,
-  type,
-}: {
-  request: ProcessedRequest
-  type: "approved" | "rejected"
-}) {
-  const isApproved = type === "approved"
-
-  return (
-    <Card className="w-full dark:bg-gray-700">
-      <CardContent className="p-3">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold">{request.isFinalPath ? "Final Path" : "Path Request"}</h3>
-          <Badge
-            variant={isApproved ? "default" : "destructive"}
-            className={`text-xs ${isApproved ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
-          >
-            {isApproved ? (
-              <>
-                <CheckCircle className="w-3 h-3 mr-1" />
-                Approved
-              </>
-            ) : (
-              <>
-                <XCircle className="w-3 h-3 mr-1" />
-                Rejected
-              </>
-            )}
-          </Badge>
-        </div>
-
-        {/* Mobile path visualization */}
-        <div className="mb-4">
-          <div className="flex flex-col space-y-3 items-center">
-            <Avatar className="w-10 h-10">
-              {request.requester.userdp ? (
-                <AvatarImage src={request.requester.userdp || "/placeholder.svg"} alt={request.requester.name} />
-              ) : (
-                <AvatarImage
-                  src={`https://api.dicebear.com/6.x/initials/svg?seed=${request.requester.name}`}
-                  alt={request.requester.name}
-                />
-              )}
-              <AvatarFallback>{request.requester.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-
-            <ArrowDown className="w-4 h-4 text-muted-foreground" />
-
-            <Avatar className="w-10 h-10">
-              <AvatarImage src="/your-avatar.png" alt="You" />
-              <AvatarFallback>You</AvatarFallback>
-            </Avatar>
-
-            {request.nextNode && (
-              <>
-                <ArrowDown className="w-4 h-4 text-muted-foreground" />
-                <Avatar className="w-10 h-10">
-                  {request.nextNode.userdp ? (
-                    <AvatarImage src={request.nextNode.userdp || "/placeholder.svg"} alt={request.nextNode.name} />
-                  ) : (
-                    <AvatarImage
-                      src={`https://api.dicebear.com/6.x/initials/svg?seed=${request.nextNode.name}`}
-                      alt={request.nextNode.name}
-                    />
-                  )}
-                  <AvatarFallback>{request.nextNode.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-              </>
-            )}
-          </div>
-        </div>
-
-        <p className="text-xs text-muted-foreground mb-2 text-center">
-          {request.requester.name} → You {request.nextNode ? `→ ${request.nextNode.name}` : ""}
-        </p>
-
-        <p className="text-xs text-muted-foreground text-center">
-          {isApproved ? "Approved" : "Rejected"} on {new Date(request.processedAt).toLocaleDateString()}
-        </p>
-
-        {request.isFinalPath && isApproved && (
-          <div className="mt-2 p-2 bg-green-50 rounded-md">
-            <p className="text-xs text-green-800 text-center">Connection completed successfully</p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
-
-// FinalPathCard Component - Mobile Only
+// Modified FinalPathCard to accept CollaborationRequest
 function FinalPathCard({
-  data,
-  evaluationId,
+  request,
   onApprove,
   onDeny,
-  sequence,
 }: {
-  data: FinalPathData
-  evaluationId: number
+  request: CollaborationRequest
   onApprove: () => void
   onDeny: () => void
-  sequence?: number
 }) {
   const { data: session } = useSession()
+  const currentUserEmail = session?.user?.email
+  const isYouTheRecipient = currentUserEmail === request.recipient.email
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isConfirmingApproval, setIsConfirmingApproval] = useState(false)
 
@@ -571,15 +410,12 @@ function FinalPathCard({
       toast.error("You must be logged in to approve requests.")
       return
     }
-
     try {
       setIsConfirmingApproval(true)
-      const result = await handleFinalApproval(session.user.email, evaluationId)
-
+      const result = await handleFinalApproval(session.user.email, request.evaluationId, request)
       if (!result.success) {
         console.log("Failed to approve final path")
       }
-
       onApprove()
       toast.success("Final path approved successfully. Connection completed!")
       setIsModalOpen(false)
@@ -601,73 +437,79 @@ function FinalPathCard({
             Final Step
           </Badge>
         </div>
-
         <div className="mb-4">
           <p className="text-xs text-muted-foreground mb-3">Complete Path Chain:</p>
           <div className="space-y-3">
-            {/* Requester */}
+            {/* Display Requester */}
             <div className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
               <div className="flex items-center space-x-2">
                 <Avatar className="w-6 h-6">
-                  {data.requester.userdp ? (
-                    <AvatarImage src={data.requester.userdp || "/placeholder.svg"} alt={data.requester.name} />
+                  {request.requester.userdp ? (
+                    <AvatarImage src={request.requester.userdp || "/placeholder.svg"} alt={request.requester.name} />
                   ) : (
                     <AvatarImage
-                      src={`https://api.dicebear.com/6.x/initials/svg?seed=${data.requester.name}`}
-                      alt={data.requester.name}
+                      src={`https://api.dicebear.com/6.x/initials/svg?seed=${request.requester.name}`}
+                      alt={request.requester.name}
                     />
                   )}
-                  <AvatarFallback>{data.requester.name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{request.requester.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <span className="text-sm font-medium block">{data.requester.name}</span>
+                  <span className="text-sm font-medium block">{request.requester.name}</span>
                   <span className="text-xs text-muted-foreground">Requester</span>
                 </div>
               </div>
               <Badge className="bg-green-100 text-green-800 text-xs">Approved</Badge>
             </div>
-
-            {/* Intermediaries */}
-            {data.nodes.map((node, index) => (
-              <div key={node.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
+            {/* Display You (Current Intermediary) */}
+            {!isYouTheRecipient && (
+              <div className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
                 <div className="flex items-center space-x-2">
                   <Avatar className="w-6 h-6">
-                    {node.intermediary.userdp ? (
-                      <AvatarImage src={node.intermediary.userdp || "/placeholder.svg"} alt={node.intermediary.name} />
-                    ) : (
-                      <AvatarImage
-                        src={`https://api.dicebear.com/6.x/initials/svg?seed=${node.intermediary.name}`}
-                        alt={node.intermediary.name}
-                      />
-                    )}
-                    <AvatarFallback>{node.intermediary.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage src="/placeholder.svg?height=40&width=40" alt="You" />
+                    <AvatarFallback>You</AvatarFallback>
                   </Avatar>
                   <div>
-                    <span className="text-sm block">
-                      {node.intermediary.name}
-                      {index === data.nodes.length - 1 ? " (You)" : ""}
-                    </span>
+                    <span className="text-sm block">You</span>
+                    <span className="text-xs text-muted-foreground">Intermediary</span>
                   </div>
                 </div>
-                {index < data.nodes.length - 1 ? (
-                  <Badge className="bg-green-100 text-green-800 text-xs">Approved</Badge>
-                ) : (
-                  <Badge className="bg-amber-100 text-amber-800 text-xs">Pending</Badge>
-                )}
+                <Badge className="bg-amber-100 text-amber-800 text-xs">Pending</Badge>
               </div>
-            ))}
+            )}
+            {/* Display Recipient */}
+            <div className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
+              <div className="flex items-center space-x-2">
+                <Avatar className="w-6 h-6">
+                  {isYouTheRecipient ? (
+                    <AvatarImage src="/placeholder.svg?height=40&width=40" alt="You" />
+                  ) : request.recipient.userdp ? (
+                    <AvatarImage src={request.recipient.userdp || "/placeholder.svg"} alt={request.recipient.name} />
+                  ) : (
+                    <AvatarImage
+                      src={`https://api.dicebear.com/6.x/initials/svg?seed=${request.recipient.name}`}
+                      alt={request.recipient.name}
+                    />
+                  )}
+                  <AvatarFallback>{isYouTheRecipient ? "You" : request.recipient.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <span className="text-sm block">{isYouTheRecipient ? "You" : request.recipient.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {isYouTheRecipient ? "Recipient (You)" : "Recipient"}
+                  </span>
+                </div>
+              </div>
+              <Badge className="bg-amber-100 text-amber-800 text-xs">Pending</Badge>
+            </div>
           </div>
         </div>
-
-        {/* Explanation text */}
         <div className="p-3 bg-muted rounded-md mb-4">
           <p className="text-xs">
-            As the final intermediary in this path, your approval will complete the path between {data.requester.name}{" "}
-            and {data.recipient.name}.
+            As the final intermediary in this path, your approval will complete the path between{" "}
+            {request.requester.name} and {request.recipient.name}.
           </p>
         </div>
-
-        {/* Action buttons */}
         <div className="flex flex-col space-y-2">
           <Button
             variant="outline"
@@ -694,28 +536,28 @@ function FinalPathCard({
           </Button>
         </div>
       </CardContent>
-
-      {/* Final Approval Confirmation Dialog - Mobile Only */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="mx-4 max-w-sm max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base">Confirm Final Path Approval</DialogTitle>
             <DialogDescription className="text-sm">
-              You are about to approve the final connection between {data.requester.name} and {data.recipient.name}.
-              This action will complete the path and cannot be undone.
+              You are about to approve the final connection between {request.requester.name} and{" "}
+              {isYouTheRecipient ? "yourself" : request.recipient.name}. This action will complete the path and cannot
+              be undone.
             </DialogDescription>
           </DialogHeader>
-
           <div className="py-4">
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-md mb-4">
               <p className="text-sm text-amber-800 mb-2">As the final intermediary, your approval will:</p>
               <ul className="list-disc pl-5 space-y-1 text-sm text-amber-800">
-                <li>Allow them to communicate directly</li>
+                <li>
+                  Allow {request.requester.name} to communicate directly with{" "}
+                  {isYouTheRecipient ? "you" : request.recipient.name}
+                </li>
                 <li>Notify all intermediaries in the path</li>
               </ul>
             </div>
           </div>
-
           <DialogFooter className="flex flex-col space-y-2">
             <Button
               variant="outline"
@@ -742,98 +584,92 @@ function FinalPathCard({
   )
 }
 
-// Main CollabContent Component - Mobile Only
 export default function CollabContent() {
   const { data: session, status } = useSession()
-  const [collab, setCollab] = useState<CollaborationRequest[]>([])
-  const [finalPaths, setFinalPaths] = useState<{ [key: number]: FinalPathData }>({})
-  const [approvedPaths, setApprovedPaths] = useState<ProcessedRequest[]>([])
-  const [rejectedPaths, setRejectedPaths] = useState<ProcessedRequest[]>([])
+  const [collab, setCollab] = useState<CollaborationRequest[]>([]) // Regular intermediary requests
+  const [finalPaths, setFinalPaths] = useState<{ [key: number]: CollaborationRequest }>({}) // Final intermediary requests
   const [approvedPathsData, setApprovedPathsData] = useState<ApprovedPathRequest[]>([])
-  const [rejectedPathsData, setRejectedPathsData] = useState<RejectedPathRequest[]>([]) // Add new state for rejected paths
-  const [isLoading, setIsLoading] = useState(true)
-  const hasFetchedRef = useRef(false)
+  const [rejectedPathsData, setRejectedPathsData] = useState<RejectedPathRequest[]>([])
+  const [isLoadingPending, setIsLoadingPending] = useState(true)
+  const [isLoadingApproved, setIsLoadingApproved] = useState(true) // Set to true for initial fetch
+  const [isLoadingRejected, setIsLoadingRejected] = useState(true) // Set to true for initial fetch
+  const [approvingEvaluationId, setApprovingEvaluationId] = useState<number | null>(null)
+  const [activeTab, setActiveTab] = useState("pending")
 
+  // Helper function for sorting by createdAt
+  const sortByCreatedAtDesc = (a: { createdAt: Date | string }, b: { createdAt: Date | string }) =>
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+
+  // Effect for fetching all data on initial load
   useEffect(() => {
-    if (hasFetchedRef.current) return
-    hasFetchedRef.current = true
+    const fetchAllRequests = async () => {
+      if (status === "authenticated" && session?.user?.email) {
+        setIsLoadingPending(true)
+        setIsLoadingApproved(true)
+        setIsLoadingRejected(true)
 
-    const fetchRequests = async () => {
-      if (session?.user?.email) {
-        setIsLoading(true)
         try {
-          // Fetch regular intermediary requests
-          const result = await fetchRequestsForIntermediary(session.user.email)
-          if (result.success && result.data) {
-            console.log("Regular intermediary requests:", result.data)
-            setCollab(result.data)
+          const [pendingResult, approvedResult, rejectedResult] = await Promise.all([
+            fetchRequestsForIntermediary(session.user.email),
+            fetchApprovedPaths(session.user.email),
+            fetchRejectedPaths(session.user.email),
+          ])
 
-            // For each request, check if the user is the final intermediary
-            const finalPathsData: { [key: number]: FinalPathData } = {}
-            await Promise.all(
-              result.data.map(async (request) => {
-                // If there's no next node, this might be a final intermediary
-                if (!request.nextNode) {
-                  const finalResult = await fetchRequestsForFinalIntermediary(session.user.email, request.evaluationId)
-                  console.log("final results",finalResult)
-                  if (
-                    finalResult.success &&
-                    finalResult.data &&
-                    finalResult.data.nodes &&
-                    finalResult.data.nodes.length > 0
-                  ) {
-                    finalPathsData[request.evaluationId] = finalResult.data
-                  }
-                }
-              }),
-            )
-            setFinalPaths(finalPathsData)
+          if (pendingResult.success && pendingResult.data) {
+            const regular: CollaborationRequest[] = []
+            const final: { [key: number]: CollaborationRequest } = {}
+            pendingResult.data.forEach((request) => {
+              if (request.nextNode === null && request.recipient.email === session.user?.email) {
+                final[request.evaluationId] = request
+              } else {
+                regular.push(request)
+              }
+            })
+            setCollab(regular)
+            setFinalPaths(final)
           }
 
-          const approvedResult = await fetchApprovedPaths(session.user.email)
           if (approvedResult.success && approvedResult.data) {
-            console.log("Approved paths:", approvedResult.data)
             setApprovedPathsData(approvedResult.data)
           }
 
-          // Fetch rejected paths where user was first intermediary
-          const rejectedResult = await fetchRejectedPaths(session.user.email)
           if (rejectedResult.success && rejectedResult.data) {
-            console.log("Rejected paths:", rejectedResult.data)
             setRejectedPathsData(rejectedResult.data)
           }
+        } catch (error) {
+          console.error("Error fetching all requests:", error)
+          toast.error("Failed to load all path data.")
         } finally {
-          setIsLoading(false)
+          setIsLoadingPending(false)
+          setIsLoadingApproved(false)
+          setIsLoadingRejected(false)
         }
       }
     }
 
-    fetchRequests()
-  }, [session?.user?.email])
+    fetchAllRequests()
+  }, [session?.user?.email, status]) // Depend on session status and email
 
-  // Update the handleApprove function to handle loading states
   const handleApprove = async (request: CollaborationRequest) => {
     if (!session?.user?.email) {
       toast.error("You must be logged in to approve requests.")
       return
     }
-
+    setApprovingEvaluationId(request.evaluationId)
     try {
-      // Check if this is a final path approval
-      const isFinalPath = finalPaths[request.evaluationId] !== undefined
+      console.log("approving final request", request)
+      const isFinalPath = request.nextNode === null
+      console.log("is Final Path", isFinalPath)
       let result
-
       if (isFinalPath) {
-        // Use handleFinalApproval for final path approvals
-        result = await handleFinalApproval(session.user.email, request.evaluationId)
+        result = await handleFinalApproval(session.user.email, request.evaluationId, request)
         if (result.success) {
           toast.success("Final path approved successfully. Connection completed!")
         } else {
           throw new Error(result.error || "Failed to approve final path")
         }
       } else {
-        // Use regular handleApproval for non-final approvals
-        result = await handleApproval(request.evaluationId, session.user.email)
+        result = await handleApproval(request.evaluationId, session.user.email, request)
         if (result.success) {
           toast.success("Request approved successfully.")
         } else {
@@ -841,24 +677,23 @@ export default function CollabContent() {
         }
       }
 
-      // Add to approved paths
-      const processedRequest: ProcessedRequest = {
-        ...request,
-        processedAt: new Date(),
-        isFinalPath,
-      }
-      setApprovedPaths((prev) => [processedRequest, ...prev])
-
-      // Remove from both regular and final paths
+      // Update pending requests immediately
       setCollab((prevCollab) => prevCollab.filter((item) => item.evaluationId !== request.evaluationId))
       setFinalPaths((prev) => {
         const newPaths = { ...prev }
         delete newPaths[request.evaluationId]
         return newPaths
       })
+
+      // Add the approved request to approvedPathsData
+      setApprovedPathsData((prev) =>
+        [...prev, { ...request, status: "COMPLETED", createdAt: new Date().toISOString() }].sort(sortByCreatedAtDesc),
+      )
     } catch (error: any) {
       console.error("Error approving request:", error)
       toast.error(error.message || "An error occurred while approving the request.")
+    } finally {
+      setApprovingEvaluationId(null)
     }
   }
 
@@ -867,27 +702,22 @@ export default function CollabContent() {
       toast.error("You must be logged in to reject requests.")
       return
     }
-
     try {
       const result = await handleRejection(request.evaluationId, session.user.email)
       if (result.success) {
         toast.success("Request rejected successfully.")
-
-        // Add to rejected paths
-        const processedRequest: ProcessedRequest = {
-          ...request,
-          processedAt: new Date(),
-          isFinalPath: finalPaths[request.evaluationId] !== undefined,
-        }
-        setRejectedPaths((prev) => [processedRequest, ...prev])
-
-        // Remove from both regular and final paths
+        // Update pending requests immediately
         setCollab((prevCollab) => prevCollab.filter((item) => item.evaluationId !== request.evaluationId))
         setFinalPaths((prev) => {
           const newPaths = { ...prev }
           delete newPaths[request.evaluationId]
           return newPaths
         })
+
+        // Add the rejected request to rejectedPathsData
+        setRejectedPathsData((prev) =>
+          [...prev, { ...request, status: "REJECTED", createdAt: new Date().toISOString() }].sort(sortByCreatedAtDesc),
+        )
       } else {
         throw new Error(result.error || "Failed to reject request")
       }
@@ -897,7 +727,7 @@ export default function CollabContent() {
     }
   }
 
-  if (status === "loading" || isLoading) {
+  if (status === "loading" || isLoadingPending || isLoadingApproved || isLoadingRejected) {
     return (
       <div className="flex justify-center items-center h-screen w-full">
         <Loader2 className="w-10 h-10 animate-spin text-primary" aria-label="Loading" />
@@ -909,27 +739,21 @@ export default function CollabContent() {
     return <div className="text-center p-4">Please sign in to view collaboration requests</div>
   }
 
-  // Filter out requests that are in finalPaths to avoid duplication
   const regularRequests = collab.filter((request) => !finalPaths[request.evaluationId])
   const hasFinalPaths = Object.keys(finalPaths).length > 0
-
   const pendingCount = regularRequests.length + Object.keys(finalPaths).length
-  const approvedCount = approvedPaths.length
-  const rejectedCount = rejectedPaths.length
   const approvedPathsCount = approvedPathsData.length
-  const rejectedPathsCount = rejectedPathsData.length // Add count for rejected paths
+  const rejectedPathsCount = rejectedPathsData.length
 
   return (
     <>
       <Toaster position="top-right" />
       <div className="min-h-screen bg-background">
         <div className="space-y-4 p-3">
-          {/* Mobile header */}
           <div className="space-y-3">
             <h1 className="text-lg font-bold">Incoming Paths</h1>
           </div>
-
-          <Tabs defaultValue="pending" className="w-full">
+          <Tabs defaultValue="pending" className="w-full" onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-3 h-auto">
               <TabsTrigger value="pending" className="flex flex-col items-center gap-1 py-2 text-xs">
                 <Clock className="w-4 h-4" />
@@ -947,9 +771,7 @@ export default function CollabContent() {
                 <span className="text-xs text-muted-foreground">({rejectedPathsCount})</span>
               </TabsTrigger>
             </TabsList>
-
             <TabsContent value="pending" className="space-y-6 mt-4">
-              {/* Regular intermediary requests */}
               {hasFinalPaths && (
                 <div className="space-y-4 mt-8">
                   <h2 className="text-base font-semibold">Final Path Approvals</h2>
@@ -957,25 +779,21 @@ export default function CollabContent() {
                     You are the final intermediary for these paths. Your approval will complete the connection.
                   </p>
                   <div className="space-y-4">
-                    {Object.entries(finalPaths).map(([evaluationId, pathData], index) => {
-                      const request = collab.find((r) => r.evaluationId === Number.parseInt(evaluationId))
-                      if (!request) return null
-
-                      return (
-                        <FinalPathCard
-                          key={evaluationId}
-                          data={pathData}
-                          evaluationId={Number.parseInt(evaluationId)}
-                          onApprove={() => handleApprove(request)}
-                          onDeny={() => handleReject(request)}
-                          sequence={index}
-                        />
-                      )
-                    })}
+                    {Object.entries(finalPaths)
+                      .sort(([, a], [, b]) => sortByCreatedAtDesc(a, b)) // Sort final paths
+                      .map(([evaluationId, pathData]) => {
+                        return (
+                          <FinalPathCard
+                            key={evaluationId}
+                            request={pathData} // Pass CollaborationRequest directly
+                            onApprove={() => handleApprove(pathData)}
+                            onDeny={() => handleReject(pathData)}
+                          />
+                        )
+                      })}
                   </div>
                 </div>
               )}
-
               <div className="space-y-4">
                 <h2 className="text-base font-semibold">Oncoming Paths</h2>
                 {regularRequests.length === 0 ? (
@@ -986,52 +804,59 @@ export default function CollabContent() {
                 ) : (
                   <div className="space-y-4 pb-24">
                     {regularRequests
-                      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                      .sort(sortByCreatedAtDesc) // Sort regular requests
                       .map((request) => (
                         <CollabRequestCard
                           key={request.evaluationId}
                           request={request}
                           onApprove={() => handleApprove(request)}
                           onDeny={() => handleReject(request)}
+                          isApproving={approvingEvaluationId === request.evaluationId}
                         />
                       ))}
                   </div>
                 )}
               </div>
             </TabsContent>
-
             <TabsContent value="approved" className="space-y-4 mt-4">
               <h2 className="text-base font-semibold">Approved Paths You Started</h2>
               <p className="text-sm text-muted-foreground mb-4">
                 These are paths where you were the first intermediary and the path has been completed.
               </p>
-              {approvedPathsData.length === 0 ? (
+              {isLoadingApproved ? (
+                <div className="flex justify-center items-center h-32">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" aria-label="Loading approved paths" />
+                </div>
+              ) : approvedPathsData.length === 0 ? (
                 <div className="text-center p-6 text-sm text-muted-foreground border-2 border-dashed rounded-lg">
                   <Users className="w-8 h-8 mx-auto mb-4 text-muted-foreground/50" />
                   <p>No completed paths yet.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {approvedPathsData.map((request) => (
+                  {approvedPathsData.sort(sortByCreatedAtDesc).map((request) => (
                     <ApprovedPathCard key={`approved-path-${request.evaluationId}`} request={request} />
                   ))}
                 </div>
               )}
             </TabsContent>
-
             <TabsContent value="rejected" className="space-y-4 mt-4">
               <h2 className="text-base font-semibold">Rejected Paths</h2>
               <p className="text-sm text-muted-foreground mb-4">
                 These are paths where you were the first intermediary and the path was rejected.
               </p>
-              {rejectedPathsData.length === 0 ? (
+              {isLoadingRejected ? (
+                <div className="flex justify-center items-center h-32">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" aria-label="Loading rejected paths" />
+                </div>
+              ) : rejectedPathsData.length === 0 ? (
                 <div className="text-center p-6 text-sm text-muted-foreground border-2 border-dashed rounded-lg">
                   <XCircle className="w-8 h-8 mx-auto mb-4 text-muted-foreground/50" />
                   <p>No rejected paths yet.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {rejectedPathsData.map((request) => (
+                  {rejectedPathsData.sort(sortByCreatedAtDesc).map((request) => (
                     <RejectedPathCard key={`rejected-path-${request.evaluationId}`} request={request} />
                   ))}
                 </div>

@@ -13,6 +13,7 @@ model User {
   email                     String                  @unique
   name                      String
   introductoryFlow          Boolean                 @default(false)
+  premium                   Boolean                 @default(false)
   notifications             Notification[]          @relation("UserNotifications") // Added missing relation
   SenderNotifications             Notification[]          @relation("SenderUserNotifications") // Added missing relation
   posts                     Post[]                  @relation("UserPosts")
