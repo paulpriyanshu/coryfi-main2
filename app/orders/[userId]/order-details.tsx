@@ -146,7 +146,7 @@ function Orderdetails({ orderData }) {
 
       <div className="space-y-6">
         {orderData.data.map((order) => (
-          <Card key={order.id} className="overflow-hidden dark:bg-gray-700">
+          <Card key={order.id} className="overflow-hidden dark:bg-slate-950">
             {/* Separate div for click handling to avoid nested component issues */}
             <div
               className="cursor-pointer"

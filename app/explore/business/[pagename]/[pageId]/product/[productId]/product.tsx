@@ -964,7 +964,7 @@ function Product({ product, productId }) {
           <h2 className="mb-6 text-2xl font-bold">You May Also Like</h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {product.variants.map((variant, index) => (
-              <Card key={index} className="overflow-hidden">
+              <Card key={index} className="overflow-hidden dark:bg-black dark:text-white">
                 <div className="aspect-square overflow-hidden">
                   <Image
                     src={variant.product.images?.[0] || "/placeholder.svg"}

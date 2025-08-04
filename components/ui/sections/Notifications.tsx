@@ -285,7 +285,7 @@ export default function ConnectionRequestsDropdown() {
                       <p className="text-sm font-medium">{request.senderName}</p>
                       {request.type === "Like Post" && <p className="text-sm font-medium">has liked our post</p>}
 
-                      {request.type === "Connection" && <p className="text-xs text-gray-500">{request.senderMail}</p>}
+                      {request.type === "Connection" && <p className="text-xs text-gray-500">{request.senderMail.slice(0,30)}</p>}
                       {!isPending(request.status) && request.type === "Connection" && (
                         <Badge
                           variant="secondary"
