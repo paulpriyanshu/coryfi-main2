@@ -22,7 +22,7 @@ export default async function UnconnectedUsersPage() {
 
   return (
     <Card className="bg-white shadow-lg m-4">
-      <CardContent className="p-6">
+      <CardContent className="p-6 dark:bg-black dark:text-white">
         <h1 className="text-2xl font-bold text-center mb-6">People You May Know</h1>
         {/* Pass data to client component */}
         <UsersList users={users} />

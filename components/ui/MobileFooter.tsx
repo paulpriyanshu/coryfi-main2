@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation"
 import CreatePostModal from "./CreatePostModal"
 import DraftAlert from "./DraftAlert"
 import { useAppSelector } from "@/app/libs/store/hooks"
-import Chat from "./sections/Chat"
+import Link from "next/link"
 
 const hiddenRoutes=["/c"]
 
@@ -53,36 +53,42 @@ export default function MobileFooter() {
     }
   }
 
-  function NavButton({ icon, label, isActive, onClick, href }) {
-    return (
-      <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => {
-          onClick()
-          router.push(href)
-        }}
-        className={cn(
-          "relative transition-colors flex items-center justify-center",
-          isActive ? "bg-slate-800 rounded-full p-2" : "text-gray-600",
-        )}
-      >
-        <div className={cn("w-5 h-5 flex items-center justify-center", isActive ? "text-white" : "text-gray-600")}>
-          {icon}
-        </div>
-        <span className="sr-only">{label}</span>
-        {isActive && (
-          <motion.div
-            layoutId="activeIndicator"
-            className="absolute bottom-0 left-1/2 w-1 h-1 bg-black rounded-full"
-            initial={false}
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            style={{ x: "-50%" }}
-          />
-        )}
-      </motion.button>
-    )
-  }
+
+
+function NavButton({ icon, label, isActive, onClick, href }) {
+  return (
+    <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+      <Link href={href}>
+        <button
+          onClick={onClick}
+          className={cn(
+            "relative transition-colors flex items-center justify-center",
+            isActive ? "bg-slate-800 rounded-full p-2" : "text-gray-600"
+          )}
+        >
+          <div
+            className={cn(
+              "w-5 h-5 flex items-center justify-center",
+              isActive ? "text-white" : "text-gray-600"
+            )}
+          >
+            {icon}
+          </div>
+          <span className="sr-only">{label}</span>
+          {isActive && (
+            <motion.div
+              layoutId="activeIndicator"
+              className="absolute bottom-0 left-1/2 w-1 h-1 bg-black rounded-full"
+              initial={false}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              style={{ x: "-50%" }}
+            />
+          )}
+        </button>
+      </Link>
+    </motion.div>
+  );
+}
 
   function CreateButton({ onClick }) {
     return (

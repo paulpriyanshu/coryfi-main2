@@ -13,6 +13,9 @@ import { useSession } from "next-auth/react"
 export default function CheckoutPage() {
   const [selectedPlan, setSelectedPlan] = useState("annual")
   const [paymentMethod, setPaymentMethod] = useState("upi")
+    const {data:session} = useSession()
+  const [userData,setUserData]=useState(null)
+  const [loading,setLoading]=useState(false)
   const [billingDetails, setBillingDetails] = useState({
     firstName: "",
     lastName: "",
@@ -45,9 +48,7 @@ export default function CheckoutPage() {
   }
 
   const currentPlan = plans[selectedPlan as keyof typeof plans]
-  const {data:session} = useSession()
-  const [userData,setUserData]=useState(null)
-  const [loading,setLoading]=useState(false)
+
   const handleInputChange = (field: string, value: string) => {
     setBillingDetails((prev) => ({
       ...prev,
@@ -65,7 +66,8 @@ export default function CheckoutPage() {
   const handlePurchase = async () => {
     try {
         setLoading(true)
-      const res = await fetch('/api/create-subscription', {
+        if(session?.user?.email){
+              const res = await fetch('/api/create-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -74,17 +76,21 @@ export default function CheckoutPage() {
           phone: userData.userDetails?.phoneNumber,
           name: userData.name
         })
+        
       });
-
-      const data = await res.json();
-
-      if (data.success) {
+         const data = await res.json();
+         console.log("data of cashfree",data)
+        if (data.success) {
         setLoading(false)
         window.location.href = data.subscription_link;
-      } else {
+            
+    }
+    else {
         alert('Failed to start subscription: ' + data.error);
       }
-    } catch (err) {
+    } 
+    } 
+    catch (err) {
       console.error(err);
       alert('Something went wrong.');
     }

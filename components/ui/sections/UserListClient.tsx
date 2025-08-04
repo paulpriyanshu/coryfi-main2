@@ -41,7 +41,7 @@ export default function UsersList({ users }) {
 
   return (
     <div>
-      <div className="mb-4">
+      <div className="mb-4 dark:text-white">
         <Input
           type="text"
           placeholder="Search users..."
@@ -54,19 +54,19 @@ export default function UsersList({ users }) {
         {filteredUsers.map((user) => (
           <div
             key={user.id}
-            className="flex items-center justify-between mb-4 p-2 hover:bg-slate-100 rounded-lg transition-colors"
+            className="flex items-center justify-between mb-4 p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors "
           >
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 ">
               <Avatar>
                 <AvatarImage src={user.userdp} alt={user.name} />
                 <AvatarFallback>{user.name[0]}</AvatarFallback>
               </Avatar>
-              <p className="font-medium text-sm text-black">{user.name}</p>
+              <p className="font-medium text-sm text-black dark:text-white">{user.name}</p>
             </div>
             <Button
               size="sm"
               variant="outline"
-              className="text-black border-black hover:bg-slate-200"
+              className="text-black border-black hover:bg-slate-200  dark:hover:bg-slate-900 dark:text-white"
               onClick={() => handleUserClick(user)}
             >
               View

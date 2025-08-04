@@ -112,7 +112,7 @@ export function NavbarClient({ session, userId, userDp, navItems, dashboardLink,
                       <motion.div key={item.tooltip} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                         <Link
                           href={item.href}
-                          className="flex items-center text-lg font-bold space-x-2 text-black hover:text-black"
+                          className="flex items-center text-lg font-bold space-x-2 text-black dark:text-white hover:dark:text-slate-900 hover:text-black"
                           onClick={() => document.querySelector("[data-state=open]")?.click()}
                         >
                           {item.icon} 
@@ -198,8 +198,8 @@ export function NavbarClient({ session, userId, userDp, navItems, dashboardLink,
 
           <div className="flex items-center space-x-1">
             <div className="md:hidden">
-              <Link href="/search" className="mr-0 flex items-center gap-2 underline text-gray-800 hover:text-gray-600">
-                <Search className="h-4 w-4" />
+              <Link href="/users" className="mr-0 flex items-center gap-2 underline text-gray-800 hover:text-gray-600">
+                <Search className="h-5 w-5 dark:text-white" />
                 <span className="sr-only">Search</span>
               </Link>
             </div>
