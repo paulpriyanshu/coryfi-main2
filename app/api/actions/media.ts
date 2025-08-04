@@ -349,7 +349,7 @@ export const fetchUserInfo=async(email?:string,id?:number)=>{
     })
     return user
   } else {
-    const user = await db.user.findUnique({
+    const user = await db.user.findFirst({
       where: { email },
       include: {
         userDetails: true, // Include UserDetails in the result
