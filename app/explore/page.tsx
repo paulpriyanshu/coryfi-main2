@@ -37,12 +37,12 @@ export default async function MarketplacePage() {
   return (
     <div className="flex min-h-screen flex-col bg-background w-full">
       {/* Header */}
-      <div className="container mx-auto py-4 px-4 flex items-center justify-between border-b">
+      {/* <div className="container mx-auto py-4 px-4 flex items-center justify-between border-b">
         <div className="w-1/4"></div>
         <div className="w-1/2 flex justify-center">
           <SearchBar />
         </div>
-      </div>
+      </div> */}
 
       <main className="flex-1 container px-2">
         <CategoryNavigation categories={categories} />
