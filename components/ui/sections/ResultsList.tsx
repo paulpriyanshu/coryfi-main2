@@ -593,19 +593,19 @@ export default function ResultsList() {
           <Tabs defaultValue="through-1" className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-6">
               <TabsTrigger value="through-1" className="flex items-center gap-1">
-                1 Node
+                1st
                 <Badge variant="secondary">
                   {categorizedPaths.through1.length}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="through-2" className="flex items-center gap-1">
-                2 Nodes
+                2nd
                 <Badge variant="secondary">
                   {categorizedPaths.through2.length}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="through-3" className="flex items-center gap-1">
-                3 Nodes
+                3rd
                 <Badge variant="secondary">
                   {categorizedPaths.through3.length}
                 </Badge>
