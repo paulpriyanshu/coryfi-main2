@@ -364,18 +364,6 @@ function Product({ product, productId }) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Breadcrumb */}
-      <div className="mb-6 text-sm text-muted-foreground">
-        <Link href="/" className="hover:text-primary">
-          Home
-        </Link>{" "}
-        /
-        <Link href="/products" className="mx-2 hover:text-primary">
-          Products
-        </Link>{" "}
-        /<span className="font-medium text-foreground">{product?.name}</span>
-      </div>
-
       {/* Product Main Section */}
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
         {/* Product Images */}
@@ -627,6 +615,7 @@ function Product({ product, productId }) {
                 <div className="text-red-500">Only {product.stock} left in the stock !!</div>
               )}
             </div>
+            
             <div>{product.stock === 0 && <div className="text-red-500">Out of Stock !!</div>}</div>
 
             {/* Add this UI component after the Quantity section and before the Add to Cart button */}
@@ -746,7 +735,7 @@ function Product({ product, productId }) {
                 </div>
               </div>
             )}
-
+          <div className="text-red-500">Online orders coming soon!!</div>
             <div className="flex flex-col gap-4 sm:flex-row">
               <Button
                 className="flex-1 gap-2"
@@ -847,6 +836,7 @@ function Product({ product, productId }) {
                   }
                 }}
               >
+                
                 <ShoppingCart className="h-5 w-5" />
                 {product?.stock <= 0
                   ? "Out of Stock"
