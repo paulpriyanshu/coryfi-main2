@@ -89,7 +89,7 @@ export default function AddressFormClient({ userId, userData, hasAddresses, hasP
           </CardContent>
         </Card>
       ) : (
-        <Card>
+        <Card className="dark:bg-black dark:text-white">
           <CardHeader>
             <CardTitle>Shipping Information</CardTitle>
             <CardDescription>Please provide your shipping address and contact details</CardDescription>

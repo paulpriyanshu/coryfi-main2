@@ -2,7 +2,7 @@
 import { subDays,startOfDay } from "date-fns"; // if you're not already importing it
 import db from "@/db"
 import { parseTwoDigitYear } from "moment";
-export const generateOrderId = () => {
+export const  generateOrderId = () => {
   const timestamp = Date.now().toString(36); // millisecond time in base36
   const random = Math.floor(Math.random() * 1e6).toString(36); // 6-digit random in base36
   return `ORD_${(timestamp + random).toUpperCase()}`; // e.g. ORD_LSZJ5M8K3

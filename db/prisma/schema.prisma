@@ -29,10 +29,22 @@ model User {
   userDetails               UserDetails?
   createdAt                 DateTime @default(now()) // Fixed nullable issue
   employees                 Employee[]
+  premiumSubscriptions PremiumSubscription[] 
 
 
   @@index([email])
   @@index([id])
+}
+
+model PremiumSubscription {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  plan        String   @default("monthly") // 'monthly' or 'yearly'
+  paidAmount  Float
+  createdAt   DateTime @default(now())
+  expiry      DateTime
+
+  user        User     @relation(fields: [userId], references: [id]) // 👈 Foreign key
 }
 model Notification {
   id        Int      @id @default(autoincrement())

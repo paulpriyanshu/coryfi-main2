@@ -3079,7 +3079,7 @@ a[x-apple-data-detectors],
       const instructions = formData.get("instructions") as string
   
       // Upsert UserDetails
-      const userDetails = await prisma.userDetails.upsert({
+      const userDetails = await db.userDetails.upsert({
         where: { userId },
         update: {
           phoneNumber: phone,
@@ -3095,7 +3095,7 @@ a[x-apple-data-detectors],
       })
   
       // Check if address of this type already exists for this userDetails
-      const existingAddress = await prisma.address.findFirst({
+      const existingAddress = await db.address.findFirst({
         where: {
           userDetailsId: userDetails.id,
           type: addressType,
@@ -3104,7 +3104,7 @@ a[x-apple-data-detectors],
   
       if (existingAddress) {
         // Update existing address
-        await prisma.address.update({
+        await db.address.update({
           where: { id: existingAddress.id },
           data: {
             addressLine1,
@@ -3119,7 +3119,7 @@ a[x-apple-data-detectors],
         })
       } else {
         // Create new address of this type
-        await prisma.address.create({
+        await db.address.create({
           data: {
             type: addressType,
             addressLine1,

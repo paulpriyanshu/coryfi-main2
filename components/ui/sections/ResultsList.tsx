@@ -17,6 +17,7 @@ import { setResponseData } from "@/app/libs/features/pathdata/pathSlice"
 import { useRouter } from "next/navigation"
 import { checkUserPremiumStatus } from "@/app/api/actions/user"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import Link from "next/link"
 
 type PathNode = {
   id: number
@@ -395,15 +396,18 @@ export default function ResultsList() {
               <Button variant="outline" className="flex-1 bg-transparent" onClick={() => setShowPremiumModal(false)}>
                 Maybe Later
               </Button>
-              <Button
-                className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600"
-                onClick={() => {
-                  setShowPremiumModal(false)
-                  toast.success("Redirecting to premium upgrade...")
-                }}
-              >
-                Upgrade Now
-              </Button>
+             <Link href="/premium/checkout" passHref>
+                <Button
+                  asChild
+                  className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600"
+                  onClick={() => {
+                    setShowPremiumModal(false);
+                    toast.success("Redirecting to premium upgrade...");
+                  }}
+                >
+                  <a>Upgrade Now</a>
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>

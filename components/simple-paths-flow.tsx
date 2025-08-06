@@ -198,7 +198,7 @@ export default function SimplePathsFlow({ users }: any) {
         <h1 className="text-lg sm:text-3xl lg:text-4xl font-bold text-white mb-4 sm:mb-6 tracking-tight">
           Introducing Paths
         </h1>
-        <p className="text-slate-300 text-base sm:text-lg lg:text-xl max-w-2xl leading-relaxed">
+        <p className="text-slate-200 text-base font-semibold sm:text-lg lg:text-xl max-w-2xl leading-relaxed">
           Discover connections and build your professional network through intelligent path mapping
         </p>
       </div>

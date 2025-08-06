@@ -6,7 +6,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { signOut, signIn } from "next-auth/react"
-import { Menu, Settings, LogOut, Search, User, Package } from "lucide-react"
+import { Menu, Settings, LogOut, Search, User, Package, Crown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage } from "@/components/ui/avatar"
 import { SelectDemo } from "./SelectPage"
@@ -155,7 +155,9 @@ export function NavbarClient({ session, userId, userDp, navItems, dashboardLink,
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </Button>
+                    
                 </div>
+                
                 <Button
                   variant="outline"
                   className="w-full mt-auto mb-4"
@@ -167,6 +169,8 @@ export function NavbarClient({ session, userId, userDp, navItems, dashboardLink,
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout
                 </Button>
+                
+
               </SheetContent>
             </Sheet>
             {children && children[0]}
@@ -234,12 +238,19 @@ export function NavbarClient({ session, userId, userDp, navItems, dashboardLink,
                       <span>Your Orders</span>
                     </DropdownMenuItem>
                   </Link>
+                  <Link href="/premium/checkout" passHref>
+                    <DropdownMenuItem>
+                      <Crown className="mr-2 h-4 w-4 text-orange-400 dark:text-orange-400" />
+                      <span>Premium</span>
+                    </DropdownMenuItem>
+                  </Link>
                   <Link href={dashboardLink} passHref>
                     <DropdownMenuItem>
                       <DashboardIcon className="mr-2 h-4 w-4" />
                       <span>Dashboard</span>
                     </DropdownMenuItem>
                   </Link>
+                  
 
                   <Link href="/settings/profile" passHref>
                     <DropdownMenuItem>

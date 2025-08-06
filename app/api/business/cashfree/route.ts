@@ -42,6 +42,76 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Payment not successful" });
     }
 
+    // ✅ Handle premium subscription payments
+    const premiumMatch = order_id.match(/^order_(\d+)_(monthly|annual)_\d+$/);
+    if (premiumMatch) {
+      const userId = parseInt(premiumMatch[1]);
+      const selectedPlan = premiumMatch[2]; // "monthly" or "annual"
+
+      // Idempotency check
+      const existingTx = await db.transaction.findUnique({
+        where: { transactionId: String(cf_payment_id) },
+      });
+
+      if (existingTx) {
+        console.log("Payment already processed, skipping.");
+        return NextResponse.json({ message: "Already processed" });
+      }
+
+      const existingPremium = await db.premiumSubscription.findFirst({
+        where: {
+          userId,
+          expiry: {
+            gte: new Date(), // still valid
+          },
+        },
+      });
+
+      if (!existingPremium) {
+        const expiry = new Date();
+        if (selectedPlan === "annual") {
+          expiry.setFullYear(expiry.getFullYear() + 1); // 1 year
+        } else {
+          expiry.setDate(expiry.getDate() + 30); // 30 days
+        }
+
+        await db.premiumSubscription.create({
+          data: {
+            userId,
+            plan: selectedPlan,
+            paidAmount: payment_amount,
+            expiry,
+          },
+        });
+
+        // await db.transaction.create({
+        //   data: {
+        //     orderId: order_id,
+        //     transactionId: String(cf_payment_id),
+        //     paymentStatus: payment_status,
+        //     paymentAmount: payment_amount,
+        //     paymentCurrency: payment_currency,
+        //     paymentMode: payment_group ?? "unknown",
+        //     paymentTime: new Date(payment_time),
+        //     bankReference: bank_reference ?? null,
+        //     paymentMessage: payment_message ?? null,
+        //     customerName: customer_name,
+        //     customerEmail: customer_email,
+        //     customerPhone: customer_phone,
+        //     paymentDetails: payload,
+        //   },
+        // });
+
+        console.log(`✅ ${selectedPlan} premium subscription created for user:`, userId);
+      } else {
+        console.log("🔁 User already has active premium, skipping new entry.");
+      }
+
+      return NextResponse.json({ message: "Premium processed successfully" });
+    }
+
+    // ✅ Regular order flow
+
     // Idempotency check
     const existingTx = await db.transaction.findUnique({
       where: { transactionId: String(cf_payment_id) },
@@ -138,7 +208,6 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // ✅ Proper payout split by business using product-level info
       const payoutDate = new Date(new Date(payment_time).toDateString());
 
       const businessPayouts: Record<string, Decimal> = {};

@@ -1,5 +1,6 @@
 "use server"
 import db from "@/db"
+import { isAfter } from "date-fns"
 
 export const  checkPathsFlow=async(email:string)=>{
     try {
@@ -43,19 +44,38 @@ export const  doneIntroductoryFlow=async(email:string)=>{
 
 export const checkUserPremiumStatus = async (userEmail: string): Promise<boolean> => {
   try {
-    // Replace this with your actual premium check API call
-    const response = await db.user.findFirst({
-      where:{
-        email:userEmail
-      }
-    })
-    console.log("premium",response)
-    return response.premium || false
+    // Get user first
+    const user = await db.user.findFirst({
+      where: { email: userEmail },
+      select: { id: true },
+    });
+
+    if (!user) {
+      console.log("User not found");
+      return false;
+    }
+
+    // Get the latest subscription (assuming later createdAt means most recent)
+    const subscription = await db.premiumSubscription.findFirst({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!subscription) {
+      console.log("No subscriptions found");
+      return false;
+    }
+
+    const isActive = isAfter(new Date(subscription.expiry), new Date());
+
+    console.log("Subscription active:", isActive);
+
+    return isActive;
   } catch (error) {
-    console.error("Error checking premium status:", error)
-    return false
+    console.error("Error checking premium status:", error);
+    return false;
   }
-}
+};
 
 export async function getTop8MostConnectedUsers(email: string) {
   // Step 0: Get the current user by email
