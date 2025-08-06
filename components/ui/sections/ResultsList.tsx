@@ -396,7 +396,7 @@ export default function ResultsList() {
               <Button variant="outline" className="flex-1 bg-transparent" onClick={() => setShowPremiumModal(false)}>
                 Maybe Later
               </Button>
-             <Link href="/premium/checkout" passHref>
+             <Link href="/premium" passHref>
                 <Button
                   asChild
                   className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600"

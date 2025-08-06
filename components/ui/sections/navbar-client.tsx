@@ -238,7 +238,7 @@ export function NavbarClient({ session, userId, userDp, navItems, dashboardLink,
                       <span>Your Orders</span>
                     </DropdownMenuItem>
                   </Link>
-                  <Link href="/premium/checkout" passHref>
+                  <Link href="/premium" passHref>
                     <DropdownMenuItem>
                       <Crown className="mr-2 h-4 w-4 text-orange-400 dark:text-orange-400" />
                       <span>Premium</span>

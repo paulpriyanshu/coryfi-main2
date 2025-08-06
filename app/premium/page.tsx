@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Check, X, Crown, Star, Zap, Shield, Users, TrendingUp } from "lucide-react"
+import Link from "next/link"
 
 export default function PremiumPage() {
   const freeFeatures = [
@@ -100,9 +101,12 @@ export default function PremiumPage() {
               </div>
             </CardHeader>
             <CardContent className="px-8 pb-8">
-              <Button className="w-full h-14 text-lg font-semibold bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300">
+
+             <Link href={"/premium/checkout"} passHref>
+                 <Button className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 hover:from-purple-700 hover:to-blue-700 dark:hover:from-purple-600 dark:hover:to-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-300">
                 Start Monthly Plan
               </Button>
+                </Link>
               <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
                 No commitment • Start immediately
               </p>
@@ -155,9 +159,12 @@ export default function PremiumPage() {
               </div>
             </CardHeader>
             <CardContent className="px-8 pb-8">
-              <Button className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 hover:from-purple-700 hover:to-blue-700 dark:hover:from-purple-600 dark:hover:to-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-300">
+                <Link href={"/premium/checkout"} passHref>
+                 <Button className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 hover:from-purple-700 hover:to-blue-700 dark:hover:from-purple-600 dark:hover:to-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-300">
                 Start Annual Plan
               </Button>
+                </Link>
+             
               <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
                 Most popular choice • Best value
               </p>
@@ -258,13 +265,16 @@ export default function PremiumPage() {
                 Join thousands of creators who have already upgraded their Coryfi experience
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
+                <Link href={"/premium/checkout"} passHref>
+                     <Button
                   size="lg"
                   variant="secondary"
                   className="bg-white text-purple-600 hover:bg-gray-100 dark:bg-gray-100 dark:text-purple-600 dark:hover:bg-gray-200"
                 >
                   Upgrade Now
                 </Button>
+                </Link>
+           
               </div>
             </CardContent>
           </Card>
