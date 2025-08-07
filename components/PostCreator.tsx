@@ -164,7 +164,7 @@ export default function ContentCreator({ userId, maxImages = 4 }: ContentCreator
             </AvatarFallback>
           </Avatar>
 
-          <div className="flex-grow space-y-4">
+          <div className="flex-grow space-y-4 dark:bg-black dark:text-white">
             <ReactQuill
               theme="snow"
               value={content}

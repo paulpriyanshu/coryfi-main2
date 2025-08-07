@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { AlertCircle, Loader2, Users, ArrowRight, Star, Loader2Icon, Crown, Lock } from "lucide-react"
+import { AlertCircle, Loader2, Users, ArrowRight, Star, Loader2Icon, Crown, Lock, Lightbulb, Book } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation"
 import { checkUserPremiumStatus } from "@/app/api/actions/user"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
+import TutorialModal from "./tutorial-modal"
 
 type PathNode = {
   id: number
@@ -52,24 +53,23 @@ type ReachableNodesResponse = {
 // Helper function to clean and deduplicate path nodes
 const cleanPathNodes = (nodes: PathNode[]): PathNode[] => {
   if (!nodes || nodes.length === 0) return []
-
+  
   const seen = new Set<string>()
   const cleanedNodes: PathNode[] = []
-
+  
   for (const node of nodes) {
     if (node && node.email && !seen.has(node.email)) {
       seen.add(node.email)
       cleanedNodes.push(node)
     }
   }
-
+  
   return cleanedNodes
 }
 
 // Helper function to get intermediate node count
 const getIntermediateNodeCount = (path: ConnectionPath): number => {
   if (!path || !path.nodes) return 0
-
   const cleanedNodes = cleanPathNodes(path.nodes)
   // Subtract 2 for start and end nodes to get intermediate count
   return Math.max(0, cleanedNodes.length - 2)
@@ -80,6 +80,7 @@ export default function ResultsList() {
   const [isPremium, setIsPremium] = useState(false)
   const [showPremiumModal, setShowPremiumModal] = useState(false)
   const [premiumLoading, setPremiumLoading] = useState(false)
+  const [showTutorialModal, setShowTutorialModal] = useState(false)
 
   // State for paths data
   const [pathsData, setPathsData] = useState<any[] | null>(null)
@@ -233,7 +234,6 @@ export default function ResultsList() {
 
     validPaths.forEach((path) => {
       const intermediateCount = getIntermediateNodeCount(path)
-
       switch (intermediateCount) {
         case 1:
           categories.through1.push(path)
@@ -299,50 +299,49 @@ export default function ResultsList() {
   }, [])
 
   // OPTIMIZED: Fixed the main performance issue
-  const handleFindPath = useCallback(
-    async (profile: SuggestedProfile) => {
-      if (!session?.user?.email) {
-        toast.error("Please sign in to find a path.")
-        return
+  const handleFindPath = useCallback(async (profile: SuggestedProfile) => {
+    if (!session?.user?.email) {
+      toast.error("Please sign in to find a path.")
+      return
+    }
+
+    // Prevent multiple simultaneous requests
+    if (loadingProfileId === profile.id) {
+      return
+    }
+
+    setLoadingProfileId(profile.id)
+
+    try {
+      console.log("Finding path from", session.user.email, "to", profile.email)
+      // Single API call with proper error handling
+      const response = await getPathRanking(session.user.email, profile.email, 0)
+      console.log("Path response:", response)
+
+      const enrichedResponse = {
+        ...response,
+        startEmail: session.user.email,
+        endEmail: profile.email,
       }
 
-      // Prevent multiple simultaneous requests
-      if (loadingProfileId === profile.id) {
-        return
+      // Update Redux state
+      dispatch(setResponseData(enrichedResponse))
+
+      // Navigate after state update
+      router.push("/?tab=results&expand=true")
+      toast.success("Path data loaded successfully!")
+    } catch (error) {
+      console.error("Error finding path:", error)
+      if (error) {
+        toast.error("User not found. Please check the email address.")
+      } else {
+        toast.error("Error finding path. Please try again or check your connection.")
       }
-
-      setLoadingProfileId(profile.id)
-
-      try {
-        console.log("Finding path from", session.user.email, "to", profile.email)
-        // Single API call with proper error handling
-        const response = await getPathRanking(session.user.email, profile.email, 0)
-        console.log("Path response:", response)
-
-        const enrichedResponse = {
-          ...response,
-          startEmail: session.user.email,
-          endEmail: profile.email,
-        }
-
-        // Update Redux state
-        dispatch(setResponseData(enrichedResponse))
-
-        // Navigate after state update
-        router.push("/?tab=results&expand=true")
-        toast.success("Path data loaded successfully!")
-      } catch (error) {
-        console.error("Error finding path:", error)
-        if (error) {
-          toast.error("User not found. Please check the email address.")
-        } else {
-          toast.error("Error finding path. Please try again or check your connection.")
-        }
-      } finally {
-        setLoadingProfileId(null)
-      }
-    },
-    [session?.user?.email, dispatch, router, loadingProfileId],
+    } finally {
+      setLoadingProfileId(null)
+    }
+  },
+  [session?.user?.email, dispatch, router, loadingProfileId],
   )
 
   const handleSeeMore = useCallback(() => {
@@ -396,7 +395,7 @@ export default function ResultsList() {
               <Button variant="outline" className="flex-1 bg-transparent" onClick={() => setShowPremiumModal(false)}>
                 Maybe Later
               </Button>
-             <Link href="/premium" passHref>
+              <Link href="/premium" passHref>
                 <Button
                   asChild
                   className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600"
@@ -413,6 +412,42 @@ export default function ResultsList() {
         </Card>
       </div>
     )
+
+  const TutorialSection = () => {
+    return (
+      <Card className="mb-6 border-2 border-dashed border-blue-300 dark:border-blue-600 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 shadow-lg">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full shadow-md">
+                <Lightbulb className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                  New to Paths?
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Learn how to interpret and use connection paths effectively with our quick tutorial.
+                </p>
+              </div>
+            </div>
+            <Button 
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium px-3 py-2 shadow-md hover:shadow-lg transition-all duration-200"
+              onClick={() => {
+                setShowTutorialModal(true)
+                toast.success("Starting tutorial...")
+              }}
+            >
+              <div className="flex space-x-3 items-center justify-center">
+                <Book/>
+                Start Tutorial
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   const SuggestionsSection = () => {
     if (!session?.user?.email) {
@@ -540,6 +575,9 @@ export default function ResultsList() {
   if (noPathsFound) {
     return (
       <>
+        {/* Tutorial Section - Always visible when no paths found */}
+        <TutorialSection />
+        <TutorialModal isOpen={showTutorialModal} onClose={() => setShowTutorialModal(false)} />
         {suggestedLoading ? (
           <div className="flex items-center justify-center p-2 bg-white dark:bg-black">
             <Loader2 className="h-6 w-6 animate-spin text-blue-600 dark:text-white" />
@@ -556,6 +594,7 @@ export default function ResultsList() {
     <>
       <Toaster position="top-center" />
       <PremiumModal />
+      <TutorialModal isOpen={showTutorialModal} onClose={() => setShowTutorialModal(false)} />
 
       {/* Premium Status Indicator */}
       {premiumLoading ? (
@@ -575,6 +614,9 @@ export default function ResultsList() {
           </div>
         </div>
       ) : null}
+
+      {/* Tutorial Section - Now prominently displayed */}
+      <TutorialSection />
 
       {/* Main Results Section with Tabs */}
       <div className="space-y-4 ">
@@ -598,21 +640,15 @@ export default function ResultsList() {
             <TabsList className="grid w-full grid-cols-3 mb-6">
               <TabsTrigger value="through-1" className="flex items-center gap-1">
                 1st
-                <Badge variant="secondary">
-                  {categorizedPaths.through1.length}
-                </Badge>
+                <Badge variant="secondary">{categorizedPaths.through1.length}</Badge>
               </TabsTrigger>
               <TabsTrigger value="through-2" className="flex items-center gap-1">
                 2nd
-                <Badge variant="secondary">
-                  {categorizedPaths.through2.length}
-                </Badge>
+                <Badge variant="secondary">{categorizedPaths.through2.length}</Badge>
               </TabsTrigger>
               <TabsTrigger value="through-3" className="flex items-center gap-1">
                 3rd
-                <Badge variant="secondary">
-                  {categorizedPaths.through3.length}
-                </Badge>
+                <Badge variant="secondary">{categorizedPaths.through3.length}</Badge>
               </TabsTrigger>
             </TabsList>
 
