@@ -27,7 +27,7 @@ const getImageUrl = (key: string) => {
   return `https://gezeno.s3.eu-north-1.amazonaws.com/${key}`
 }
 
-export const getUnconnectedUsers = async (email: string) => {
+export const getUnconnectedUsers = async (email: string, page: number = 1, limit: number = 5) => {
   try {
     if (!email) {
       throw new Error("Email is required");
@@ -42,7 +42,6 @@ export const getUnconnectedUsers = async (email: string) => {
       throw new Error("User not found");
     }
 
-    // Get 6-7 random unconnected users
     const users = await db.user.findMany({
       where: {
         AND: [
@@ -55,7 +54,7 @@ export const getUnconnectedUsers = async (email: string) => {
                     some: {
                       AND: [
                         { requesterId: currentUser.id },
-                        { status: {in:["APPROVED","PENDING"]} },
+                        { status: { in: ["APPROVED", "PENDING"] } },
                       ],
                     },
                   },
@@ -65,7 +64,7 @@ export const getUnconnectedUsers = async (email: string) => {
                     some: {
                       AND: [
                         { recipientId: currentUser.id },
-                        { status: {in:["APPROVED","PENDING"]} },
+                        { status: { in: ["APPROVED", "PENDING"] } },
                       ],
                     },
                   },
@@ -75,10 +74,10 @@ export const getUnconnectedUsers = async (email: string) => {
           },
         ],
       },
-      take: 50, // Limit the number of users to 7
+      skip: (page - 1) * limit,
+      take: limit, // Fetch only `limit` (5) at a time
       orderBy: {
-        // Random order
-        id: "asc",
+        id: "asc", // You can replace with "createdAt" or random logic
       },
       select: {
         id: true,
@@ -88,7 +87,6 @@ export const getUnconnectedUsers = async (email: string) => {
       },
     });
 
-    // console.log("Unconnected users:", users);
     return users;
   } catch (error) {
     console.error("Error fetching unconnected users:", error);
@@ -984,39 +982,41 @@ a[x-apple-data-detectors],
       throw error;
     }
   };
-  export const fetchImages = async () => {
-    const data = await db.post.findMany({
-      orderBy: {
-        createdAt: 'desc', // Newest posts first
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            userdp: true,
-          },
+export const fetchImages = async (page: number = 1, limit: number = 4) => {
+  const data = await db.post.findMany({
+    skip: (page - 1) * limit, // Skip previous pages
+    take: limit,              // Fetch only `limit` number of posts
+    orderBy: {
+      createdAt: 'desc',
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          userdp: true,
         },
-        comments: { 
-          select: {
-            id: true,
-            content: true,
-            createdAt: true,
-            user: {
-              select: {
-                id: true,
-                name: true,
-                userdp: true,
-              },
+      },
+      comments: {
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              userdp: true,
             },
           },
         },
       },
-    });
-  
-    return data;
-  };
+    },
+  });
+
+  return data;
+};
 
 export const fetchPosts = async (userId: any) => {
   const posts = await db.post.findMany({
