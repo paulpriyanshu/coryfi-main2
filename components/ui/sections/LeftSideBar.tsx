@@ -32,20 +32,38 @@ export default function LeftSidebar({ userEmail }: LeftSidebarProps) {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
-  // Fetcher function for SWR
+  // Fetcher function for SWR with better error handling
   const fetcher = useCallback(async ([key, email, page]: [string, string, number]) => {
-    if (!email) return []
-    return await getUnconnectedUsers(email, page, USERS_PER_PAGE)
+    if (!email) {
+      console.log('No email provided')
+      return []
+    }
+    
+    try {
+      console.log('Fetching users:', { email, page, key })
+      const result = await getUnconnectedUsers(email, page, USERS_PER_PAGE)
+      console.log('Fetched users:', result?.length || 0)
+      return result || []
+    } catch (error) {
+      console.error('Error in fetcher:', error)
+      // Re-throw to let SWR handle the error
+      throw error
+    }
   }, [])
 
-  // SWR for the current page
-  const { data: currentPageUsers, isLoading, error } = useSWR(
+  // SWR for the current page with better configuration
+  const { data: currentPageUsers, isLoading, error, mutate } = useSWR(
     userEmail ? ['unconnectedUsers', userEmail, currentPage] : null,
     fetcher,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      revalidateIfStale: true, // Allow revalidation if data is stale
+      dedupingInterval: 0, // Disable deduping for debugging
+      refreshInterval: 0,
       onSuccess: (data) => {
+        console.log('SWR onSuccess:', { currentPage, dataLength: data?.length })
+        
         if (currentPage === 1) {
           // First page - replace all users
           setAllUsers(data || [])
@@ -61,15 +79,34 @@ export default function LeftSidebar({ userEmail }: LeftSidebarProps) {
         }
         
         // Check if there are more users to load
-        // If we got less than USERS_PER_PAGE, no more pages
         setHasMore((data || []).length === USERS_PER_PAGE)
         setIsLoadingMore(false)
       },
-      onError: () => {
+      onError: (error) => {
+        console.error('SWR error:', error)
         setIsLoadingMore(false)
       }
     }
   )
+
+  // Reset state when userEmail changes
+  useEffect(() => {
+    if (userEmail) {
+      setCurrentPage(1)
+      setAllUsers([])
+      setHasMore(true)
+      setIsLoadingMore(false)
+    }
+  }, [userEmail])
+
+  // Force refresh function
+  const forceRefresh = useCallback(() => {
+    setCurrentPage(1)
+    setAllUsers([])
+    setHasMore(true)
+    setIsLoadingMore(false)
+    mutate() // Force SWR to refetch
+  }, [mutate])
 
   const loadMore = useCallback(() => {
     if (isLoadingMore || !hasMore || isLoading) return
@@ -86,7 +123,7 @@ export default function LeftSidebar({ userEmail }: LeftSidebarProps) {
 
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = scrollElement
-      const isNearBottom = scrollTop + clientHeight >= scrollHeight - 50 // Reduced threshold
+      const isNearBottom = scrollTop + clientHeight >= scrollHeight - 50
       
       if (isNearBottom && hasMore && !isLoadingMore && !isLoading) {
         loadMore()
@@ -98,7 +135,7 @@ export default function LeftSidebar({ userEmail }: LeftSidebarProps) {
     return () => scrollElement.removeEventListener('scroll', handleScroll)
   }, [hasMore, isLoadingMore, isLoading, loadMore])
 
-  // Alternative: Intersection Observer approach (more reliable)
+  // Intersection Observer approach
   const lastUserRef = useRef<HTMLDivElement>(null)
   
   useEffect(() => {
@@ -120,12 +157,32 @@ export default function LeftSidebar({ userEmail }: LeftSidebarProps) {
 
   const displayUsers = allUsers
 
+  // Debug logging
+  useEffect(() => {
+    console.log('Component state:', {
+      userEmail,
+      isLoading,
+      error: error?.message,
+      currentPage,
+      allUsersLength: allUsers.length,
+      hasMore,
+      isLoadingMore
+    })
+  }, [userEmail, isLoading, error, currentPage, allUsers.length, hasMore, isLoadingMore])
+
   return (
     <Card className="bg-white shadow-lg sticky top-4 dark:bg-black dark:border border">
       <CardContent className="p-6">
         <div className="flex justify-center h-full w-full font-bold text-slate-800 text-lg m-2 dark:text-white">
           People You May Know
         </div>
+
+        {/* Debug button - remove in production */}
+        {process.env.NODE_ENV === 'development' && (
+          <Button onClick={forceRefresh} variant="outline" size="sm" className="mb-2">
+            Refresh Data
+          </Button>
+        )}
         
         <div>
           <ScrollArea ref={scrollAreaRef} className="h-[calc(100vh-350px)]" type="always">
@@ -142,11 +199,26 @@ export default function LeftSidebar({ userEmail }: LeftSidebarProps) {
               ))
             ) : error ? (
               <div className="text-center text-red-500 p-4">
-                Failed to load users
+                <p>Failed to load users</p>
+                {process.env.NODE_ENV === 'development' && (
+                  <p className="text-xs mt-2">{error.message}</p>
+                )}
+                <Button onClick={forceRefresh} variant="outline" size="sm" className="mt-2">
+                  Try Again
+                </Button>
               </div>
-            ) : displayUsers.length === 0 ? (
+            ) : displayUsers.length === 0 && !isLoading ? (
               <div className="text-center text-gray-500 p-4">
-                No users found
+                <p>No users found</p>
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="text-xs mt-2">
+                    <p>Email: {userEmail}</p>
+                    <p>Page: {currentPage}</p>
+                  </div>
+                )}
+                <Button onClick={forceRefresh} variant="outline" size="sm" className="mt-2">
+                  Refresh
+                </Button>
               </div>
             ) : (
               displayUsers.map((person, index) => (
