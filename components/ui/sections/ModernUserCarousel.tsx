@@ -1,14 +1,13 @@
 'use client'
 
-import React from 'react'
-import useSWR from 'swr'
+import React, { useEffect, useState } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { getUnconnectedUsers } from '@/app/api/actions/media'
+import { Loader2 } from 'lucide-react'
 
-// Define the type for user data
 interface User {
   id: string;
   name: string;
@@ -16,35 +15,76 @@ interface User {
   userdp?: string;
 }
 
-// Custom fetcher function using the server action
-const fetcher = async (email: string) => {
-  if (!email) return [];
-  return await getUnconnectedUsers(email);
-}
+const USERS_PER_PAGE = 5;
 
 const CircularUserCarousel = ({ userEmail }: { userEmail: string }) => {
-  // Embla Carousel setup with enhanced swipe settings
-  const [emblaRef] = useEmblaCarousel({ 
+  const [users, setUsers] = useState<User[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [fetchingMore, setFetchingMore] = useState(false);
+  const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
     align: 'start',
     dragFree: true,
     containScroll: 'trimSnaps',
     slidesToScroll: 1
   });
-  
-  // SWR hook for data fetching
-  const { 
-    data: users, 
-    error, 
-    isLoading 
-  } = useSWR(userEmail ? `unconnected-users-${userEmail}` : null, () => fetcher(userEmail));
 
-  // Loading skeleton
-  if (isLoading) {
+  // Fetch users (initial + more)
+  const fetchUsers = async (pageNum: number) => {
+    if (!userEmail || !hasMore) return;
+
+    if (pageNum === 1) {
+      setInitialLoading(true);
+    } else {
+      setFetchingMore(true);
+    }
+
+    try {
+      const newUsers = await getUnconnectedUsers(userEmail, pageNum, USERS_PER_PAGE);
+      setUsers((prev) => [...prev, ...newUsers]);
+
+      if (newUsers.length < USERS_PER_PAGE) {
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error("Failed to load users", err);
+      setHasMore(false);
+    } finally {
+      if (pageNum === 1) {
+        setInitialLoading(false);
+      } else {
+        setFetchingMore(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers(1);
+  }, [userEmail]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+
+    const onScroll = () => {
+      const scrollProgress = emblaApi.scrollProgress();
+      if (scrollProgress >= 0.95 && hasMore && !fetchingMore) {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchUsers(nextPage);
+      }
+    };
+
+    emblaApi.on('scroll', onScroll);
+    return () => emblaApi.off('scroll', onScroll);
+  }, [emblaApi, page, hasMore, fetchingMore]);
+
+  if (initialLoading) {
     return (
       <div className="w-full overflow-hidden">
         <div className="flex gap-6 px-4">
-          {[1, 2, 3, 4].map((i) => (
+          {[...Array(5)].map((_, i) => (
             <div key={i} className="flex-none">
               <Skeleton className="w-20 h-20 rounded-full" />
               <Skeleton className="w-16 h-4 mt-2 mx-auto" />
@@ -55,16 +95,6 @@ const CircularUserCarousel = ({ userEmail }: { userEmail: string }) => {
     );
   }
 
-  // Error state
-  if (error) {
-    return (
-      <div className="text-center text-red-500 my-2">
-        Failed to load users
-      </div>
-    );
-  }
-
-  // Empty state
   if (!users || users.length === 0) {
     return (
       <div className="text-center text-muted-foreground my-2">
@@ -75,7 +105,7 @@ const CircularUserCarousel = ({ userEmail }: { userEmail: string }) => {
 
   return (
     <div className="w-full overflow-hidden" ref={emblaRef}>
-      <div className="flex">
+      <div className="flex items-center">
         {users.map((user) => (
           <div key={user.id} className="flex-none min-w-0 px-4">
             <Link href={`/userProfile/${user.id}`}>
@@ -89,6 +119,15 @@ const CircularUserCarousel = ({ userEmail }: { userEmail: string }) => {
             </Link>
           </div>
         ))}
+
+        {/* Loader at the end when fetching more */}
+        {fetchingMore && (
+          <div className="flex-none px-4 flex items-center justify-center">
+            <div className="w-20 h-20 flex items-center justify-center">
+              <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
