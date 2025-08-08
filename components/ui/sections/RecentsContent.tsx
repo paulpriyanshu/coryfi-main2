@@ -139,11 +139,11 @@ function EvaluationPathCard({ userData, intermediaries, status, evaluation }) {
   const getCardClassName = () => {
     switch (status) {
       case "completed":
-        return "w-full dark:bg-gray-700 border-green-200 dark:border-green-800 text-sm"
+        return "w-full dark:bg-slate-900 border-green-200 dark:border-green-800 text-sm"
       case "rejected":
-        return "w-full dark:bg-gray-700 border-red-200 dark:border-red-800 text-sm"
+        return "w-full dark:bg-slate-900 border-red-200 dark:border-red-800 text-sm"
       default:
-        return "w-full dark:bg-gray-700 text-sm"
+        return "w-full dark:bg-slate-900 text-sm"
     }
   }
 

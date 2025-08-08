@@ -53,7 +53,7 @@ export function ChatList({ chats, onSelectChat, currentUserId }) {
             return (
               <Card
                 key={chat._id}
-                className="cursor-pointer hover:bg-muted/50 dark:bg-gray-700"
+                className="cursor-pointer hover:bg-muted/50 dark:bg-black dark:hover:bg-slate-900"
                 onClick={() => onSelectChat(chat)}
               >
                 <CardContent className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4">
@@ -75,7 +75,9 @@ export function ChatList({ chats, onSelectChat, currentUserId }) {
                       {receiver?.username || "Unknown User"}
                     </h4>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                      {chat.lastMessage?.content || "No messages yet"}
+                      {chat.lastMessage?.content
+                    ? chat.lastMessage.content.split(" ").slice(0, 5).join(" ") + "..."
+                    : "No messages yet"}
                     </p>
                   </div>
                 </CardContent>

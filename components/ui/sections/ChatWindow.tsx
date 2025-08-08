@@ -225,7 +225,7 @@ export function ChatWindow({ chat, currentUserId,chatRecieverId, onClose, onChat
   }
   // console.log("chats",chat)
   return (
-    <Card className="flex flex-col h-full w-full dark:bg-gray-700">
+    <Card className="flex flex-col h-full w-full dark:bg-black">
       <CardHeader className="px-4 py-2">
         <CardTitle className="text-lg font-semibold flex justify-between items-center">
           
@@ -264,7 +264,7 @@ export function ChatWindow({ chat, currentUserId,chatRecieverId, onClose, onChat
                   <div
                     className={`p-2 rounded-lg max-w-[70%] ${
                       msg?.sender?._id === currentUserId
-                        ? 'bg-primary text-primary-foreground'
+                        ? 'bg-blue-800 text-primary'
                         : 'bg-muted'
                     }`}
                   >

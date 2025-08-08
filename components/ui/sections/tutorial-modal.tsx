@@ -139,13 +139,13 @@ export default function TutorialModal({ isOpen, onClose }: TutorialModalProps) {
       id: 4,
       title: "Full Introduction",
       content: (
-        <div className="space-y-4 sm:space-y-6 w-full flex flex-col justify-center items-center">
-          <div className="text-center space-y-3 sm:space-y-4">
+        <div className="space-y-4  w-full flex flex-col justify-center items-center">
+          <div className="text-center space-y-3">
             <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               Path Tutorial
             </h3>
           </div>
-          <div className="relative bg-black rounded-lg overflow-hidden aspect-video w-2/3">
+          <div className="relative bg-black rounded-lg overflow-hidden aspect-video w-5/6">
             <iframe
               className="w-full h-full flex justify-center"
               src="https://www.youtube.com/embed/1Eaf81zjCG8?autoplay=0&playsinline=1"
