@@ -72,11 +72,11 @@ export default function Chat({ chatRecieverId }: ChatProps) {
   useEffect(() => {
     async function gotochat() {
       if (chatRecieverId && currentUserId) {
-        console.log("reciever id ", chatRecieverId)
-        console.log("current user id ", currentUserId)
+        // console.log("reciever id ", chatRecieverId)
+        // console.log("current user id ", currentUserId)
         const response = await createUserChat(chatRecieverId, currentUserId)
         const chat = response.data.data
-        console.log("going to chat", chat)
+        // console.log("going to chat", chat)
         setCurrentChat(chat)
       }
     }
@@ -116,7 +116,7 @@ export default function Chat({ chatRecieverId }: ChatProps) {
   useEffect(() => {
     const interval = setInterval(() => {
       if (currentUserId) {
-        // console.log('Polling for new chats and updates...');
+        console.log('Polling for new chats and updates...');
         fetchChatsAndUsers(currentUserId) // Fetch updated chats and users
       }
     }, 5000) // Poll every 5 seconds

@@ -435,7 +435,7 @@ const sendSESEmail = async (to: string, subject: string, bodyText: string,bodyHt
     };
 
     await ses.sendEmail(params).promise();
-    console.log(`Email sent to ${to}`);
+    // console.log(`Email sent to ${to}`);
     return true
   } catch (error) {
     console.error(`Error sending email to ${to}:`, error);
@@ -471,7 +471,7 @@ const sendGmailEmail = async (
     // Send email
     await transporter.sendMail(mailOptions);
 
-    console.log(`Email sent to ${to}`);
+    // console.log(`Email sent to ${to}`);
     return true;
   } catch (error) {
     console.error(`Error sending email to ${to}:`, error);
@@ -715,7 +715,7 @@ export const notifyUsersOnNewPost = async (name: string) => {
 
     // Log the results summary
     const successCount = results.filter(r => r.status === "fulfilled").length;
-    console.log(`Successfully sent ${successCount} out of ${users.length} emails`);
+    // console.log(`Successfully sent ${successCount} out of ${users.length} emails`);
     
     return results;
   } catch (error) {
@@ -725,7 +725,7 @@ export const notifyUsersOnNewPost = async (name: string) => {
 };
 export const onLikePost = async (likerName: string,likerEmail:string, postId: number) => {
   try {
-    console.log("likin this post",postId)
+    // console.log("likin this post",postId)
     // Find the post and include the owner's details
     const post = await db.post.findFirst({
       where: { id: postId },
@@ -933,11 +933,11 @@ a[x-apple-data-detectors],
 </html>`;
 
     // Send the email using your SES email sending function
-    console.log("sending email")
+    // console.log("sending email")
     const emailResult = await sendGmailEmail(postOwnerEmail, subject, bodyText, bodyHtml);
 
     if (emailResult) {
-      console.log(`Email successfully sent to ${postOwnerEmail}`);
+      // console.log(`Email successfully sent to ${postOwnerEmail}`);
     } else {
       console.error(`Failed to send email to ${postOwnerEmail}`);
     }
@@ -960,7 +960,7 @@ a[x-apple-data-detectors],
       // const videoUrls = Array.isArray(videoUrl) ? videoUrl : [];
   
       // Create the new post with the provided data
-      console.log(imageUrl)
+      // console.log(imageUrl)
       const newPost = await db.post.create({
         data: {
           userId,
@@ -974,7 +974,7 @@ a[x-apple-data-detectors],
         console.error("Error sending notifications:", error);
       });
   
-      console.log('New Post Created:', newPost);
+      // console.log('New Post Created:', newPost);
       return newPost;
       
     } catch (error) {

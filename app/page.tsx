@@ -77,7 +77,7 @@ function Component() {
     async function fetchCollabCount() {
       if (session?.user?.email) {
         const collabData = await fetchRequestsForIntermediary(session.user.email)
-        console.log("collab data", collabData)
+        // console.log("collab data", collabData)
         if (collabData?.success && collabData?.data) {
           setCollabCount(collabData.data.length)
         }

@@ -121,7 +121,7 @@ const sendEmail = async (recipientEmail,subject, bodyText, bodyHtml) => {
 
   try {
     const data = await ses.sendEmail(params).promise();
-    console.log("Email sent! Message ID: ", data.MessageId);
+    // console.log("Email sent! Message ID: ", data.MessageId);
     return { success: true, messageId: data.MessageId };
   } catch (err) {
     console.error("Error sending email: ", err);
@@ -361,8 +361,8 @@ export const connect_users = async (
   recipientEmail: string,
   StrengthLevel: any
 ) => {
-  console.log("Strength Level", StrengthLevel);
-  console.log("emails", requesterEmail, recipientEmail);
+  // console.log("Strength Level", StrengthLevel);
+  // console.log("emails", requesterEmail, recipientEmail);
   try {
     // Validate input
     if (!requesterEmail || !recipientEmail || !StrengthLevel) {
@@ -397,7 +397,7 @@ export const connect_users = async (
     });
 
     if (existingConnection) {
-      console.log("Connection already exists:", existingConnection.status);
+      // console.log("Connection already exists:", existingConnection.status);
       throw new Error("A connection request already exists with status PENDING or APPROVED.");
     }
 
@@ -411,9 +411,9 @@ export const connect_users = async (
       },
     });
     // await notifyUserOnConnections(recipientId,requesterName,StrengthLevel)
-    console.log("creating random")
+    // console.log("creating random")
     
-    console.log("created random")
+    // console.log("created random")
      await db.notification.create({
       data: {
         userId: recipientId,
@@ -436,7 +436,7 @@ export const connect_users = async (
 
 export const notifyUserOnConnections = async (recipientId: number, requesterName: string, strengthLevel: number) => {
   try {
-    console.log(recipientId, requesterName, strengthLevel, "creating connection");
+    // console.log(recipientId, requesterName, strengthLevel, "creating connection");
 
     const notify = await db.notification.create({
       data: {
@@ -820,7 +820,7 @@ export const approve_request = async (requesterEmail: string, recipientEmail: st
       })
       return notification
   } catch (error) {
-    console.log("error creating notification",error)
+    // console.log("error creating notification",error)
     return null
     
   }
@@ -922,7 +922,7 @@ export const approve_request = async (requesterEmail: string, recipientEmail: st
     }
   };
 export const intermediaryUserList=async(list:any)=>{
-  console.log("intermediataryUserList",list)
+  // console.log("intermediataryUserList",list)
   return list;
 }
 export const createConnectionRequest = async (
@@ -931,7 +931,7 @@ export const createConnectionRequest = async (
   intermediaries: { email: string }[] // Array of intermediary users (email-based)
 ) => {
   try {
-    console.log(`Requester: ${requesterEmail}, Recipient: ${recipientEmail}`);
+    (`Requester: ${requesterEmail}, Recipient: ${recipientEmail}`);
     
     // Input validation
     if (!requesterEmail || !recipientEmail || intermediaries.length === 0) {
@@ -965,7 +965,7 @@ export const createConnectionRequest = async (
       throw new Error("One or more intermediaries not found.");
     }
 
-    console.log("Requester, Recipient, and Intermediary users fetched successfully.");
+    // console.log("Requester, Recipient, and Intermediary users fetched successfully.");
 
     // Reorder intermediary users using Map for efficiency
     const intermediaryMap = new Map(
@@ -976,7 +976,7 @@ export const createConnectionRequest = async (
       throw new Error("Failed to reorder intermediary users.");
     }
 
-    console.log("Intermediary users reordered successfully.");
+    // console.log("Intermediary users reordered successfully.");
 
     // Create the Evaluation record
     const evaluation = await db.evaluation.create({
@@ -987,7 +987,7 @@ export const createConnectionRequest = async (
       },
     });
 
-    console.log("Evaluation created:", evaluation);
+    // console.log("Evaluation created:", evaluation);
 
     // Create the Connection entry
     const connection = await db.evaluationApprovals.create({
@@ -1000,7 +1000,7 @@ export const createConnectionRequest = async (
       },
     });
 
-    console.log("Connection created:", connection);
+    // console.log("Connection created:", connection);
 
     // Create Path records for intermediaries
     const pathsData = orderedIntermediaryUsers.map((intermediary, index) => ({
@@ -1013,7 +1013,7 @@ export const createConnectionRequest = async (
 
     await db.path.createMany({ data: pathsData });
 
-    console.log("Paths created successfully:", pathsData);
+    // console.log("Paths created successfully:", pathsData);
 
     // Fetch IDs for chat creation
     const [id1, id2] = await Promise.all([
@@ -1021,12 +1021,12 @@ export const createConnectionRequest = async (
       axios.get(`https://chat.coryfi.com/api/v1/users/getOneUser/${requesterEmail}`),
     ]);
 
-    console.log("Fetched user IDs:", id1.data.data._id, id2.data.data._id);
+    // console.log("Fetched user IDs:", id1.data.data._id, id2.data.data._id);
 
     // Create chat
     try {
       const chatResponse = await createUserChat(id2.data.data._id, id1.data.data._id);
-      console.log("Chat created successfully:", chatResponse.data.data);
+      // console.log("Chat created successfully:", chatResponse.data.data);
       return {
       success: true,
       message: "Connection request created successfully.",
@@ -1132,7 +1132,7 @@ export const handleRejection = async (
   rejectingUserEmail: string
 ) => {
   try {
-    console.log(`Handling rejection for Evaluation ID: ${evaluationId}`);
+    // console.log(`Handling rejection for Evaluation ID: ${evaluationId}`);
 
     // Fetch the evaluation to ensure it exists
     const evaluation = await db.evaluation.findUnique({
@@ -1143,9 +1143,9 @@ export const handleRejection = async (
       throw new Error("Evaluation not found.");
     }
 
-    console.log(
+    // console.log(
       `Evaluation found. Status: ${evaluation.status}. Checking rejecting user...`
-    );
+    // );
 
     // Fetch the connection details to get the recipient and intermediary details
     const connection = await db.evaluationApprovals.findFirst({
@@ -1160,7 +1160,7 @@ export const handleRejection = async (
       throw new Error("Connection not found for this evaluation.");
     }
 
-    console.log(`Connection found. Evaluating rejection status...`);
+    // console.log(`Connection found. Evaluating rejection status...`);
 
     // Identify if the rejecting user is the final recipient or an intermediary
     // const isFinalRecipient = connection.recipientEmail === rejectingUserEmail;
@@ -1183,17 +1183,17 @@ export const handleRejection = async (
         throw new Error("Rejecting user is neither an intermediary nor the final recipient.");
       }
 
-      console.log("Rejecting user is an intermediary.");
+      // console.log("Rejecting user is an intermediary.");
     } else {
-      console.log("Rejecting user is the final recipient.");
+      // console.log("Rejecting user is the final recipient.");
     }
 
     // Determine the appropriate status based on rejection context
     const newStatus = isFinalRecipient ? "REJECTED" : "INTERRUPTED";
 
-    console.log(
+    // console.log(
       `Rejecting user is ${isFinalRecipient ? "final recipient" : "intermediary"}. Setting status: ${newStatus}`
-    );
+    // );
 
     // Update the connection status
     await db.evaluationApprovals.updateMany({
@@ -1212,8 +1212,8 @@ export const handleRejection = async (
       where: { id: evaluationId },
       data: { status: "REJECTED" },
     });
-    console.log("evalualtion table updated")
-    console.log("this is rejecting user id",rejectingUser.id,"and evaluation id",evaluationId)
+    // console.log("evalualtion table updated")
+    // console.log("this is rejecting user id",rejectingUser.id,"and evaluation id",evaluationId)
     await db.path.update({
       where: {
         evaluationId_intermediaryId: {
@@ -1226,7 +1226,7 @@ export const handleRejection = async (
       },
     });
 
-    console.log("Evaluation status updated to REJECTED");
+    // console.log("Evaluation status updated to REJECTED");
 
     return {
       success: true,

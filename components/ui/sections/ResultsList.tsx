@@ -125,7 +125,7 @@ export default function ResultsList() {
       .then((status) => {
         if (isMounted) {
           setIsPremium(status)
-          console.log("Premium status:", status)
+          // console.log("Premium status:", status)
         }
       })
       .catch((error) => {
@@ -153,9 +153,9 @@ export default function ResultsList() {
     setPathsError(null)
 
     try {
-      console.log("Fetching paths for:", startEmail, "->", endEmail)
+      // console.log("Fetching paths for:", startEmail, "->", endEmail)
       const results = await getPathRanking(startEmail, endEmail)
-      console.log("Paths fetched:", results)
+      // console.log("Paths fetched:", results)
       setPathsData(results.paths)
     } catch (error) {
       console.error("Error fetching paths:", error)
@@ -186,7 +186,7 @@ export default function ResultsList() {
         const result = await fetchReachableNodes(currentUserEmail)
         if (isMounted) {
           setSuggestedData(result)
-          console.log("Suggested profiles loaded:", result.data?.length || 0)
+          // console.log("Suggested profiles loaded:", result.data?.length || 0)
         }
       } catch (error) {
         if (isMounted) {
@@ -313,10 +313,10 @@ export default function ResultsList() {
     setLoadingProfileId(profile.id)
 
     try {
-      console.log("Finding path from", session.user.email, "to", profile.email)
+      // console.log("Finding path from", session.user.email, "to", profile.email)
       // Single API call with proper error handling
       const response = await getPathRanking(session.user.email, profile.email, 0)
-      console.log("Path response:", response)
+      // console.log("Path response:", response)
 
       const enrichedResponse = {
         ...response,

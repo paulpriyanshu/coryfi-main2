@@ -414,7 +414,7 @@ function FinalPathCard({
       setIsConfirmingApproval(true)
       const result = await handleFinalApproval(session.user.email, request.evaluationId, request)
       if (!result.success) {
-        console.log("Failed to approve final path")
+        // console.log("Failed to approve final path")
       }
       onApprove()
       toast.success("Final path approved successfully. Connection completed!")
@@ -657,9 +657,9 @@ export default function CollabContent() {
     }
     setApprovingEvaluationId(request.evaluationId)
     try {
-      console.log("approving final request", request)
+      // console.log("approving final request", request)
       const isFinalPath = request.nextNode === null
-      console.log("is Final Path", isFinalPath)
+      // console.log("is Final Path", isFinalPath)
       let result
       if (isFinalPath) {
         result = await handleFinalApproval(session.user.email, request.evaluationId, request)

@@ -87,7 +87,7 @@ export async function getAllEmployees() {
 }
 
 export async function getAllEmployeesByBusiness(businessPageId) {
-  console.log("business id for employees",businessPageId)
+  // console.log("business id for employees",businessPageId)
     return await db.employee.findMany({
         where:{
             businessId:businessPageId
@@ -229,7 +229,7 @@ export async function assignTaskToEmployee({
   taskName: string;
 }) {
   try {
-    console.log("entered the task function");
+    // console.log("entered the task function");
 
     // Check if the employee exists in the business
     const employee = await db.employee.findFirst({
