@@ -101,7 +101,11 @@ export default async function Header() {
   </Link>
 </div>
 
-      {userId && <CartButton userId={userId} />}
+      {userId && (
+  <span className="hidden sm:block">
+    <CartButton userId={userId} />
+  </span>
+)}
       <Notifications />
     </NavbarClient>
   )

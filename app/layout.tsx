@@ -90,7 +90,7 @@ users = {
                 {(session?.user?.email && !await checkPathsFlow(session?.user?.email)) ? <SimplePathsFlow users={users}/> : children}
                 {/* Mobile Footer */}
                 <div className="md:hidden">
-                  <MobileFooter />
+                  <MobileFooter session={session}/>
                 </div>
               </SocketProvider>
             </StoreProvider>

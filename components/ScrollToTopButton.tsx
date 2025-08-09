@@ -25,7 +25,7 @@ export default function ScrollToTopButton() {
   return (
     <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2">
       <Button
-        className="w-10 h-10 opacity-80 rounded-full p-2 bg-black hover:bg-slate-500 text-white shadow-lg"
+        className="w-10 h-10 opacity-80 rounded-full p-2 bg-gray-200 dark:bg-black/60 dark:text-white hover:bg-slate-500 text-black shadow-lg"
         onClick={scrollToTop}
         size="icon"
       >

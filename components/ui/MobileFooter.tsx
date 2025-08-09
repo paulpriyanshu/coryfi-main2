@@ -2,30 +2,41 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Home, PlusSquare, Network, Store, MessageCircle } from "lucide-react"
+import { Home, PlusSquare, Network, Store,ShoppingBag } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { usePathname, useRouter } from "next/navigation"
 import DraftAlert from "./DraftAlert"
 import { useAppSelector } from "@/app/libs/store/hooks"
 import Link from "next/link"
+import CartButton from "./sections/cart-button"
+import { fetchUserData, fetchUserId } from "@/app/api/actions/media"
 
 const hiddenRoutes = ["/c"]
 
-export default function MobileFooter() {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+export default function MobileFooter({session}) {
   const [activePage, setActivePage] = useState("network")
   const [hasDraft, setHasDraft] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [ripples, setRipples] = useState<Array<{ id: number; x: number; y: number }>>([])
+  const [userId,setUserId]=useState(null)
 
-  const router = useRouter()
+
   const pathname = usePathname()
   const isMobileChatOpen = useAppSelector((state) => state.chat.isMobileChatOpen)
 
   const shouldHideFooter = hiddenRoutes.some((route) => pathname.startsWith(route)) || isMobileChatOpen
-
+  useEffect(()=>{
+    async function fetchId(){
+      if(session?.user?.email){
+        const user=await fetchUserId(session?.user?.email)
+        setUserId(user.id)
+      }
+      
+    }
+     fetchId()
+  },[session?.user?.email])
   useEffect(() => {
     const draft = localStorage.getItem("postDraft")
     setHasDraft(!!draft)
@@ -45,12 +56,7 @@ export default function MobileFooter() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [lastScrollY])
 
-  const handleCloseModal = () => {
-    setIsCreateModalOpen(false)
-    if (hasDraft) {
-      setHasDraft(true)
-    }
-  }
+ 
 
   const createRipple = (event: React.MouseEvent<HTMLButtonElement>) => {
     const button = event.currentTarget
@@ -127,8 +133,6 @@ export default function MobileFooter() {
               {icon}
               {hasNotification && (
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
                   className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-black"
                 />
               )}
@@ -284,15 +288,15 @@ export default function MobileFooter() {
                 onClick={() => setActivePage("explore")}
                 href="/explore"
               />
-
-              <NavButton
-                icon={<MessageCircle className="w-5 h-5" />}
-                label="Chat"
+              <CartButton userId={userId}/>
+              {/* <NavButton
+                icon={<ShoppingBag className="w-5 h-5" />}
+                label="Cart"
                 isActive={activePage === "profile"}
                 onClick={() => setActivePage("profile")}
-                href="/?tab=chats&expand=true"
+                href="/cart"
                 hasNotification={false}
-              />
+              /> */}
             </nav>
           </footer>
           <DraftAlert isOpen={hasDraft} onClose={() => setHasDraft(false)} />
