@@ -259,7 +259,7 @@ export default function MobileFooter({session}) {
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent dark:via-gray-800" />
 
           <footer className="relative">
-            <nav className="flex justify-around items-center px-6 py-1 max-w-md mx-auto">
+            <nav className="flex justify-around items-center px-2 py-1 max-w-md mx-auto">
               <NavButton
                 icon={<Home className="w-5 h-5" />}
                 label="Home"
