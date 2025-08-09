@@ -12,13 +12,13 @@ export default function CartButton({ userId }) {
   const router = useRouter()
   const userid = parseInt(userId)
 
-  console.log("user id", userid)
+  // console.log("user id", userid)
 
   useEffect(() => {
     async function fetchCart() {
       try {
         const cart = await getCartsByUserId(userid)
-        console.log("user cart",cart)
+        // console.log("user cart",cart)
         if (cart && cart.cartItems) {
           setCartItemCount(cart.productIds.length)
           // console.log(cart.cartItems.length)
@@ -32,7 +32,7 @@ export default function CartButton({ userId }) {
 
     // Call the function every 5 seconds
     fetchCart() // Initial call
-    const interval = setInterval(fetchCart, 10000)
+    const interval = setInterval(fetchCart, 30000)
 
     return () => clearInterval(interval) // Cleanup on unmount
   }, [userid])

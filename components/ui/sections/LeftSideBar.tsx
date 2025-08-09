@@ -40,9 +40,9 @@ export default function LeftSidebar({ userEmail }: LeftSidebarProps) {
     }
     
     try {
-      console.log('Fetching users:', { email, page, key })
+      // console.log('Fetching users:', { email, page, key })
       const result = await getUnconnectedUsers(email, page, USERS_PER_PAGE)
-      console.log('Fetched users:', result?.length || 0)
+      // console.log('Fetched users:', result?.length || 0)
       return result || []
     } catch (error) {
       console.error('Error in fetcher:', error)
@@ -62,7 +62,7 @@ export default function LeftSidebar({ userEmail }: LeftSidebarProps) {
       dedupingInterval: 0, // Disable deduping for debugging
       refreshInterval: 0,
       onSuccess: (data) => {
-        console.log('SWR onSuccess:', { currentPage, dataLength: data?.length })
+        // console.log('SWR onSuccess:', { currentPage, dataLength: data?.length })
         
         if (currentPage === 1) {
           // First page - replace all users
@@ -158,17 +158,17 @@ export default function LeftSidebar({ userEmail }: LeftSidebarProps) {
   const displayUsers = allUsers
 
   // Debug logging
-  useEffect(() => {
-    console.log('Component state:', {
-      userEmail,
-      isLoading,
-      error: error?.message,
-      currentPage,
-      allUsersLength: allUsers.length,
-      hasMore,
-      isLoadingMore
-    })
-  }, [userEmail, isLoading, error, currentPage, allUsers.length, hasMore, isLoadingMore])
+  // useEffect(() => {
+  //   console.log('Component state:', {
+  //     userEmail,
+  //     isLoading,
+  //     error: error?.message,
+  //     currentPage,
+  //     allUsersLength: allUsers.length,
+  //     hasMore,
+  //     isLoadingMore
+  //   })
+  // }, [userEmail, isLoading, error, currentPage, allUsers.length, hasMore, isLoadingMore])
 
   return (
     <Card className="bg-white shadow-lg sticky top-4 dark:bg-black dark:border border">

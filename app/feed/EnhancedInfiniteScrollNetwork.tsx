@@ -23,7 +23,7 @@ interface Post {
 interface EnhancedInfiniteScrollNetworkProps {
   initialPosts: any[] // Use a more specific type if available, or Post[] from actions/media
   session: any
-  userId: { id: string } | null
+  userId: { id: number } | null
 }
 
 export default function EnhancedInfiniteScrollNetwork({ initialPosts, session, userId }: EnhancedInfiniteScrollNetworkProps) {

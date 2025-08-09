@@ -69,7 +69,7 @@ export default function ConnectionRequestsDropdown() {
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
         )
         setRequests(sortedNotifications)
-        console.log("notify", sortedNotifications)
+        // console.log("notify", sortedNotifications)
       } else {
         throw new Error("Failed to fetch requests")
       }
