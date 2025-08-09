@@ -171,6 +171,14 @@ html {
   font-size: 16px; /* Default for desktops */
 }
 
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
 @media (max-width: 640px) {
   html {
     font-size: 16px; /* Smaller text on mobile */
