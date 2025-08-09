@@ -179,7 +179,7 @@ export default function ContentCreator({ userId, maxImages = 4 }: ContentCreator
                   ['clean'],
                 ],
               }}
-              className="bg-white dark:bg-gray-900 dark:text-white rounded-md"
+              className="bg-white dark:bg-slate-900 dark:text-white rounded-md"
             />
 
             {images.length > 0 && (

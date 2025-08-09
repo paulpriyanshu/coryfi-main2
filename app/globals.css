@@ -173,7 +173,7 @@ html {
 
 @media (max-width: 640px) {
   html {
-    font-size: 14px; /* Smaller text on mobile */
+    font-size: 16px; /* Smaller text on mobile */
   }
 }
 
