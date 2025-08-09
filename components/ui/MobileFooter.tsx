@@ -6,7 +6,6 @@ import { Home, PlusSquare, Network, Store, MessageCircle } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { usePathname, useRouter } from "next/navigation"
-import CreatePostModal from "./CreatePostModal"
 import DraftAlert from "./DraftAlert"
 import { useAppSelector } from "@/app/libs/store/hooks"
 import Link from "next/link"
@@ -296,8 +295,6 @@ export default function MobileFooter() {
               />
             </nav>
           </footer>
-
-          {/* <CreatePostModal isOpen={isCreateModalOpen} onClose={handleCloseModal} /> */}
           <DraftAlert isOpen={hasDraft} onClose={() => setHasDraft(false)} />
         </motion.div>
       )}
