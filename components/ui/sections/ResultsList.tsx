@@ -416,10 +416,10 @@ export default function ResultsList() {
   const TutorialSection = () => {
     return (
       <Card className="mb-6 border-2 border-dashed border-blue-300 dark:border-blue-600 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 shadow-lg">
-        <CardContent className="p-6">
+        <CardContent className="p-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="p-3 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full shadow-md">
+              <div className="hidden md:block p-3  bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full shadow-md">
                 <Lightbulb className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -427,7 +427,7 @@ export default function ResultsList() {
                   New to Paths?
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Learn how to interpret and use connection paths effectively with our quick tutorial.
+                  Learn how to use paths effectively with our quick tutorial.
                 </p>
               </div>
             </div>
@@ -440,7 +440,7 @@ export default function ResultsList() {
             >
               <div className="flex space-x-3 items-center justify-center">
                 <Book/>
-                Start Tutorial
+                Tutorial
               </div>
             </Button>
           </div>
