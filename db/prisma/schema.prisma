@@ -15,7 +15,8 @@ model User {
   introductoryFlow          Boolean                 @default(false)
   premium                   Boolean                 @default(false)
   notifications             Notification[]          @relation("UserNotifications") // Added missing relation
-  SenderNotifications             Notification[]          @relation("SenderUserNotifications") // Added missing relation
+  findPaths                 Int                    @default(0)
+  SenderNotifications       Notification[]          @relation("SenderUserNotifications") // Added missing relation
   posts                     Post[]                  @relation("UserPosts")
   evaluationsStarted        Evaluation[]            @relation("EvaluationRequester")
   evaluationsReceived       Evaluation[]            @relation("EvaluationRecipient")
