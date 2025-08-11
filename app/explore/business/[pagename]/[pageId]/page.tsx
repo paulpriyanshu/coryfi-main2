@@ -1,6 +1,5 @@
 import Image from "next/image"
 import type { Metadata } from "next"
-import { Carousel } from "./Carousel"
 import { ProductGrid } from "@/components/ProductGrid"
 import { SearchInput } from "@/components/search-input"
 import { CategoryCarousel } from "@/components/CategoryCarousel"
@@ -9,6 +8,7 @@ import { getBusinessPageData } from "@/app/api/business/business"
 import { getServerSession } from "next-auth/next"
 import { BlurOverlay } from "./blur-overlay"
 import { LoginPrompt } from "./login-prompt"
+import { Carousel } from "./Carousel"
 
 // Metadata Generation
 export const dynamic = "force-dynamic"
@@ -57,11 +57,22 @@ export default async function BusinessProfile({ searchParams, params }) {
     : pageData?.products
 
   const profileImage = pageData?.dpImageUrl || "/placeholder.svg"
+  const sampleMedia = [
+  {
+    id: 1,
+    src: "/Video-217.mp4",
+    alt: "Fashion Collection",
+    type: "image" as const,
+    title: "New Collection",
+    subtitle: "Discover our latest fashion trends and styles"
+  },
+]
 
   return (
     <div className="min-h-screen bg-background">
       {/* Non-blurred sections: Carousel and Business Logo */}
-      <Carousel images={pageData?.bannerImageUrls} />
+      <Carousel  images={pageData?.bannerImageUrls} />
+      {/* <MobileCarousel media={sampleMedia}/> */}
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Business logo and name section - NOT blurred */}

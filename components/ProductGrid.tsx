@@ -85,9 +85,10 @@ function ProductCard({ product ,pageId }) {
 
       {/* Product image */}
       <div className="aspect-square relative overflow-hidden">
-        <Image
-          src={`${product.images[0]}`}
+      <Image
+          src={product.images[0]} // No need for template literal if it's already a string
           alt={product.name}
+          fill
           className="object-cover transition-all duration-700 group-hover:scale-105"
         />
 
