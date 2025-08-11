@@ -6,6 +6,7 @@ import { ShoppingCart, Heart, Star, Check, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import Image from "next/image"
 
 export function ProductGrid({ products , params }) {
   // const newParams = new URLSearchParams(searchParams.toString());
@@ -84,7 +85,7 @@ function ProductCard({ product ,pageId }) {
 
       {/* Product image */}
       <div className="aspect-square relative overflow-hidden">
-        <img
+        <Image
           src={`${product.images[0]}`}
           alt={product.name}
           className="object-cover transition-all duration-700 group-hover:scale-105"

@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Search, Plus, Package, Edit, Trash2, ChevronRight, GripVertical } from "lucide-react"
 import { Input } from "@/components/ui/Input"
@@ -11,7 +11,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { AddProductModal } from "./add-product-modal"
 import { VariantModal } from "./add-variant-modal"
 import {
-  addProduct, 
+  addProduct,
   editProduct,
   addVariant,
   deleteProduct,
@@ -40,7 +40,10 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
   const [isEditing, setIsEditing] = useState(false)
   const [editedProduct, setEditedProduct] = useState(null)
   const [isPending, startTransition] = useTransition()
-  // console.log("all prods", products)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [localEditedProduct, setLocalEditedProduct] = useState(null)
+  const [isUploadingImages, setIsUploadingImages] = useState(false)
 
   const sortedProducts = [...products].sort((a, b) => {
     const valueA = a[sortBy]
@@ -82,25 +85,21 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
     }
   }
 
-  // Update handleVariantSubmit function to match the new API
   const handleVariantSubmit = async (variantData) => {
     const { productAId, productBId, relationType, description, oldRelationType, relationId } = variantData
 
     if (variantEditMode === "add") {
       const result = await addVariant(productAId, productBId, relationType, description)
       if (result.success) {
-        // Update the products state to reflect the new variant relationship
         setProducts((prevProducts) => {
           return prevProducts.map((product) => {
             if (product.id === productAId) {
-              // Create or update the variantsByType object
               const updatedVariantsByType = { ...product.variantsByType }
 
               if (!updatedVariantsByType[relationType]) {
                 updatedVariantsByType[relationType] = []
               }
 
-              // Add the new variant relationship
               const relatedProduct = products.find((p) => p.id === productBId)
               updatedVariantsByType[relationType].push({
                 product: relatedProduct,
@@ -119,7 +118,6 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
         console.error("Error adding variant:", result?.error)
       }
     } else if (variantEditMode === "edit" && selectedVariant) {
-      // For editing, we need to handle the existing variant relationship
       console.log("relationID", relationId)
       const result = await editProductVariant(
         relationId,
@@ -138,32 +136,27 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
             if (product.id === productAId) {
               const updatedVariantsByType = { ...product.variantsByType }
 
-              // Remove from old relation type if it changed
               if (oldRelationType !== relationType && updatedVariantsByType[oldRelationType]) {
                 updatedVariantsByType[oldRelationType] = updatedVariantsByType[oldRelationType].filter(
                   (v) => v.product.id !== productBId,
                 )
 
-                // Clean up empty arrays
                 if (updatedVariantsByType[oldRelationType].length === 0) {
                   delete updatedVariantsByType[oldRelationType]
                 }
               }
 
-              // Add or update in the new relation type
               if (!updatedVariantsByType[relationType]) {
                 updatedVariantsByType[relationType] = []
               }
 
               const relatedProduct = products.find((p) => p.id === productBId)
 
-              // If same relation type, update the existing entry
               if (oldRelationType === relationType) {
                 updatedVariantsByType[relationType] = updatedVariantsByType[relationType].map((v) =>
                   v.product.id === productBId ? { product: relatedProduct, description: description || null } : v,
                 )
               } else {
-                // Otherwise add a new entry
                 updatedVariantsByType[relationType].push({
                   product: relatedProduct,
                   description: description || null,
@@ -184,7 +177,6 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
     }
   }
 
-  // Update handleDeleteVariant function to match the new API
   const handleDeleteVariant = (productId, relationType, variantProductId) => {
     startTransition(async () => {
       try {
@@ -196,12 +188,10 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
               if (product.id === productId && product.variantsByType[relationType]) {
                 const updatedVariantsByType = { ...product.variantsByType }
 
-                // Remove the specific variant
                 updatedVariantsByType[relationType] = updatedVariantsByType[relationType].filter(
                   (v) => v.product.id !== variantProductId,
                 )
 
-                // Clean up empty arrays
                 if (updatedVariantsByType[relationType].length === 0) {
                   delete updatedVariantsByType[relationType]
                 }
@@ -233,16 +223,27 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
   const selectedProductData = products.find((p) => p?.id === selectedProduct)
 
   const ProductDetails = () => {
-    const [localEditedProduct, setLocalEditedProduct] = useState({
-      ...selectedProductData,
-      images: [...(selectedProductData.images || [])].slice(0, 5),
-      recieveBy: selectedProductData.recieveBy || ["DELIVERY"], // Default as array
-      deliveryCharge: selectedProductData.deliveryCharge,
-      takeawayCharge: selectedProductData.takeawayCharge,
-      dineinCharge: selectedProductData.dineinCharge,
-    })
     const [isUploading, setIsUploading] = useState(false)
     const [uploadProgress, setUploadProgress] = useState(0)
+    const [localEditedProduct, setLocalEditedProduct] = useState(null)
+    const [isUploadingImages, setIsUploadingImages] = useState(false)
+
+    useEffect(() => {
+      if (
+        selectedProductData &&
+        !isUploadingImages &&
+        (!localEditedProduct || localEditedProduct.id !== selectedProductData.id)
+      ) {
+        setLocalEditedProduct({
+          ...selectedProductData,
+          images: [...(selectedProductData.images || [])].slice(0, 5),
+          recieveBy: selectedProductData.recieveBy || ["DELIVERY"],
+          deliveryCharge: selectedProductData.deliveryCharge,
+          takeawayCharge: selectedProductData.takeawayCharge,
+          dineinCharge: selectedProductData.dineinCharge,
+        })
+      }
+    }, [selectedProductData.id])
 
     const handleInputChange = (field, value) => {
       setLocalEditedProduct((prev) => ({
@@ -255,6 +256,7 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
       const files = Array.from(e.target.files)
       if (files.length === 0) return
 
+      setIsUploadingImages(true)
       setIsUploading(true)
       setUploadProgress(0)
 
@@ -291,6 +293,7 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
 
       setIsUploading(false)
       setUploadProgress(0)
+      setIsUploadingImages(false)
       e.target.value = ""
     }
 
@@ -344,8 +347,11 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
       }
     }
 
-    // Get all variant types and their variants for the selected product
     const variantTypes = selectedProductData.variantsByType || {}
+
+    if (!localEditedProduct) {
+      return <div>Loading...</div>
+    }
 
     return (
       <div className="space-y-6">
@@ -509,7 +515,6 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
         </div>
 
         <div className="grid grid-cols-3 gap-4 mt-4">
-          {/* Only show these fields if the corresponding receive method is selected */}
           {localEditedProduct.recieveBy?.includes("DELIVERY") && (
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-500">Delivery Price</p>
@@ -670,7 +675,6 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
             </Button>
           </div>
 
-          {/* Display variants grouped by type */}
           {Object.keys(variantTypes).length > 0 ? (
             <div className="space-y-6">
               {Object.entries(variantTypes).map(([relationType, variants]) => (
@@ -704,14 +708,13 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   setSelectedVariant({
-                                    // relationId:r
                                     relationId: variantItem.relationId,
                                     oldRelationType: relationType,
                                     relationType: relationType,
                                     description: variantItem.description,
                                     productA: { id: selectedProductData.id },
                                     productB: { id: variantProduct.id },
-                                    oldProductId: variantProduct.id, // Add this to ensure we have a fallback
+                                    oldProductId: variantProduct.id,
                                   })
                                   setVariantEditMode("edit")
                                   setIsVariantModalOpen(true)
@@ -735,13 +738,9 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
                                     })
                                   }
                                 }}
-                                disabled={isPending} // Disable button while deleting
+                                disabled={isPending}
                               >
-                                {isPending ? (
-                                  <span className="animate-spin">⏳</span> // Optional: Show loading spinner
-                                ) : (
-                                  <Trash2 className="h-4 w-4" />
-                                )}
+                                {isPending ? <span className="animate-spin">⏳</span> : <Trash2 className="h-4 w-4" />}
                               </Button>
                             </div>
                           </div>
@@ -765,7 +764,6 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
 
   return (
     <div className="w-full">
-      {/* Header */}
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex items-center justify-between">
           <h1 className="text-lg md:text-3xl font-bold text-gradient bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-teal-600">
@@ -787,9 +785,7 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
         </div>
       </div>
 
-      {/* Product Grid/List */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Products List */}
         <Card className="lg:col-span-5 bg-white">
           <ScrollArea className="h-[calc(100vh-220px)]">
             <div className="divide-y">
@@ -842,7 +838,6 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
           </ScrollArea>
         </Card>
 
-        {/* Desktop Product Details */}
         <Card className="hidden lg:block lg:col-span-7 bg-white">
           <ScrollArea className="h-[calc(100vh-220px)] p-6">
             {selectedProductData ? (
@@ -859,7 +854,6 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
         </Card>
       </div>
 
-      {/* Mobile Product Details Sheet */}
       <Sheet open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <SheetContent side="bottom" className="h-[85vh] p-6">
           <SheetHeader className="mb-6">
@@ -869,10 +863,8 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
         </SheetContent>
       </Sheet>
 
-      {/* Add Product Modal */}
       <AddProductModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleAddProduct} />
 
-      {/* Add/Edit Variant Modal */}
       <VariantModal
         isOpen={isVariantModalOpen}
         onClose={() => setIsVariantModalOpen(false)}

@@ -130,7 +130,7 @@ export function AssignTaskModal({
   }
 
   const handleEmployeeClick = (employee: Employee) => {
-    console.log("selected employee")
+    // console.log("selected employee")
     setSelectedEmployee(employee)
   }
 
