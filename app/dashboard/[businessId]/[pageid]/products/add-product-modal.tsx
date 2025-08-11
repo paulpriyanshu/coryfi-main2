@@ -96,6 +96,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }) {
         const previewResponse = await axios.get(
           `https://media.coryfi.com/api/image/${filename}`
         )
+        console.log("preview Response",previewResponse)
         setFormData((prevData) => ({
           ...prevData,
           images: [...prevData.images, previewResponse.data.url],

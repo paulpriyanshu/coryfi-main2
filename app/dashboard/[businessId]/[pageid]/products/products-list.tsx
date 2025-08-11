@@ -40,7 +40,7 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
   const [isEditing, setIsEditing] = useState(false)
   const [editedProduct, setEditedProduct] = useState(null)
   const [isPending, startTransition] = useTransition()
-  console.log("all prods", products)
+  // console.log("all prods", products)
 
   const sortedProducts = [...products].sort((a, b) => {
     const valueA = a[sortBy]

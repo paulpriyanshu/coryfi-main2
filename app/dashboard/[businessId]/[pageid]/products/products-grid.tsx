@@ -11,7 +11,7 @@ const fetcher = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch");
   const data = await res.json();
-  console.log("Data fetched:", data); // Log the fetched data
+  // console.log("Data fetched:", data); // Log the fetched data
   return data;
 };
 
@@ -23,7 +23,7 @@ export default function ProductsGrid({ pageId, businessId }) {
     `/api/business?businessPageId=${pageId}`,
     fetcher,
     { 
-      refreshInterval: 1000, // Refresh every second
+      refreshInterval: 3000, // Refresh every second
       revalidateOnFocus: true,
       dedupingInterval: 0, // Disable deduping to ensure fresh requests
       compareSize: false // Don't skip updates based on response size
