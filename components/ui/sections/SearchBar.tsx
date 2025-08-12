@@ -25,10 +25,20 @@ const recentSearches = ["React", "Next.js", "Tailwind CSS", "TypeScript"]
 const trendingSearches = ["JavaScript", "Node.js", "GraphQL", "Docker"]
 
 interface SearchResult {
-  id: string
+  id: number
   email: string
   name: string
-  userdp: string
+  userdp?: string
+  userDetails: {
+    bio?: string
+    displayImage?: string
+    phoneNumber?: string
+    addresses?: {
+      street?: string
+      city?: string
+      state?: string
+    }[]
+  }
   attachments?: string[]
 }
 
@@ -170,7 +180,7 @@ export default function SearchBar() {
     setShowSuggestions(false)
   }
 
-  const handleUserRoute = (id: string) => {
+  const handleUserRoute = (id: number) => {
     router.push(`/userProfile/${id}`)
     setShowSuggestions(false)
   }
@@ -243,7 +253,7 @@ export default function SearchBar() {
                           <UserAvatar src={result.userdp} alt={`${result.name}'s profile picture`} className="mr-2" />
                           <div className="flex-1">
                             <div className="font-medium">{result.name}</div>
-                            <div className="text-xs text-muted-foreground">{result.email}</div>
+                            <div className="text-xs text-muted-foreground">{result?.userDetails?.bio.split(' ').slice(0,10).join(' ')}</div>
                             {result.attachments && result.attachments.length > 0 && (
                               <div className="text-xs text-muted-foreground">
                                 Attachments: {result.attachments.join(", ")}
