@@ -280,7 +280,7 @@ export default function LeftSidebar({ userEmail, userName }: LeftSidebarProps) {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-black dark:bg-white border-black bg-transparent"
+                          className="text-black dark:bg-white border-black dark:hover:bg-slate-900  bg-transparent"
                         >
                           View
                         </Button>

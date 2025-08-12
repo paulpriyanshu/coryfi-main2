@@ -203,14 +203,14 @@ export default function SearchBar() {
                 setShowSuggestions(true)
               }}
               onFocus={() => setShowSuggestions(true)}
-              className="pl-9 pr-12 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              className="pl-9 pr-12 dark:bg-black  dark:text-white dark:placeholder-gray-400"
             />
             {searchTerm && (
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent dark:bg-gray-700 dark:hover:bg-gray-600"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent dark:bg-black dark:text-white dark:hover:bg-gray-600"
                 onClick={handleClearSearch}
               >
                 <X className="h-4 w-4 text-muted-foreground" />
@@ -218,7 +218,7 @@ export default function SearchBar() {
               </Button>
             )}
           </div>
-          <Button type="submit" className="bg-primary dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">
+          <Button type="submit" className="bg-primary dark:bg-black dark:border  dark:hover:bg-gray-600 dark:text-white">
             Search
           </Button>
         </form>
