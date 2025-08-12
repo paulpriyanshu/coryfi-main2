@@ -56,12 +56,12 @@ async function UserProfilePage({ params }: { params: { id: string } }) {
             <AvatarImage src={userData.userdp} alt={userData.name} />
             <AvatarFallback>{userData.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
           </Avatar>
-          <div className="mt-12 flex justify-between items-end">
+          <div className="mt-12 py-5 flex justify-between items-end">
             <div>
               <CardTitle className="text-3xl font-bold">{userData.name}</CardTitle>
-              {userData.currentPosition && userData.company && (
+              {userData.userDetails && (
                 <p className="text-xl text-muted-foreground">
-                  {userData.currentPosition} at {userData.company}
+                  {userData?.userDetails?.bio}
                 </p>
               )}
               <div className="flex items-center text-muted-foreground mt-2">
@@ -71,10 +71,10 @@ async function UserProfilePage({ params }: { params: { id: string } }) {
                     <span>{userData.location}</span>
                   </div>
                 )}
-                {userData.connections !== undefined && (
+                {userData.approvedConnectionsCount !== undefined && (
                   <div className="flex items-center">
                     <UserPlus className="h-4 w-4 mr-1" />
-                    <span>{userData.connections} connections</span>
+                    <span>{userData.approvedConnectionsCount} connections</span>
                   </div>
                 )}
               </div>

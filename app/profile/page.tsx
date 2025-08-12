@@ -104,7 +104,7 @@ export default function Page() {
                 </p>
               )}
               {user?.userDetails?.bio && (
-                <p className="text-sm text-muted-foreground mt-2">
+               <p className="text-xl text-muted-foreground">
                   {user?.userDetails?.bio}
                 </p>
               )}

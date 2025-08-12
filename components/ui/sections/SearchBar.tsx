@@ -234,8 +234,8 @@ export default function SearchBar() {
         </form>
       </Card>
       {showSuggestions && (
-        <Card className="absolute z-10 w-full mt-1 p-2 shadow-lg dark:bg-gray-800 dark:border-gray-700">
-          <Command className="dark:bg-gray-800">
+        <Card className="absolute z-10 w-full mt-1 p-2 shadow-lg dark:bg-black dark:border-gray-700">
+          <Command className="dark:bg-black">
             <CommandList>
               <CommandEmpty className="dark:text-gray-400">No results found.</CommandEmpty>
               {isLoading ? (
@@ -243,7 +243,7 @@ export default function SearchBar() {
               ) : (
                 <>
                   {searchResults.length > 0 && (
-                    <CommandGroup heading="Search Results" className="dark:text-gray-300">
+                    <CommandGroup heading="Search Results" className="dark:text-gray-300 ">
                       {searchResults.map((result) => (
                         <CommandItem
                           key={result.id}
@@ -282,7 +282,7 @@ export default function SearchBar() {
                           <CommandItem
                             key={term}
                             onSelect={() => handleSearch(term)}
-                            className="dark:text-gray-300 dark:hover:bg-gray-700"
+                            className="dark:text-gray-300 dark:hover:bg-black"
                           >
                             <Clock className="mr-2 h-4 w-4" />
                             {term}
