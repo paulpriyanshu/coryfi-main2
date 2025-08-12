@@ -37,6 +37,7 @@ export default function Page() {
           const userPosts = await fetchPosts(id);
           // console.log("userPosts", userPosts)
           const userDetails = await fetchUserData(id);
+          // console.log("user details",userDetails)
           setUser(userDetails);
           // console.log("uyseDEtials",userDetails)
           setPosts(userPosts.posts);
@@ -94,7 +95,7 @@ export default function Page() {
             <AvatarImage src={user.userdp ||`https://api.dicebear.com/6.x/initials/svg?seed=${user.name}`} alt={user.name} />
             <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
           </Avatar>
-          <div className="mt-12 flex justify-between items-end">
+          <div className="mt-12 flex justify-between py-5 items-end">
             <div>
               <CardTitle className="text-3xl font-bold">{user.name}</CardTitle>
               {user?.userDetails?.content && (
@@ -114,10 +115,10 @@ export default function Page() {
                     <span>{user?.userDetails?.city}</span>
                   </div>
                 )}
-                {user?.connections !== undefined && (
+                {user?.approvedConnectionsCount !== undefined && (
                   <div className="flex items-center">
                     <UserPlus className="h-4 w-4 mr-1" />
-                    <span>{user?.connections} connections</span>
+                    <span>{user?.approvedConnectionsCount} connections</span>
                   </div>
                 )}
               </div>
@@ -179,4 +180,3 @@ export default function Page() {
     </div>
   )
 }
-

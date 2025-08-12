@@ -242,11 +242,9 @@ export async function searchUsers(searchTerm: string, page = 1, pageSize = 10) {
 }
 
 
-export const fetchUserData = async (userId) => {
+export const fetchUserData = async (userId: number) => {
   const user = await db.user.findUnique({
-    where: {
-      id: userId,
-    },
+    where: { id: userId },
     select: {
       id: true,
       name: true,
@@ -254,9 +252,9 @@ export const fetchUserData = async (userId) => {
       userdp: true,
       userDetails: {
         select: {
-          bio: true, // Fetch bio from userDetails table
-          phoneNumber:true,
-          addresses:{
+          bio: true,
+          phoneNumber: true,
+          addresses: {
             select: {
               id: true,
               type: true,
@@ -269,13 +267,26 @@ export const fetchUserData = async (userId) => {
               landmark: true,
               instructions: true,
             },
-          }
-
+          },
         },
       },
+      _count: {
+        select: {
+          connections: {
+            where: { status: "APPROVED" }
+          },
+          connectionsReceived: {
+            where: { status: "APPROVED" }
+          }
+        }
+      }
     },
   });
-  return user;
+
+  const approvedConnectionsCount =
+    user._count.connections + user._count.connectionsReceived;
+
+  return { ...user, approvedConnectionsCount };
 };
 export const fetchUserId=async(email:string)=>{
     const user=await db.user.findFirst({
