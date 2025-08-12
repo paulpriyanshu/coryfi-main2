@@ -299,7 +299,7 @@ export default function MobileFooter({session}) {
               /> */}
             </nav>
           </footer>
-          <DraftAlert isOpen={hasDraft} onClose={() => setHasDraft(false)} />
+          {/* <DraftAlert isOpen={hasDraft} onClose={() => setHasDraft(false)} /> */}
         </motion.div>
       )}
     </AnimatePresence>

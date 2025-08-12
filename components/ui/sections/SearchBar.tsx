@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { Search, X, Clock, TrendingUp, User } from "lucide-react"
-import Link from "next/link"
-import { Input } from "@/components/ui/Input"
+import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command"
@@ -29,8 +28,33 @@ interface SearchResult {
   id: string
   email: string
   name: string
-  userdp:string
+  userdp: string
   attachments?: string[]
+}
+
+function UserAvatar({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const [imageError, setImageError] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  return (
+    <div className={`relative ${className}`}>
+      {!imageError ? (
+        <Image
+          src={src || "/placeholder.svg"}
+          alt={alt}
+          width={16}
+          height={16}
+          className="h-4 w-4 rounded-full object-cover"
+          onError={() => setImageError(true)}
+          onLoad={() => setIsLoading(false)}
+        />
+      ) : (
+        <div className="h-4 w-4 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+          <User className="h-2 w-2 text-gray-500 dark:text-gray-400" />
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function SearchBar() {
@@ -89,7 +113,6 @@ export default function SearchBar() {
     }
   }, [])
 
-  // Optimized search function with faster filtering
   const performSearch = useCallback(
     (term: string) => {
       const lowercaseTerm = term.toLowerCase()
@@ -100,13 +123,12 @@ export default function SearchBar() {
         return
       }
 
-      // Use faster filtering method
+      // Use faster filtering method with proper search logic
       const filteredResults = allUsers
         .filter((user) => {
           const matchName = user.name.toLowerCase().includes(lowercaseTerm)
           const matchEmail = user.email.toLowerCase().includes(lowercaseTerm)
-          const matchDp = user.userdp
-          return matchName || matchEmail || matchDp
+          return matchName || matchEmail
         })
         .slice(0, 10) // Limit results to prevent performance issues
 
@@ -148,11 +170,10 @@ export default function SearchBar() {
     setShowSuggestions(false)
   }
 
-  // Route to user profile
-  // const handleUserRoute = async (id: string) => {
-  //   router.prefetch(`/userProfile/${id}`)
-  //   router.push(`/userProfile/${id}`)
-  // }
+  const handleUserRoute = (id: string) => {
+    router.push(`/userProfile/${id}`)
+    setShowSuggestions(false)
+  }
 
   // Clear search input
   const handleClearSearch = () => {
@@ -175,7 +196,7 @@ export default function SearchBar() {
             <Search className="absolute left-3 top-1/2 md:h-4 md:w-4 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search..."
+              placeholder="Search users..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value)
@@ -214,34 +235,26 @@ export default function SearchBar() {
                   {searchResults.length > 0 && (
                     <CommandGroup heading="Search Results" className="dark:text-gray-300">
                       {searchResults.map((result) => (
-                        <Link
+                        <CommandItem
                           key={result.id}
-                          // onSelect={() => handleUserRoute(result.id)}
-                          href={`/userProfile/${result.id}`}
-                          className="flex items-center"
-                        > 
-                        <Image
-                              src={result.userdp}
-                              alt="User profile picture"
-                              width={16}
-                              height={16}
-                              className="mr-2 h-4 w-4 rounded-full object-cover"
-                            />
-                          <div>
-                            <div>
-                              {result.name}
-                            </div>
+                          onSelect={() => handleUserRoute(result.id)}
+                          className="flex items-center cursor-pointer dark:text-gray-300 dark:hover:bg-gray-700"
+                        >
+                          <UserAvatar src={result.userdp} alt={`${result.name}'s profile picture`} className="mr-2" />
+                          <div className="flex-1">
+                            <div className="font-medium">{result.name}</div>
+                            <div className="text-xs text-muted-foreground">{result.email}</div>
                             {result.attachments && result.attachments.length > 0 && (
                               <div className="text-xs text-muted-foreground">
                                 Attachments: {result.attachments.join(", ")}
                               </div>
                             )}
                           </div>
-                        </Link>
+                        </CommandItem>
                       ))}
                     </CommandGroup>
                   )}
-                  {searchTerm && searchResults.length === 0 && (
+                  {searchTerm && searchResults.length === 0 && !isLoading && (
                     <CommandGroup heading="Suggestions" className="dark:text-gray-300">
                       <CommandItem
                         onSelect={() => handleSearch(searchTerm)}
@@ -252,30 +265,34 @@ export default function SearchBar() {
                       </CommandItem>
                     </CommandGroup>
                   )}
-                  <CommandGroup heading="Recent Searches" className="dark:text-gray-300">
-                    {recentSearches.map((term) => (
-                      <CommandItem
-                        key={term}
-                        onSelect={() => handleSearch(term)}
-                        className="dark:text-gray-300 dark:hover:bg-gray-700"
-                      >
-                        <Clock className="mr-2 h-4 w-4" />
-                        {term}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                  <CommandGroup heading="Trending Searches" className="dark:text-gray-300">
-                    {trendingSearches.map((term) => (
-                      <CommandItem
-                        key={term}
-                        onSelect={() => handleSearch(term)}
-                        className="dark:text-gray-300 dark:hover:bg-gray-700"
-                      >
-                        <TrendingUp className="mr-2 h-4 w-4" />
-                        {term}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
+                  {!searchTerm && (
+                    <>
+                      <CommandGroup heading="Recent Searches" className="dark:text-gray-300">
+                        {recentSearches.map((term) => (
+                          <CommandItem
+                            key={term}
+                            onSelect={() => handleSearch(term)}
+                            className="dark:text-gray-300 dark:hover:bg-gray-700"
+                          >
+                            <Clock className="mr-2 h-4 w-4" />
+                            {term}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                      <CommandGroup heading="Trending Searches" className="dark:text-gray-300">
+                        {trendingSearches.map((term) => (
+                          <CommandItem
+                            key={term}
+                            onSelect={() => handleSearch(term)}
+                            className="dark:text-gray-300 dark:hover:bg-gray-700"
+                          >
+                            <TrendingUp className="mr-2 h-4 w-4" />
+                            {term}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </>
+                  )}
                 </>
               )}
             </CommandList>
