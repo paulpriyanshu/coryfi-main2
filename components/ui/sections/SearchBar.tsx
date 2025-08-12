@@ -10,6 +10,7 @@ import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { fetchAllUsers } from "@/app/api/actions/media"
+import Image from "next/image"
 
 // Debounce function with added performance tracking
 function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
@@ -28,6 +29,7 @@ interface SearchResult {
   id: string
   email: string
   name: string
+  userdp:string
   attachments?: string[]
 }
 
@@ -103,7 +105,8 @@ export default function SearchBar() {
         .filter((user) => {
           const matchName = user.name.toLowerCase().includes(lowercaseTerm)
           const matchEmail = user.email.toLowerCase().includes(lowercaseTerm)
-          return matchName || matchEmail
+          const matchDp = user.userdp
+          return matchName || matchEmail || matchDp
         })
         .slice(0, 10) // Limit results to prevent performance issues
 
@@ -215,11 +218,18 @@ export default function SearchBar() {
                           key={result.id}
                           // onSelect={() => handleUserRoute(result.id)}
                           href={`/userProfile/${result.id}`}
-                        >
-                          <User className="mr-2 h-4 w-4" />
+                          className="flex items-center"
+                        > 
+                        <Image
+                              src={result.userdp}
+                              alt="User profile picture"
+                              width={16}
+                              height={16}
+                              className="mr-2 h-4 w-4 rounded-full object-cover"
+                            />
                           <div>
                             <div>
-                              {result.name} ({result.email})
+                              {result.name}
                             </div>
                             {result.attachments && result.attachments.length > 0 && (
                               <div className="text-xs text-muted-foreground">
