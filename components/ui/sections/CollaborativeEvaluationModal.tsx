@@ -54,7 +54,7 @@ const handleConfirm = async () => {
     )
     // let currentUserId=currentUser[0]._id
     let recieverId = data.chatDetails.participants.filter(
-      (p) => p._id !== data.chatDetails.admin
+      (p) => p._id !== data.chatDetails._id
     )
     console.log("current user id ",currentUserId)
     console.log("reciever user id ",recieverId)

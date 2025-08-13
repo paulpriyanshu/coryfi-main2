@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { AlertCircle, Loader2, Users, ArrowRight, Star, Loader2Icon, Crown, Lock, Lightbulb, Book } from 'lucide-react'
+import { AlertCircle, Loader2, Users, ArrowRight, Star, Loader2Icon, Crown, Lock, Lightbulb, Book } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -14,11 +14,12 @@ import ResultCard from "./ResultCard"
 import { useSession } from "next-auth/react"
 import { fetchReachableNodes } from "@/app/api/actions/network"
 import { setResponseData } from "@/app/libs/features/pathdata/pathSlice"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { checkUserPremiumStatus } from "@/app/api/actions/user"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
 import TutorialModal from "./tutorial-modal"
+import { fetchUserData } from "@/app/api/actions/media"
 
 type PathNode = {
   id: number
@@ -53,17 +54,17 @@ type ReachableNodesResponse = {
 // Helper function to clean and deduplicate path nodes
 const cleanPathNodes = (nodes: PathNode[]): PathNode[] => {
   if (!nodes || nodes.length === 0) return []
-  
+
   const seen = new Set<string>()
   const cleanedNodes: PathNode[] = []
-  
+
   for (const node of nodes) {
     if (node && node.email && !seen.has(node.email)) {
       seen.add(node.email)
       cleanedNodes.push(node)
     }
   }
-  
+
   return cleanedNodes
 }
 
@@ -81,6 +82,7 @@ export default function ResultsList() {
   const [showPremiumModal, setShowPremiumModal] = useState(false)
   const [premiumLoading, setPremiumLoading] = useState(false)
   const [showTutorialModal, setShowTutorialModal] = useState(false)
+  const searchParams = useSearchParams()
 
   // State for paths data
   const [pathsData, setPathsData] = useState<any[] | null>(null)
@@ -94,10 +96,12 @@ export default function ResultsList() {
 
   // Loading state for individual profile path finding
   const [loadingProfileId, setLoadingProfileId] = useState<number | null>(null)
+  const [hasAutoSelectedFirstPath, setHasAutoSelectedFirstPath] = useState(false)
 
   const data = useAppSelector(selectResponseData)
   const dispatch = useAppDispatch()
   const router = useRouter()
+  const [targetUser, setTargetUser] = useState("")
   const { data: session } = useSession()
 
   // Memoize structured data to prevent unnecessary recalculations
@@ -108,6 +112,79 @@ export default function ResultsList() {
     }),
     [data],
   )
+  const initialPath = searchParams.get("findPathUser")
+
+  useEffect(() => {
+    async function handleFindPathUser() {
+      if (!initialPath || !session?.user?.email) return
+
+      try {
+        // Fetch target user details
+        const user = await fetchUserData(Number.parseInt(initialPath))
+        // console.log("user data", user)
+        setTargetUser(user.email)
+
+        // Trigger path ranking function
+        setPathsLoading(true)
+        setPathsError(null)
+
+        const results = await getPathRanking(session.user.email, user.email)
+        setPathsData(results.paths)
+
+        // Update Redux state with the path data
+        const enrichedResponse = {
+          ...results,
+          startEmail: session.user.email,
+          endEmail: user.email,
+        }
+        dispatch(setResponseData(enrichedResponse))
+      } catch (error) {
+        console.error("Error finding path for findPathUser:", error)
+        setPathsError(error)
+      } finally {
+        setPathsLoading(false)
+      }
+    }
+
+    handleFindPathUser()
+  }, [initialPath, session?.user?.email, dispatch])
+
+  useEffect(() => {
+    // Only auto-select if we have the findpathuser param, paths are loaded, and we haven't auto-selected yet
+    if (initialPath && pathsData && pathsData.length > 0 && !hasAutoSelectedFirstPath && !pathsLoading) {
+      const validPaths = pathsData.filter((path) => path && path.nodes && path.nodes.length > 0)
+
+      if (validPaths.length > 0) {
+        const firstPath = validPaths[0]
+
+        // Dispatch the first path as selected
+        const firstPathResponse = {
+          paths: [firstPath], // Only include the first path
+          startEmail: session?.user?.email,
+          endEmail: targetUser,
+          nodes: firstPath.nodes || [],
+          links: firstPath.links || [],
+        }
+
+        dispatch(setResponseData(firstPathResponse))
+        setHasAutoSelectedFirstPath(true)
+
+        // console.log("Auto-selected first path:", firstPath)
+        toast.success("First path automatically selected!")
+      }
+    }
+  }, [initialPath, pathsData, hasAutoSelectedFirstPath, pathsLoading, session?.user?.email, targetUser, dispatch])
+
+  useEffect(() => {
+    async function fetchUserDetails() {
+      if(initialPath){
+      const user = await fetchUserData(Number.parseInt(initialPath))
+      setTargetUser(user.email)
+      }
+      
+    }
+    fetchUserDetails()
+  }, [initialPath])
 
   // Memoize email values
   const startEmail = useMemo(() => structuredData.nodes[0]?.email, [structuredData.nodes])
@@ -299,49 +376,50 @@ export default function ResultsList() {
   }, [])
 
   // OPTIMIZED: Fixed the main performance issue
-  const handleFindPath = useCallback(async (profile: SuggestedProfile) => {
-    if (!session?.user?.email) {
-      toast.error("Please sign in to find a path.")
-      return
-    }
-
-    // Prevent multiple simultaneous requests
-    if (loadingProfileId === profile.id) {
-      return
-    }
-
-    setLoadingProfileId(profile.id)
-
-    try {
-      // console.log("Finding path from", session.user.email, "to", profile.email)
-      // Single API call with proper error handling
-      const response = await getPathRanking(session.user.email, profile.email, 0)
-      // console.log("Path response:", response)
-
-      const enrichedResponse = {
-        ...response,
-        startEmail: session.user.email,
-        endEmail: profile.email,
+  const handleFindPath = useCallback(
+    async (profile: SuggestedProfile) => {
+      if (!session?.user?.email) {
+        toast.error("Please sign in to find a path.")
+        return
       }
 
-      // Update Redux state
-      dispatch(setResponseData(enrichedResponse))
-
-      // Navigate after state update
-      router.push("/?tab=results&expand=true")
-      toast.success("Path data loaded successfully!")
-    } catch (error) {
-      console.error("Error finding path:", error)
-      if (error) {
-        toast.error("User not found. Please check the email address.")
-      } else {
-        toast.error("Error finding path. Please try again or check your connection.")
+      // Prevent multiple simultaneous requests
+      if (loadingProfileId === profile.id) {
+        return
       }
-    } finally {
-      setLoadingProfileId(null)
-    }
-  },
-  [session?.user?.email, dispatch, router, loadingProfileId],
+
+      setLoadingProfileId(profile.id)
+
+      try {
+        // console.log("Finding path from", session.user.email, "to", profile.email)
+        // Single API call with proper error handling
+        const response = await getPathRanking(session.user.email, profile.email, 0)
+        // console.log("Path response:", response)
+
+        const enrichedResponse = {
+          ...response,
+          startEmail: session.user.email,
+          endEmail: profile.email,
+        }
+
+        // Update Redux state
+        dispatch(setResponseData(enrichedResponse))
+
+        // Navigate after state update
+        router.push("/?tab=results&expand=true")
+        toast.success("Path data loaded successfully!")
+      } catch (error) {
+        console.error("Error finding path:", error)
+        if (error) {
+          toast.error("User not found. Please check the email address.")
+        } else {
+          toast.error("Error finding path. Please try again or check your connection.")
+        }
+      } finally {
+        setLoadingProfileId(null)
+      }
+    },
+    [session?.user?.email, dispatch, router, loadingProfileId],
   )
 
   const handleSeeMore = useCallback(() => {
@@ -400,8 +478,8 @@ export default function ResultsList() {
                   asChild
                   className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600"
                   onClick={() => {
-                    setShowPremiumModal(false);
-                    toast.success("Redirecting to premium upgrade...");
+                    setShowPremiumModal(false)
+                    toast.success("Redirecting to premium upgrade...")
                   }}
                 >
                   <a>Upgrade Now</a>
@@ -423,15 +501,13 @@ export default function ResultsList() {
                 <Lightbulb className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                  New to Paths?
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">New to Paths?</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                   Learn how to use paths effectively with our quick tutorial.
                 </p>
               </div>
             </div>
-            <Button 
+            <Button
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium px-3 py-2 shadow-md hover:shadow-lg transition-all duration-200"
               onClick={() => {
                 setShowTutorialModal(true)
@@ -439,15 +515,15 @@ export default function ResultsList() {
               }}
             >
               <div className="flex space-x-3 items-center justify-center">
-                <Book/>
+                <Book />
                 Tutorial
               </div>
             </Button>
           </div>
         </CardContent>
       </Card>
-    );
-  };
+    )
+  }
 
   const SuggestionsSection = () => {
     if (!session?.user?.email) {
