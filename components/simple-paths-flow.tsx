@@ -344,7 +344,7 @@ export default function SimplePathsFlow({
           </div>
 
           {!isSidebarOpen && (
-            <div className="fixed left-0 top-1/4 -translate-y-1/2 z-30 lg:hidden">
+            <div className="fixed left-0 top-44 -translate-y-1/2 z-30 lg:hidden">
               <button
                 onClick={() => setIsSidebarOpen(true)}
                 className="bg-blue-600/90 backdrop-blur-md text-white p-2  rounded-r-lg shadow-lg hover:bg-blue-700/90 transition-all duration-200 group"
@@ -386,8 +386,8 @@ export default function SimplePathsFlow({
               </div>
 
               <div className="text-center">
-                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-3">Select Your Interests</h2>
-                <p className="text-slate-300 mb-4 text-sm sm:text-base max-w-2xl mx-auto">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1">Select Your Interests</h2>
+                <p className="text-slate-300 mb-2 text-sm sm:text-base max-w-2xl mx-auto">
                   Choose the subcategories that match your interests to get better recommendations
                 </p>
                 <Badge
@@ -505,7 +505,7 @@ export default function SimplePathsFlow({
             </div>
 
             {/* Fixed Bottom Bar with Continue Button */}
-            <div className="border-t border-slate-700/50 bg-slate-800/90 backdrop-blur-sm p-4 sm:p-6 flex-shrink-0">
+            <div className="border-t border-slate-700/50 bg-slate-800/90 backdrop-blur-sm p-4 mb-10 sm:p-6 flex-shrink-0">
   <div className="flex items-center justify-between">
     {/* Back Button */}
     <Button
