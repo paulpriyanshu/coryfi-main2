@@ -204,66 +204,93 @@ export async function getPathsData(userEmail: string) {
 
 
 export async function seedInterests() {
-  
-  // console.log("seeding",JSON.stringify(categories,null,2))
-
- for (const category of categories) {
-  let existingCategory = await db.interestCategory.findFirst({
-    where: { name: category.name },
-    include: { subcategories: { include: { segments: true } } }
-  });
-
-  if (!existingCategory) {
-    // Category doesn't exist → create with everything
-    existingCategory = await db.interestCategory.create({
-      data: {
-        name: category.name,
-        subcategories: {
-          create: category.subcategories.map((sub) => ({
-            name: sub.name,
-            segments: {
-              create: sub.segments.map((seg) => ({ name: seg.name })),
-            },
-          })),
-        },
-      },
+  for (const category of categories) {
+    let existingCategory = await db.interestCategory.findFirst({
+      where: { name: category.name },
+      include: { subcategories: { include: { segments: true } } }
     });
-  } else {
-    // Category exists → check subcategories
-    for (const sub of category.subcategories) {
-      let existingSub = existingCategory.subcategories.find(
-        (s) => s.name === sub.name
-      );
 
-      if (!existingSub) {
-        // Subcategory missing → create it
-        await db.interestSubcategory.create({
-          data: {
-            name: sub.name,
-            categoryId: existingCategory.id,
-            segments: {
-              create: sub.segments.map((seg) => ({ name: seg.name })),
-            },
-          },
-        });
-      } else {
-        // Subcategory exists → check segments
-        for (const seg of sub.segments) {
-          const hasSeg = existingSub.segments.some((s) => s.name === seg.name);
-          if (!hasSeg) {
-            await db.segment.create({
-              data: {
-                name: seg.name,
-                subcategoryId: existingSub.id,
+    if (!existingCategory) {
+      // Create whole category with all subcategories & segments
+      existingCategory = await db.interestCategory.create({
+        data: {
+          name: category.name,
+          subcategories: {
+            create: category.subcategories.map(sub => ({
+              name: sub.name,
+              segments: {
+                create: sub.segments.map(seg => ({ name: seg.name })),
               },
-            });
+            })),
+          },
+        },
+      });
+    } else {
+      /** ----- HANDLE SUBCATEGORIES ----- **/
+      const existingSubNames = existingCategory.subcategories.map(s => s.name);
+      const incomingSubNames = category.subcategories.map(s => s.name);
+
+      // Delete subcategories not in the file
+      for (const sub of existingCategory.subcategories) {
+        if (!incomingSubNames.includes(sub.name)) {
+          await db.interestSubcategory.delete({ where: { id: sub.id } });
+        }
+      }
+
+      // Add or update subcategories
+      for (const sub of category.subcategories) {
+        let existingSub = existingCategory.subcategories.find(s => s.name === sub.name);
+
+        if (!existingSub) {
+          // Create missing subcategory
+          existingSub = await db.interestSubcategory.create({
+            data: {
+              name: sub.name,
+              categoryId: existingCategory.id,
+              segments: {
+                create: sub.segments.map(seg => ({ name: seg.name })),
+              },
+            },
+          });
+        } else {
+          /** ----- HANDLE SEGMENTS ----- **/
+          const existingSegNames = existingSub.segments.map(s => s.name);
+          const incomingSegNames = sub.segments.map(s => s.name);
+
+          // Delete segments not in file
+          for (const seg of existingSub.segments) {
+            if (!incomingSegNames.includes(seg.name)) {
+              await db.segment.delete({ where: { id: seg.id } });
+            }
+          }
+
+          // Add missing segments
+          for (const seg of sub.segments) {
+            if (!existingSegNames.includes(seg.name)) {
+              await db.segment.create({
+                data: {
+                  name: seg.name,
+                  subcategoryId: existingSub.id,
+                },
+              });
+            }
           }
         }
       }
     }
   }
-}
-  return { message: "Interest categories seeded successfully." };
+
+  /** ----- DELETE CATEGORIES NOT IN FILE ----- **/
+  const allCategories = await db.interestCategory.findMany();
+  const fileCategoryNames = categories.map(c => c.name);
+
+  for (const cat of allCategories) {
+    if (!fileCategoryNames.includes(cat.name)) {
+      await db.interestCategory.delete({ where: { id: cat.id } });
+    }
+  }
+
+  return { message: "Interest categories synced successfully." };
 }
 
 export const getCategories = async () => {

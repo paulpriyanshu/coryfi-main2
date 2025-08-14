@@ -43,7 +43,7 @@ model UserSubcategory {
   userId         Int
   subcategoryId  Int
   user           User         @relation(fields: [userId], references: [id])
-  subcategory    InterestSubcategory  @relation(fields: [subcategoryId], references: [id])
+  subcategory    InterestSubcategory  @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
 
   @@unique([userId, subcategoryId])
 }
@@ -56,7 +56,7 @@ model InterestSubcategory {
   id           Int           @id @default(autoincrement())
   name         String
   categoryId   Int
-  category     InterestCategory      @relation(fields: [categoryId], references: [id])
+  category     InterestCategory      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   segments     Segment[]
   users        UserSubcategory[]
 }
@@ -64,7 +64,7 @@ model Segment {
   id            Int          @id @default(autoincrement())
   name          String
   subcategoryId Int
-  subcategory   InterestSubcategory  @relation(fields: [subcategoryId], references: [id])
+  subcategory   InterestSubcategory  @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
 }
 
 model PremiumSubscription {

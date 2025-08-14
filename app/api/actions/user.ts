@@ -199,12 +199,12 @@ export async function saveUserSubcategories(userId: number, subcategoryIds: numb
   }
 
   // Remove old selections
-  await prisma.userSubcategory.deleteMany({
+  await db.userSubcategory.deleteMany({
     where: { userId },
   });
 
   // Add new selections
-  await prisma.userSubcategory.createMany({
+  await db.userSubcategory.createMany({
     data: subcategoryIds.map((id) => ({
       userId,
       subcategoryId: id,
