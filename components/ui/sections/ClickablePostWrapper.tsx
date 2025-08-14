@@ -26,7 +26,7 @@ export default function   ClickablePostWrapper({ children, post, userId }: Click
 
   return (
    <div
-  className="bg-white dark:bg-black border border-slate-100 dark:border-gray-700 
+  className="bg-white dark:bg-black border border-slate-100 dark:border-slate-900 border-y
              my-2 rounded-sm md:rounded-lg md:p-4 transition-colors duration-300"
   onClick={() => setIsModalOpen(true)}
 >
