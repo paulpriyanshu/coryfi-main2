@@ -1,6 +1,7 @@
 "use server"
 import db from "@/db"
 import { isAfter } from "date-fns"
+import { revalidatePath } from "next/cache"
 
 export const  checkPathsFlow=async(email:string)=>{
     try {
@@ -178,4 +179,37 @@ export async function getTop8MostConnectedUsers(email: string) {
     connectionCount,
     users: usersWithCount.sort((a, b) => b.totalConnections - a.totalConnections),
   };
+}
+
+
+export async function saveUserSubcategories(userId: number, subcategoryIds: number[]) {
+  if (!userId || !Array.isArray(subcategoryIds) || subcategoryIds.length === 0) {
+    throw new Error("Invalid input: userId or subcategoryIds missing.");
+  }
+
+  // Ensure all provided subcategories exist
+  const validSubs = await db.interestSubcategory.findMany({
+    where: { id: { in: subcategoryIds } },
+    select: { id: true },
+  });
+  console.log("valide subs",validSubs)
+  console.log("subcategores",subcategoryIds)
+  if (validSubs.length !== subcategoryIds.length) {
+    throw new Error("Some subcategories do not exist.");
+  }
+
+  // Remove old selections
+  await prisma.userSubcategory.deleteMany({
+    where: { userId },
+  });
+
+  // Add new selections
+  await prisma.userSubcategory.createMany({
+    data: subcategoryIds.map((id) => ({
+      userId,
+      subcategoryId: id,
+    })),
+  });
+
+  return { success: true, count: subcategoryIds.length };
 }

@@ -31,10 +31,40 @@ model User {
   createdAt                 DateTime @default(now()) // Fixed nullable issue
   employees                 Employee[]
   premiumSubscriptions PremiumSubscription[] 
+  interestSubcategories  UserSubcategory[]
 
 
   @@index([email])
   @@index([id])
+}
+
+model UserSubcategory {
+  id             Int          @id @default(autoincrement())
+  userId         Int
+  subcategoryId  Int
+  user           User         @relation(fields: [userId], references: [id])
+  subcategory    InterestSubcategory  @relation(fields: [subcategoryId], references: [id])
+
+  @@unique([userId, subcategoryId])
+}
+model InterestCategory {
+  id            Int           @id @default(autoincrement())
+  name          String
+  subcategories InterestSubcategory[]
+}
+model InterestSubcategory {
+  id           Int           @id @default(autoincrement())
+  name         String
+  categoryId   Int
+  category     InterestCategory      @relation(fields: [categoryId], references: [id])
+  segments     Segment[]
+  users        UserSubcategory[]
+}
+model Segment {
+  id            Int          @id @default(autoincrement())
+  name          String
+  subcategoryId Int
+  subcategory   InterestSubcategory  @relation(fields: [subcategoryId], references: [id])
 }
 
 model PremiumSubscription {

@@ -16,6 +16,7 @@ import { getServerSession } from 'next-auth'
 
 // ✅ Import your onboarding flow component
 import SimplePathsFlow from "@/components/simple-paths-flow";
+import { fetchUserData, fetchUserInterests } from "./api/actions/media";
 
 // Load fonts
 const geistSans = localFont({
@@ -45,6 +46,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
 let users: Boolean | any = {};
+let userInterests : Boolean | any = {};
 
 const session = await getServerSession(authOptions)
 if (session) {
@@ -57,6 +59,10 @@ users = {
   })),
 };
   // console.log("top users",users)
+}
+if (session) {
+  userInterests=await fetchUserInterests(session?.user?.email)
+  console.log("top users",users)
 }
 
 // console.log("paths flow",await checkPathsFlow(session?.user?.email))
@@ -87,10 +93,10 @@ users = {
                 {(session?.user?.email && !await checkPathsFlow(session?.user?.email)) ? null : <Header/>}
 
                 {/* ✅ Always show onboarding flow */}
-                {(session?.user?.email && !await checkPathsFlow(session?.user?.email)) ? <SimplePathsFlow users={users}/> : children}
+                {(session?.user?.email && !await checkPathsFlow(session?.user?.email)) ? <SimplePathsFlow users={users} userInterests={userInterests?.interestSubcategories} userId={userInterests?.id}/> : children}
                 {/* Mobile Footer */}
                 <div className="md:hidden">
-                  <MobileFooter session={session}/>
+                  {(session?.user?.email && await checkPathsFlow(session?.user?.email))?<MobileFooter session={session}/>:null}
                 </div>
               </SocketProvider>
             </StoreProvider>

@@ -245,7 +245,18 @@ export async function searchUsers(searchTerm: string, page = 1, pageSize = 10) {
   }
 }
 
-
+export const fetchUserInterests = async(userEmail:string)=>{
+    const user=await db.user.findFirst({
+      where:{
+        email:userEmail
+      },
+      select:{
+        id:true,
+        interestSubcategories:true
+      }
+    })
+    return user
+}
 export const fetchUserData = async (userId: number) => {
   const user = await db.user.findUnique({
     where: { id: userId },

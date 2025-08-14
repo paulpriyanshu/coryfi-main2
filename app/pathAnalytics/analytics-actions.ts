@@ -1,20 +1,33 @@
 "use server"
+import db from "@/db"
+import { categories } from "./categories"
 
-// Replace this mock db with your actual Prisma client
-import { PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
-
+// ✅ Fetch analytics with user interests
 export async function getAnalyticsData() {
   try {
-    // Get all users with their findPaths data
-    const allUsers = await prisma.user.findMany({
+    const allUsers = await db.user.findMany({
       select: {
         id: true,
         name: true,
         email: true,
         findPaths: true,
         premium: true,
+        interestSubcategories: {
+          select: {
+            subcategory: {
+              select: {
+                id: true,
+                name: true,
+                category: {
+                  select: {
+                    id: true,
+                    name: true
+                  }
+                }
+              }
+            }
+          }
+        }
       },
     })
 
@@ -23,7 +36,6 @@ export async function getAnalyticsData() {
     const totalFindPaths = allUsers.reduce((sum, user) => sum + user.findPaths, 0)
     const averagePerUser = activeUsers > 0 ? totalFindPaths / activeUsers : 0
 
-    // Create distribution data
     const distributionRanges = [
       { range: "0", min: 0, max: 0 },
       { range: "1-5", min: 1, max: 5 },
@@ -37,7 +49,6 @@ export async function getAnalyticsData() {
       users: allUsers.filter((user) => user.findPaths >= range.min && user.findPaths <= range.max).length,
     }))
 
-    // Get top users
     const topUsers = allUsers
       .filter((user) => user.findPaths > 0)
       .sort((a, b) => b.findPaths - a.findPaths)
@@ -45,9 +56,12 @@ export async function getAnalyticsData() {
       .map((user) => ({
         name: user.name,
         findPaths: user.findPaths,
+        interests: user.interestSubcategories.map((i) => ({
+          category: i.subcategory.category.name,
+          subcategory: i.subcategory.name
+        }))
       }))
 
-    // Create engagement data
     const engagementData = [
       {
         name: "Inactive",
@@ -75,8 +89,16 @@ export async function getAnalyticsData() {
       },
     ]
 
-    // User details for table
-    const userDetails = allUsers.filter((user) => user.findPaths > 0).sort((a, b) => b.findPaths - a.findPaths)
+    const userDetails = allUsers
+      .filter((user) => user.findPaths > 0)
+      .sort((a, b) => b.findPaths - a.findPaths)
+      .map((user) => ({
+        ...user,
+        interests: user.interestSubcategories.map((i) => ({
+          category: i.subcategory.category.name,
+          subcategory: i.subcategory.name
+        }))
+      }))
 
     return {
       totalUsers,
@@ -94,15 +116,21 @@ export async function getAnalyticsData() {
   }
 }
 
+// ✅ Export analytics with interests
 export async function exportAnalyticsData(format: "csv" | "json") {
   try {
     const data = await getAnalyticsData()
     const timestamp = new Date().toISOString().split("T")[0]
 
     if (format === "csv") {
-      const csvHeaders = "Name,Email,FindPaths,Premium,Status\n"
+      const csvHeaders = "Name,Email,FindPaths,Premium,Interests,Status\n"
       const csvData = data.userDetails
-        .map((user) => `"${user.name}","${user.email}",${user.findPaths},${user.premium ? "Yes" : "No"},"Active"`)
+        .map((user) => {
+          const interestsStr = user.interests
+            .map((i) => `${i.category} - ${i.subcategory}`)
+            .join("; ")
+          return `"${user.name}","${user.email}",${user.findPaths},${user.premium ? "Yes" : "No"},"${interestsStr}","Active"`
+        })
         .join("\n")
 
       return {
@@ -136,14 +164,128 @@ export async function exportAnalyticsData(format: "csv" | "json") {
   }
 }
 
-// Updated function to work with your existing getPathsData
+// ✅ Get single user with interests
 export async function getPathsData(userEmail: string) {
   try {
-    const user = await prisma.user.findFirst({
+    const user = await db.user.findFirst({
       where: { email: userEmail },
+      include: {
+        interestSubcategories: {
+          select: {
+            subcategory: {
+              select: {
+                id: true,
+                name: true,
+                category: {
+                  select: {
+                    id: true,
+                    name: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     })
-    return user
+
+    return {
+      ...user,
+      interests: user?.interestSubcategories.map((i) => ({
+        category: i.subcategory.category.name,
+        subcategory: i.subcategory.name
+      })) || []
+    }
   } catch (error) {
-    return error
+    console.error("Error fetching paths data:", error)
+    throw new Error("Failed to fetch paths data")
   }
 }
+
+
+export async function seedInterests() {
+  
+  // console.log("seeding",JSON.stringify(categories,null,2))
+
+ for (const category of categories) {
+  let existingCategory = await db.interestCategory.findFirst({
+    where: { name: category.name },
+    include: { subcategories: { include: { segments: true } } }
+  });
+
+  if (!existingCategory) {
+    // Category doesn't exist → create with everything
+    existingCategory = await db.interestCategory.create({
+      data: {
+        name: category.name,
+        subcategories: {
+          create: category.subcategories.map((sub) => ({
+            name: sub.name,
+            segments: {
+              create: sub.segments.map((seg) => ({ name: seg.name })),
+            },
+          })),
+        },
+      },
+    });
+  } else {
+    // Category exists → check subcategories
+    for (const sub of category.subcategories) {
+      let existingSub = existingCategory.subcategories.find(
+        (s) => s.name === sub.name
+      );
+
+      if (!existingSub) {
+        // Subcategory missing → create it
+        await db.interestSubcategory.create({
+          data: {
+            name: sub.name,
+            categoryId: existingCategory.id,
+            segments: {
+              create: sub.segments.map((seg) => ({ name: seg.name })),
+            },
+          },
+        });
+      } else {
+        // Subcategory exists → check segments
+        for (const seg of sub.segments) {
+          const hasSeg = existingSub.segments.some((s) => s.name === seg.name);
+          if (!hasSeg) {
+            await db.segment.create({
+              data: {
+                name: seg.name,
+                subcategoryId: existingSub.id,
+              },
+            });
+          }
+        }
+      }
+    }
+  }
+}
+  return { message: "Interest categories seeded successfully." };
+}
+
+export const getCategories = async () => {
+  const interests = await db.interestCategory.findMany({
+    select: {
+      id: true,
+      name: true, // category name
+      subcategories: {
+        select: {
+          id: true,
+          name: true, // subcategory name
+          segments: {
+            select: {
+              id: true,
+              name: true // segment name
+            }
+          }
+        }
+      }
+    }
+  });
+
+  console.log("Fetched interests:", JSON.stringify(interests, null, 2));
+  return interests;
+};
