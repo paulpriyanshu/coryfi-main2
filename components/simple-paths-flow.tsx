@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Send, ExpandIcon as Explore, CheckCircle, ArrowLeft, Heart, ChevronDown, ChevronUp } from "lucide-react"
+import { Send, ExpandIcon as Explore, CheckCircle, ArrowLeft, Heart } from "lucide-react"
 import { connect_users } from "@/app/api/actions/network"
 import { doneIntroductoryFlow } from "@/app/api/actions/user"
 import { useRouter } from "next/navigation"
@@ -68,6 +68,8 @@ export default function SimplePathsFlow({
   const [isLoadingCategories, setIsLoadingCategories] = useState(true)
 
   const [showScrollButton, setShowScrollButton] = useState(false)
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   console.log("users", users)
 
@@ -140,6 +142,12 @@ export default function SimplePathsFlow({
       setShowScrollButton(false)
     }
   }, [currentStep])
+
+  useEffect(() => {
+    if (categories.length > 0 && selectedCategoryId === null) {
+      setSelectedCategoryId(categories[0].id)
+    }
+  }, [categories, selectedCategoryId])
 
   const sendRequest = async (user: User) => {
     if (!session?.user?.email || !session?.user?.name) return
@@ -258,77 +266,167 @@ export default function SimplePathsFlow({
     }))
   }
 
-  const renderStep3 = () => (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Navigation */}
-        <div className="flex items-center justify-between mb-6 sm:mb-8">
-          <Button
-            onClick={handlePrevious}
-            variant="outline"
-            size="sm"
-            className="border-slate-600 text-slate-300 hover:bg-slate-800 bg-transparent"
-            disabled={isSubmittingInterests}
+  const renderStep3 = () => {
+    const selectedCategory = categories.find((cat) => cat.id === selectedCategoryId)
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
+        <div className="flex h-screen">
+          {/* Mobile Sidebar Overlay */}
+          {isSidebarOpen && (
+            <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setIsSidebarOpen(false)} />
+          )}
+
+          <div
+            className={`
+            fixed lg:static inset-y-0 left-0 z-50 w-80 bg-slate-800/95 backdrop-blur-sm border-r border-slate-700/50
+            transform transition-transform duration-300 ease-in-out lg:transform-none
+            ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          `}
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
+            <div className="flex flex-col h-full">
+              {/* Sidebar Header */}
+              <div className="p-4 sm:p-6 border-b border-slate-700/50">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-white">Categories</h3>
+                  <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-slate-400 hover:text-white">
+                    ✕
+                  </button>
+                </div>
+                <p className="text-sm text-slate-400 mt-1">Select a category to explore</p>
+                <div className="mt-2 text-xs text-blue-400 bg-blue-400/10 px-2 py-1 rounded-full inline-block">
+                  {categories.length} categories available
+                </div>
+              </div>
 
-          {renderProgressDots()}
-        </div>
+              <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+                {isLoadingCategories ? (
+                  <div className="text-center py-8">
+                    <div className="w-6 h-6 mx-auto mb-3 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                    <p className="text-slate-400 text-sm">Loading...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {categories.map((category, index) => (
+                      <button
+                        key={category.id}
+                        onClick={() => {
+                          setSelectedCategoryId(category.id)
+                          setIsSidebarOpen(false) // Close mobile sidebar
+                        }}
+                        className={`
+                          w-full text-left p-3 rounded-lg transition-all duration-200 relative
+                          ${
+                            selectedCategoryId === category.id
+                              ? "bg-blue-600/20 border border-blue-500/30 text-blue-300 shadow-lg shadow-blue-500/10"
+                              : "hover:bg-slate-700/50 text-slate-300 hover:text-white border border-transparent"
+                          }
+                        `}
+                      >
+                        {selectedCategoryId === category.id && (
+                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-r-full" />
+                        )}
+                        <div className="font-medium">{category.name}</div>
+                        <div className="text-xs text-slate-400 mt-1 flex items-center justify-between">
+                          <span>{category.subcategories.length} subcategories</span>
+                          {selectedCategoryId === category.id && <span className="text-blue-400">●</span>}
+                        </div>
+                      </button>
+                    ))}
 
-        {/* Header */}
-        <div className="text-center mb-6 sm:mb-8 lg:mb-12">
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-3 sm:mb-4">Select Your Interests</h2>
-          <p className="text-slate-300 mb-4 sm:mb-6 text-sm sm:text-base max-w-2xl mx-auto">
-            Choose the subcategories that match your interests to get better recommendations
-          </p>
-          <Badge
-            variant="outline"
-            className="text-blue-400 border-blue-400/50 bg-blue-400/10 px-3 sm:px-4 py-1 sm:py-2 text-sm"
-          >
-            <Heart className="w-4 h-4 mr-2" />
-            Selected: {selectedSubcategories.length}
-          </Badge>
-        </div>
-
-        {isLoadingCategories ? (
-          <div className="text-center py-8">
-            <div className="w-8 h-8 mx-auto mb-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-            <p className="text-slate-300">Loading categories...</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 mb-8">
-            {categories.map((category) => (
-              <Card key={category.id} className="border-slate-700/50 bg-slate-800/50 backdrop-blur-sm h-fit">
-                <CardContent className="p-4">
-                  {/* Category Header */}
-                  <button
-                    onClick={() => toggleCategoryExpansion(category.id)}
-                    className="w-full flex items-center justify-between text-left mb-4 hover:text-blue-400 transition-colors"
-                  >
-                    <h3 className="text-lg font-semibold text-white">{category.name}</h3>
-                    {expandedCategories[category.id] ? (
-                      <ChevronUp className="w-5 h-5 text-slate-400" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-slate-400" />
+                    {categories.length > 5 && (
+                      <div className="text-center py-2 text-xs text-slate-500">Scroll for more categories</div>
                     )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {!isSidebarOpen && (
+            <div className="fixed left-0 top-1/4 -translate-y-1/2 z-30 lg:hidden">
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="bg-blue-600/90 backdrop-blur-md text-white p-2  rounded-r-lg shadow-lg hover:bg-blue-700/90 transition-all duration-200 group"
+              >
+                <div className="flex flex-col items-center space-y-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                  <div className="text-xs font-medium">Categories</div>
+                  <div className="text-xs text-blue-200">{categories.length}</div>
+                </div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-400 rounded-full animate-pulse" />
+              </button>
+            </div>
+          )}
+
+          {/* Main Content */}
+          <div className="flex-1 flex flex-col min-h-screen">
+            {/* Header */}
+            <div className="p-4 sm:p-6 lg:p-8 border-b border-slate-700/50 flex-shrink-0">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => setIsSidebarOpen(true)}
+                    className="lg:hidden p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg relative"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {categories.length}
+                    </div>
                   </button>
 
-                  {/* Subcategories */}
-                  {expandedCategories[category.id] && (
-                    <div className="space-y-4">
-                      {category.subcategories.map((subcategory) => {
+               
+                </div>
+
+                {renderProgressDots()}
+              </div>
+
+              <div className="text-center">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-3">Select Your Interests</h2>
+                <p className="text-slate-300 mb-4 text-sm sm:text-base max-w-2xl mx-auto">
+                  Choose the subcategories that match your interests to get better recommendations
+                </p>
+                <Badge
+                  variant="outline"
+                  className="text-blue-400 border-blue-400/50 bg-blue-400/10 px-3 sm:px-4 py-1 sm:py-2 text-sm"
+                >
+                  <Heart className="w-4 h-4 mr-2" />
+                  Selected: {selectedSubcategories.length}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+              <div className="p-4 sm:p-6 lg:p-8">
+                {selectedCategory ? (
+                  <div>
+                    <div className="mb-6 sticky top-0 bg-slate-900/80 backdrop-blur-sm p-4 -m-4 rounded-lg border border-slate-700/30">
+                      <h3 className="text-xl font-semibold text-white mb-2 flex items-center">
+                        {selectedCategory.name}
+                        <Badge variant="secondary" className="ml-3 text-xs bg-slate-700/50 text-slate-300">
+                          {selectedCategory.subcategories.length} subcategories
+                        </Badge>
+                      </h3>
+                      <p className="text-slate-400 text-sm">Select the subcategories that interest you</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pb-8">
+                      {selectedCategory.subcategories.map((subcategory) => {
                         const isSelected = selectedSubcategories.includes(subcategory.id)
 
                         return (
                           <div
                             key={subcategory.id}
-                            className={`border rounded-lg p-4 transition-colors ${
+                            className={`border rounded-lg p-4 transition-all duration-200 cursor-pointer hover:scale-[1.02] ${
                               isSelected
-                                ? "border-blue-500/50 bg-blue-500/10"
-                                : "border-slate-600/50 hover:border-slate-500/50"
+                                ? "border-blue-500/50 bg-blue-500/10 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500/20"
+                                : "border-slate-600/50 hover:border-slate-500/50 hover:bg-slate-800/30"
                             }`}
+                            onClick={() => toggleSubcategory(subcategory.id)}
                           >
                             {/* Subcategory Header with Checkbox */}
                             <div className="flex items-start space-x-3 mb-3">
@@ -338,10 +436,13 @@ export default function SimplePathsFlow({
                                 onCheckedChange={() => toggleSubcategory(subcategory.id)}
                                 className="mt-1"
                               />
-                              <label htmlFor={`subcategory-${subcategory.id}`} className="flex-1 cursor-pointer">
-                                <h4 className="font-medium text-white mb-2">{subcategory.name}</h4>
+                              <div className="flex-1">
+                                <h4 className="font-medium text-white mb-2 flex items-center">
+                                  {subcategory.name}
+                                  {isSelected && <CheckCircle className="w-4 h-4 ml-2 text-blue-400" />}
+                                </h4>
 
-                                {/* Segments Preview (Read-only) */}
+                                {/* Segments Preview */}
                                 <div className="flex flex-wrap gap-2">
                                   {subcategory.segments.slice(0, 4).map((segment) => (
                                     <Badge
@@ -358,51 +459,103 @@ export default function SimplePathsFlow({
                                     </Badge>
                                   )}
                                 </div>
-                              </label>
+                              </div>
                             </div>
                           </div>
                         )
                       })}
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
 
-        {/* Submit Button */}
-        <div className="text-center mb-15">
-          <Button
-            onClick={handleInterestsSubmit}
-            disabled={selectedSubcategories.length === 0 || isSubmittingInterests || isLoadingCategories}
-            size="lg"
-            className="bg-gradient-to-r mb-10 from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 sm:px-8 py-2 sm:py-3 disabled:opacity-50 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
-          >
-            {isSubmittingInterests ? (
-              <>
-                <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                Saving...
-              </>
-            ) : (
-              "Continue"
-            )}
-          </Button>
+                    {selectedCategory.subcategories.length > 6 && (
+                      <div className="text-center py-4 text-sm text-slate-500 border-t border-slate-700/30">
+                        {selectedSubcategories.length > 0 ? (
+                          <span className="text-blue-400">
+                            {selectedSubcategories.length} selected • Scroll up to see all options
+                          </span>
+                        ) : (
+                          "Scroll up to see all subcategories"
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="text-slate-400 mb-4">
+                      <svg
+                        className="w-12 h-12 mx-auto mb-4 text-slate-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1}
+                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                        />
+                      </svg>
+                      <p>Select a category from the sidebar to view subcategories</p>
+                      <p className="text-sm mt-2 lg:hidden">
+                        Tap the menu button or swipe from left to open categories
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Fixed Bottom Bar with Continue Button */}
+            <div className="border-t border-slate-700/50 bg-slate-800/90 backdrop-blur-sm p-4 sm:p-6 flex-shrink-0">
+  <div className="flex items-center justify-between">
+    {/* Back Button */}
+    <Button
+      onClick={handlePrevious}
+      variant="outline"
+      size="sm"
+      className="border-slate-600 text-slate-300 hover:bg-slate-800 bg-transparent"
+      disabled={isSubmittingInterests}
+    >
+      <ArrowLeft className="w-4 h-4 mr-2" />
+      Back
+    </Button>
+
+    {/* Continue Button */}
+    <Button
+      onClick={handleInterestsSubmit}
+      disabled={
+        selectedSubcategories.length === 0 ||
+        isSubmittingInterests ||
+        isLoadingCategories
+      }
+      size="lg"
+      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 sm:px-8 py-2 sm:py-3 disabled:opacity-50 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
+    >
+      {isSubmittingInterests ? (
+        <>
+          <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          Saving...
+        </>
+      ) : (
+        <>
+          Continue
+          {selectedSubcategories.length > 0 && (
+            <Badge
+              variant="secondary"
+              className="ml-2 bg-white/20 text-white"
+            >
+              {selectedSubcategories.length}
+            </Badge>
+          )}
+        </>
+      )}
+    </Button>
+  </div>
+</div>
+          </div>
         </div>
       </div>
-
-      {showScrollButton && (
-        <Button
-          onClick={scrollToBottom}
-          size="sm"
-          className="fixed bottom-6 right-6 z-50 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-in fade-in slide-in-from-bottom-2"
-          aria-label="Scroll to bottom"
-        >
-          <ChevronDown className="w-5 h-5" />
-        </Button>
-      )}
-    </div>
-  )
+    )
+  }
 
   const renderStep1 = () => (
     <div
