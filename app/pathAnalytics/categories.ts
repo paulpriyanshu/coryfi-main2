@@ -1697,3 +1697,4 @@ export const categories = [
     },
   ],
 }
+]
