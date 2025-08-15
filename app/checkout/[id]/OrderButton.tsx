@@ -25,6 +25,7 @@ function Checkout({ userId, user_name, user_email, user_phone, total_amount, car
 
   const doPayment = async (paymentSessionId: string) => {
     cashfree.checkout({ paymentSessionId, redirectTarget: "_self" });
+    
   };
 
   const createOrder = async () => {
@@ -66,7 +67,7 @@ function Checkout({ userId, user_name, user_email, user_phone, total_amount, car
       );
 
       console.log("moved cart to order", cartToOrder);
-      await deleteCart(cart.id)
+      
 
       await doPayment(data.paymentSessionId);
     } catch (err) {
