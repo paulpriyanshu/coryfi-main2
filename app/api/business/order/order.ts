@@ -290,84 +290,87 @@ export const debugOrdersByDateRange = async (businessPageId: string, startDate: 
   }
 };
 export const getOrdersByBusinessPage = async (businessPageId: string) => {
-    try {
-      const orders = await db.order.findMany({
-        where: {
-          orderItems: {
-            some: {
-              product: {
-                businessPageId: businessPageId
-              }
+  try {
+    const orders = await db.order.findMany({
+      where: {
+        orderItems: {
+          some: {
+            product: {
+              businessPageId: businessPageId
             }
-          },
-          status: "completed"
+          }
         },
-        orderBy: {
-          createdAt: "desc"
-        },
-        select: {
-          id: true,
-          order_id: true,
-          userId: true,
-          totalCost: true,
-          createdAt: true,
-          fulfillmentStatus:true,
-          tasks: {
-            where:{
-              businessId:businessPageId
-            },
-            include: {
-              employee: {
-                include: {
-                  user: {
-                    select: {
-                      name: true,
-                      email: true,
-                      userdp: true,
-                      userDetails: {
-                        select: {
-                          phoneNumber: true,
-                        }
-                      }
-                    }
+        status: "completed"
+      },
+      orderBy: {
+        createdAt: "desc"
+      },
+      select: {
+        id: true,
+        order_id: true,
+        userId: true,
+        totalCost: true,
+        createdAt: true,
+        fulfillmentStatus: true,
+        tasks: {
+          where: { businessId: businessPageId },
+          include: {
+            employee: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                    userdp: true,
+                    userDetails: { select: { phoneNumber: true } }
                   }
                 }
               }
             }
-          },
-          orderItems: {
-            where: {
-              product: {
-                businessPageId: businessPageId,
-              }
-            },
-            select: {
-              id:true,
-              quantity: true,
-              customization: true,
-              details: true,
-              recieveBy: true,
-              OTP:true,
-              productFulfillmentStatus:true,
-              outForDelivery:true,
-              product: {
-                select: {
-                  id: true,
-                  name: true,
-                  businessPageId: true,
-                }
-              }
-            }
+          }
+        },
+        orderItems: {
+          where: { product: { businessPageId } },
+          select: {
+            id: true,
+            quantity: true,
+            customization: true,
+            details: true,
+            recieveBy: true,
+            OTP: true,
+            productFulfillmentStatus: true,
+            outForDelivery: true,
+            product: { select: { id: true, name: true, businessPageId: true } }
           }
         }
-      });
-  
-      return { success: true, data: orders };
-    } catch (error) {
-      console.error("Failed to fetch orders by business page:", error);
-      return { success: false, error };
-    }
-  };
+      }
+    });
+
+    // Fetch user data separately
+    const userIds = [...new Set(orders.map(o => o.userId))];
+    const users = await db.user.findMany({
+      where: { id: { in: userIds } },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        userdp: true,
+        userDetails: { select: { phoneNumber: true} }
+      }
+    });
+
+    // Attach user data to each order
+    const ordersWithUser = orders.map(order => ({
+      ...order,
+      user: users.find(u => u.id === order.userId)
+    }));
+
+    return { success: true, data: ordersWithUser };
+  } catch (error) {
+    console.error("Failed to fetch orders by business page:", error);
+    return { success: false, error };
+  }
+};
 
 
   export const MarkOutForDelivery = async (id) => {

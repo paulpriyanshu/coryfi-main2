@@ -74,6 +74,7 @@ export default function TaskPageWithTabs() {
       const results = await Promise.allSettled(
         businessIds.map((businessId) => getLatestOrdersByBusinessPage(businessId)),
       )
+      console.log("results",results)
 
       results.forEach((result, index) => {
         if (result.status === "fulfilled" && result.value?.data?.length > 0) {
@@ -83,6 +84,7 @@ export default function TaskPageWithTabs() {
           console.error(`Error fetching for business ${businessIds[index]}:`, result.reason)
         }
       })
+      console.log("results",results)
 
       console.log("Final All Tasks Data:", allTasksData)
 
@@ -100,6 +102,7 @@ export default function TaskPageWithTabs() {
 
       const userData = await fetchUserId(session.user.email)
       const taskData = await getAssignedTasksForEmployee(userData.id)
+      console.log("result",taskData)
       const businessIds = [...new Set(taskData.data.map((task: any) => task.businessId))]
 
       console.log("businessIds", businessIds)

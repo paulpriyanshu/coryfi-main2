@@ -4,9 +4,9 @@ import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/Input"
+import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import {useRouter} from 'next/navigation'
+import { useRouter } from "next/navigation"
 import {
   Dialog,
   DialogContent,
@@ -40,7 +40,7 @@ export default function TaskComponent({ sampleData }) {
   const [tasks, setTasks] = useState(null)
   const [selectedTask, setSelectedTask] = useState(null)
   const [otpDialogOpen, setOtpDialogOpen] = useState(false)
-  const [otp,setOtp] = useState("")
+  const [otp, setOtp] = useState("")
   const [expandedTasks, setExpandedTasks] = useState({})
 
   useEffect(() => {
@@ -55,10 +55,10 @@ export default function TaskComponent({ sampleData }) {
   const getLatestTaskInstances = (data) => {
     // Group tasks by task_id (or name field based on your sample data)
     const taskGroups = new Map()
-    
+
     data.forEach((task) => {
       const taskId = task.task_id || task.name // Use task_id if available, otherwise use name
-      
+
       if (!taskGroups.has(taskId)) {
         taskGroups.set(taskId, [])
       }
@@ -67,7 +67,7 @@ export default function TaskComponent({ sampleData }) {
 
     // Get the latest task from each group (based on updatedAt or createdAt)
     const latestTasks = []
-    
+
     taskGroups.forEach((taskList, taskId) => {
       // Sort by updatedAt (or createdAt if updatedAt is not available) in descending order
       const sortedTasks = taskList.sort((a, b) => {
@@ -75,10 +75,10 @@ export default function TaskComponent({ sampleData }) {
         const dateB = new Date(b.updatedAt || b.createdAt)
         return dateB - dateA // Most recent first
       })
-      
+
       // Take the most recent task
       const latestTask = sortedTasks[0]
-      
+
       // Process the task (consolidate products if needed)
       const processedTask = processTask(latestTask)
       latestTasks.push(processedTask)
@@ -212,16 +212,16 @@ export default function TaskComponent({ sampleData }) {
     if (selectedTask?.order?.orderItems && selectedTask.order.orderItems.length > 0) {
       // Get all unique OTPs from order items
       const orderItemOtps = [...new Set(selectedTask.order.orderItems.map((item) => item.otp))]
-      console.log("order items",orderItemOtps)
+      console.log("order items", orderItemOtps)
 
       // Check if entered OTP matches any of the order item OTPs
       const isValidOtp = orderItemOtps.includes(otp)
-      console.log("isvalid",isValidOtp)
+      console.log("isvalid", isValidOtp)
 
       if (isValidOtp) {
         // Call the fulfillItemsByOtp function to update the database
         const result = await fulfillItemsByOtp(selectedTask.name, otp, selectedTask.employeeId)
-        console.log("result",result)
+        console.log("result", result)
 
         if (result.success) {
           // Show success message for the items that were updated
@@ -229,7 +229,7 @@ export default function TaskComponent({ sampleData }) {
 
           // Check if all items in the order are now fulfilled using the server action
           const allFulfilled = await checkAllItemsFulfilled(selectedTask.order.id)
-          console.log("fulfilled",allFulfilled)
+          console.log("fulfilled", allFulfilled)
 
           if (allFulfilled) {
             // Update task status in the UI only if all items are fulfilled
@@ -248,7 +248,6 @@ export default function TaskComponent({ sampleData }) {
             )
             setTasks(updatedTasks)
             toast.success(`All items fulfilled! Order ${selectedTask.task_id} has been completed.`)
-
           } else {
             // Fetch the latest order data to update the UI with current fulfillment status
             toast?.success("Some items in this order are still pending fulfillment.")
@@ -281,7 +280,7 @@ export default function TaskComponent({ sampleData }) {
             <CardHeader className="pb-2">
               <div className="flex justify-between items-center">
                 <div>
-                  <CardTitle className="text-xl">{task.order?.username || 'Unknown Customer'}</CardTitle>
+                  <CardTitle className="text-xl">{task.order?.username || "Unknown Customer"}</CardTitle>
                   <p className="text-sm text-muted-foreground">Task ID: {task.task_id || task.name}</p>
                   {task.status === "cancelled" && (
                     <p className="text-sm font-medium text-red-800 mt-1">⚠️ This task has been cancelled</p>
@@ -301,7 +300,7 @@ export default function TaskComponent({ sampleData }) {
 
             <CardContent className="space-y-4">
               {/* Customer Contact Information - Always visible */}
-              {(task.order?.phoneNumber || task.order?.email || task.order?.username) && (
+              {(task.order?.userPhone || task.order?.email || task.order?.username) && (
                 <div className="bg-muted/30 p-3 rounded-md">
                   <h3 className="font-medium mb-2 flex items-center">
                     <User className="h-4 w-4 mr-2" />
@@ -314,11 +313,20 @@ export default function TaskComponent({ sampleData }) {
                         <span className="font-medium">{task.order.username}</span>
                       </p>
                     )}
-                    {task.order?.phoneNumber && (
+                    {task.order?.userPhone && (
                       <p className="flex items-center">
                         <Phone className="h-3 w-3 mr-1 text-muted-foreground" />
                         <span className="text-muted-foreground">Phone:</span>{" "}
-                        <span className="font-medium ml-1">{task.order.phoneNumber}</span>
+                        <a
+                          href={`tel:${task.order.userPhone}`}
+                          className="font-medium ml-1 text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                          onClick={(e) => {
+                            // Prevent event bubbling to avoid expanding/collapsing the card
+                            e.stopPropagation()
+                          }}
+                        >
+                          {task.order.userPhone}
+                        </a>
                       </p>
                     )}
                     {task.order?.email && (
@@ -344,7 +352,8 @@ export default function TaskComponent({ sampleData }) {
                     <p className="font-medium">{task.order.userAddress[0].addressLine1}</p>
                     {task.order.userAddress[0].addressLine2 && <p>{task.order.userAddress[0].addressLine2}</p>}
                     <p>
-                      {task.order.userAddress[0].city}, {task.order.userAddress[0].state}, {task.order.userAddress[0].zip}
+                      {task.order.userAddress[0].city}, {task.order.userAddress[0].state},{" "}
+                      {task.order.userAddress[0].zip}
                     </p>
                     <p>{task.order.userAddress[0].country}</p>
 
@@ -365,7 +374,16 @@ export default function TaskComponent({ sampleData }) {
                     {task.order.userAddress[0].phoneNumber && (
                       <p className="flex items-center text-muted-foreground">
                         <Phone className="h-3 w-3 mr-1" />
-                        <strong>Address Phone:</strong> <span className="ml-1">{task.order.userAddress[0].phoneNumber}</span>
+                        <strong>Address Phone:</strong>
+                        <a
+                          href={`tel:${task.order.userAddress[0].phoneNumber}`}
+                          className="ml-1 text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                          }}
+                        >
+                          {task.order.userAddress[0].phoneNumber}
+                        </a>
                       </p>
                     )}
 
@@ -402,11 +420,7 @@ export default function TaskComponent({ sampleData }) {
                         {task.order.address[0].type}
                       </Badge>
                     )}
-                    {task.order?.orderItems && (
-                      <Badge variant="secondary">
-                        {task.order.orderItems.length} Items
-                      </Badge>
-                    )}
+                    {task.order?.orderItems && <Badge variant="secondary">{task.order.orderItems.length} Items</Badge>}
                   </div>
                 </div>
               )}
@@ -520,7 +534,7 @@ export default function TaskComponent({ sampleData }) {
                             </div>
                             <div className="text-right">
                               {item.productFulfillmentStatus && (
-                                <Badge 
+                                <Badge
                                   variant={item.productFulfillmentStatus === "fulfilled" ? "default" : "secondary"}
                                 >
                                   {item.productFulfillmentStatus}
@@ -637,10 +651,18 @@ export default function TaskComponent({ sampleData }) {
               </div>
               <div className="ml-6 text-sm text-muted-foreground space-y-1">
                 <p>Customer: {selectedTask?.order?.username}</p>
-                {selectedTask?.order?.phoneNumber && (
+                {selectedTask?.order?.userPhone && (
                   <p className="flex items-center">
                     <Phone className="h-3 w-3 mr-1" />
-                    {selectedTask.order.phoneNumber}
+                    <a
+                      href={`tel:${selectedTask.order.userPhone}`}
+                      className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                      }}
+                    >
+                      {selectedTask.order.userPhone}
+                    </a>
                   </p>
                 )}
                 <p>Customer needs to verify this delivery with an OTP code</p>

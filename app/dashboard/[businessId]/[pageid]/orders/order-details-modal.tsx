@@ -37,12 +37,7 @@ export function OrderDetailsModal({ order, isOpen, onClose }) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold flex items-center justify-between">
-            Order Details
-            {/* <DialogClose className="rounded-full h-6 w-6 p-0 flex items-center justify-center">
-              <X className="h-4 w-4" />
-            </DialogClose> */}
-          </DialogTitle>
+          <DialogTitle className="text-xl font-semibold flex items-center justify-between">Order Details</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -82,14 +77,73 @@ export function OrderDetailsModal({ order, isOpen, onClose }) {
           <div>
             <h3 className="text-lg font-medium">Customer Details</h3>
             <div className="grid grid-cols-2 gap-4 mt-2">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Customer ID</p>
-                <p>User #{order.userId}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Orders</p>
-                <p>-</p> {/* This would need to be calculated from all orders */}
-              </div>
+              {(() => {
+                // Get user details from the first task that has employee user data
+                const taskWithUser = order.tasks?.find((task) => task.employee?.user)
+                const userDetails = taskWithUser?.employee?.user || null
+
+                if (userDetails) {
+                  return (
+                    <>
+                      <div className="col-span-2">
+                        <div className="flex items-center gap-3 p-3 bg-muted/20 rounded-lg">
+                          {userDetails.userdp && (
+                            <img
+                              src={userDetails.userdp || "/placeholder.svg"}
+                              alt={userDetails.name || "User"}
+                              className="w-12 h-12 rounded-full object-cover border-2 border-border"
+                            />
+                          )}
+                          <div>
+                            <p className="font-medium text-foreground">{userDetails.name || "Unknown User"}</p>
+                            <p className="text-sm text-muted-foreground">{userDetails.email || "No email"}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {userDetails.userDetails?.phoneNumber && (
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Phone Number</p>
+                          <p className="font-medium">{userDetails.userDetails.phoneNumber}</p>
+                        </div>
+                      )}
+
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Customer ID</p>
+                        <p>User #{order.userId}</p>
+                      </div>
+
+                      {userDetails.userDetails?.addresses && userDetails.userDetails.addresses.length > 0 && (
+                        <div className="col-span-2">
+                          <p className="text-sm font-medium text-muted-foreground mb-2">Addresses</p>
+                          <div className="space-y-2">
+                            {userDetails.userDetails.addresses.map((address, index) => (
+                              <div key={index} className="p-2 bg-muted/10 rounded border">
+                                <p className="text-sm text-foreground">
+                                  {typeof address === "string" ? address : JSON.stringify(address)}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )
+                } else {
+                  return (
+                    <>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Customer ID</p>
+                        <p>User #{order.userId}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Total Orders</p>
+                        <p>-</p>
+                      </div>
+                    </>
+                  )
+                }
+              })()}
             </div>
           </div>
 

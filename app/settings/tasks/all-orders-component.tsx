@@ -126,8 +126,6 @@ const formatDate = (dateString: string) => {
 
 export default function AllOrdersComponent({ orders }: AllOrdersComponentProps) {
   const [openOrders, setOpenOrders] = useState<Set<string>>(new Set())
-
-  // Group orders by order_id
   const groupedOrders = useMemo(() => {
     const grouped = new Map<string, Order>()
 
@@ -147,6 +145,16 @@ export default function AllOrdersComponent({ orders }: AllOrdersComponentProps) 
 
     return Array.from(grouped.values())
   }, [orders])
+
+  if (!orders || orders.length === 0) {
+    return (
+      <div className="text-center p-8">
+        <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+        <h3 className="text-lg font-medium mb-2">No orders found</h3>
+        <p className="text-muted-foreground">There are no orders to display at the moment.</p>
+      </div>
+    )
+  }
 
   const toggleOrder = (orderId: string) => {
     const newOpenOrders = new Set(openOrders)
@@ -196,7 +204,12 @@ export default function AllOrdersComponent({ orders }: AllOrdersComponentProps) 
                     <p className="font-medium">{order.username}</p>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Phone className="h-4 w-4" />
-                      {order.userPhone}
+                      <a
+                        href={`tel:${order.userPhone}`}
+                        className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                      >
+                        {order.userPhone}
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -290,6 +303,17 @@ export default function AllOrdersComponent({ orders }: AllOrdersComponentProps) 
                                     Assigned to: {assignedEmployee.name}
                                   </p>
                                   <p className="text-xs text-blue-600">{assignedEmployee.email}</p>
+                                  {assignedEmployee.phoneNumber && (
+                                    <div className="flex items-center gap-1 text-xs text-blue-600">
+                                      <Phone className="h-3 w-3" />
+                                      <a
+                                        href={`tel:${assignedEmployee.phoneNumber}`}
+                                        className="hover:text-blue-800 hover:underline cursor-pointer"
+                                      >
+                                        {assignedEmployee.phoneNumber}
+                                      </a>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             ) : (
@@ -319,6 +343,17 @@ export default function AllOrdersComponent({ orders }: AllOrdersComponentProps) 
                             <div className="flex-1">
                               <p className="font-medium text-sm">{task.employee.user.name}</p>
                               <p className="text-xs text-muted-foreground">{task.employee.user.email}</p>
+                              {task.employee.user.phoneNumber && (
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <Phone className="h-3 w-3" />
+                                  <a
+                                    href={`tel:${task.employee.user.phoneNumber}`}
+                                    className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                                  >
+                                    {task.employee.user.phoneNumber}
+                                  </a>
+                                </div>
+                              )}
                               <p className="text-xs text-muted-foreground">Task: {task.name}</p>
                             </div>
                             <Badge variant="outline" className={getStatusColor(task.status)}>

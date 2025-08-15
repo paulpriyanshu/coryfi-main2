@@ -4,7 +4,7 @@ import { Download, Search, ShoppingBag, Package, User, ChevronDown, ChevronUp, F
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/Input"
+import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
@@ -12,7 +12,7 @@ import { OrderDetailsModal } from "./order-details-modal"
 import { AssignTaskModal } from "./assign-task-modal"
 import { OtpVerificationModal } from "./otp-verification-modal"
 import { OutForDeliveryModal } from "./out-for-delivery-modal"
-import { getEmployeesByBusiness, assignTaskToEmployee, assignTaskToAllEmployees } from "@/app/api/actions/employees"
+import { getEmployeesByBusiness, assignTaskToEmployee } from "@/app/api/actions/employees"
 import { Toaster } from "react-hot-toast"
 import { fulfillNonDliveryItem } from "@/app/settings/tasks/delivery"
 import { getOrdersByBusinessPage, MarkOutForDelivery } from "@/app/api/business/order/order"
@@ -42,7 +42,7 @@ const truncate = (str, n) => {
   return str?.length > n ? str.substr(0, n - 1) + "..." : str
 }
 
-export default function OrdersDashboard({ pageId, businessId,employees }) {
+export default function OrdersDashboard({ pageId, businessId, employees }) {
   // All state declarations at the top - NEVER conditional
   const [searchTerm, setSearchTerm] = useState("")
   const [sortOrder, setSortOrder] = useState("newest")
@@ -60,13 +60,11 @@ export default function OrdersDashboard({ pageId, businessId,employees }) {
   const [selectedOrderForDelivery, setSelectedOrderForDelivery] = useState(null)
   const [processedOrders, setProcessedOrders] = useState([])
 
-
-
   // All useEffect hooks at the top - NEVER conditional
   useEffect(() => {
     const interval = setInterval(async () => {
       const updatedData = await getOrdersByBusinessPage(pageId)
-      
+
       console.log("order data", updatedData.data)
       setOrdersData(updatedData)
       setLoading(false)
@@ -113,11 +111,12 @@ export default function OrdersDashboard({ pageId, businessId,employees }) {
             item.product.businessPageId.toLowerCase().includes(searchTerm.toLowerCase()),
         ),
     )
-
   }, [sortedOrders, searchTerm])
-  useEffect(()=>{
-    console.log("filtered orders",filteredOrders)
-  },[filteredOrders])
+
+  useEffect(() => {
+    console.log("filtered orders", filteredOrders)
+  }, [filteredOrders])
+
   const statistics = useMemo(() => {
     const totalOrders = processedOrders.length
     const totalRevenue = filteredOrders.reduce((sum, order) => {
@@ -204,7 +203,6 @@ export default function OrdersDashboard({ pageId, businessId,employees }) {
     })
     setIsOutForDeliveryModalOpen(true)
   }
-  
 
   // Verify OTP and mark items as fulfilled
   const verifyOtp = async (otp) => {
@@ -249,7 +247,6 @@ export default function OrdersDashboard({ pageId, businessId,employees }) {
     })
   }
 
-
   // Mark items as out for delivery
   const markAsOutForDelivery = async () => {
     if (selectedOrderForDelivery) {
@@ -281,11 +278,11 @@ export default function OrdersDashboard({ pageId, businessId,employees }) {
             )
             if (itemIndex >= 0) {
               const markedAsDelivered = await MarkOutForDelivery(itemId[0])
-              console.log("delivery data",markedAsDelivered)
+              console.log("delivery data", markedAsDelivered)
               if (markedAsDelivered) {
                 updatedOrders[orderIndex].orderItems[itemIndex].outForDelivery = "TRUE"
               } else {
-                console.error("Error from backend",markedAsDelivered)
+                console.error("Error from backend", markedAsDelivered)
               }
             }
           }
@@ -296,6 +293,12 @@ export default function OrdersDashboard({ pageId, businessId,employees }) {
         console.error("Error marking as out for delivery:", error)
       }
     }
+  }
+
+  // Helper function to get user details directly from order.user instead of tasks
+  const getUserDetails = (order) => {
+    // User details are directly available on the order object
+    return order.user || null
   }
 
   return (
@@ -320,66 +323,66 @@ export default function OrdersDashboard({ pageId, businessId,employees }) {
         </div>
       </div>
 
-     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-  <Card className="bg-card border-border dark:bg-black ">
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium text-card-foreground">Total Orders</CardTitle>
-      <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-    </CardHeader>
-    <CardContent>
-      <div className="text-2xl font-bold text-card-foreground">{statistics.totalOrders}</div>
-      <p className="text-xs text-muted-foreground">
-        {processedOrders.length > 0 && `Last order ${formatDate(processedOrders[0].createdAt)}`}
-      </p>
-    </CardContent>
-  </Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="bg-card border-border dark:bg-black ">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-card-foreground">Total Orders</CardTitle>
+            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-card-foreground">{statistics.totalOrders}</div>
+            <p className="text-xs text-muted-foreground">
+              {processedOrders.length > 0 && `Last order ${formatDate(processedOrders[0].createdAt)}`}
+            </p>
+          </CardContent>
+        </Card>
 
-  <Card className="bg-card border-border  dark:bg-black ">
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium text-card-foreground">Total Revenue</CardTitle>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        className="h-4 w-4 text-muted-foreground"
-      >
-        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-      </svg>
-    </CardHeader>
-    <CardContent>
-      <div className="text-2xl font-bold text-card-foreground">${statistics.totalRevenue.toFixed(2)}</div>
-      <p className="text-xs text-muted-foreground">Across all orders</p>
-    </CardContent>
-  </Card>
+        <Card className="bg-card border-border dark:bg-black ">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-card-foreground">Total Revenue</CardTitle>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              className="h-4 w-4 text-muted-foreground"
+            >
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-card-foreground">${statistics.totalRevenue.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">Across all orders</p>
+          </CardContent>
+        </Card>
 
-  <Card className="bg-card border-border  dark:bg-black ">
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium text-card-foreground">Total Items</CardTitle>
-      <Package className="h-4 w-4 text-muted-foreground" />
-    </CardHeader>
-    <CardContent>
-      <div className="text-2xl font-bold text-card-foreground">{statistics.totalItems}</div>
-      <p className="text-xs text-muted-foreground">Items sold</p>
-    </CardContent>
-  </Card>
+        <Card className="bg-card border-border dark:bg-black ">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-card-foreground">Total Items</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-card-foreground">{statistics.totalItems}</div>
+            <p className="text-xs text-muted-foreground">Items sold</p>
+          </CardContent>
+        </Card>
 
-  <Card className="bg-card border-border  dark:bg-black ">
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium text-card-foreground">Unique Customers</CardTitle>
-      <User className="h-4 w-4 text-muted-foreground" />
-    </CardHeader>
-    <CardContent>
-      <div className="text-2xl font-bold text-card-foreground">{statistics.uniqueCustomers}</div>
-      <p className="text-xs text-muted-foreground">Distinct buyers</p>
-    </CardContent>
-  </Card>
-</div>
+        <Card className="bg-card border-border dark:bg-black ">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-card-foreground">Unique Customers</CardTitle>
+            <User className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-card-foreground">{statistics.uniqueCustomers}</div>
+            <p className="text-xs text-muted-foreground">Distinct buyers</p>
+          </CardContent>
+        </Card>
+      </div>
 
-      <Card className="overflow-hidden sm:rounded-lg sm:border sm:shadow-sm rounded-none border-0 shadow-none sm:mx-0 bg-card border-border  dark:bg-black ">
+      <Card className="overflow-hidden sm:rounded-lg sm:border sm:shadow-sm rounded-none border-0 shadow-none sm:mx-0 bg-card border-border dark:bg-black ">
         <CardHeader>
           <CardTitle className="text-card-foreground">Business Pages Performance</CardTitle>
           <CardDescription>Order distribution across your business pages</CardDescription>
@@ -410,7 +413,7 @@ export default function OrdersDashboard({ pageId, businessId,employees }) {
         </CardContent>
       </Card>
 
-      <Card className="min-w-full bg-card border-border  dark:bg-black ">
+      <Card className="min-w-full bg-card border-border dark:bg-black ">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="hidden">All Orders</CardTitle>
@@ -452,306 +455,382 @@ export default function OrdersDashboard({ pageId, businessId,employees }) {
         <CardContent className="p-0 sm:p-0">
           {filteredOrders.length > 0 ? (
             <div className="rounded-md border border-border sm:rounded-md sm:border sm:mx-0 -mx-4">
-              {filteredOrders.map((order) => (
-                <Collapsible
-                  key={order.id}
-                  open={expandedOrders[order.id]}
-                  onOpenChange={() => toggleOrderExpanded(order.id)}
-                  className={`border-b border-border last:border-b-0 ${
-                    order.orderItems.every((item) => item.productFulfillmentStatus === "fulfilled")
-                      ? "border-4 border-green-500 bg-green-100 dark:bg-green-900/20"
-                      : ""
-                  }`}
-                >
-                  <div
-                    className="flex items-center p-4 hover:bg-muted/50 cursor-pointer"
-                    onClick={() => toggleOrderExpanded(order.id)}
+              {filteredOrders.map((order) => {
+                const userDetails = getUserDetails(order)
+
+                return (
+                  <Collapsible
+                    key={order.id}
+                    open={expandedOrders[order.id]}
+                    onOpenChange={() => toggleOrderExpanded(order.id)}
+                    className={`border-b border-border last:border-b-0 ${
+                      order.orderItems.every((item) => item.productFulfillmentStatus === "fulfilled")
+                        ? "border-4 border-green-500 bg-green-100 dark:bg-green-900/20"
+                        : ""
+                    }`}
                   >
-                    <div className="grid grid-cols-2 md:grid-cols-6 gap-4 flex-1">
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Order ID</p>
-                        <p className="text-sm text-muted-foreground">
-                          {expandedOrders[order.id] ? order.order_id : truncate(order.order_id, 8)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Customer</p>
-                        <p className="text-sm text-muted-foreground">User #{order.userId}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Date</p>
-                        <p className="text-sm text-muted-foreground">{formatDate(order.createdAt)}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Items</p>
-                        <p className="text-sm text-muted-foreground">
-                          {(() => {
-                            const uniqueProducts = new Set()
-                            order.orderItems.forEach((item) => {
-                              const productKey = `${item.product.id}-${item.customization || ""}-${
-                                item.details?.price || ""
-                              }-${item.recieveBy?.type || ""}-${item.details?.scheduledDateTime?.date || ""}-${
-                                item.details?.scheduledDateTime?.timeSlot || ""
-                              }-${item.productFulfillmentStatus || ""}-${item.outForDelivery || ""}`
-                              uniqueProducts.add(productKey)
-                            })
-                            return uniqueProducts.size
-                          })()} unique products
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Total</p>
-                        <p className="text-sm text-muted-foreground">
-                          $
-                          {order.orderItems
-                            .reduce((sum, item) => {
-                              const productPrice = item.details?.price || 0
-                              return sum + productPrice * item.quantity
-                            }, 0)
-                            .toFixed(2)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Fulfillment</p>
+                    <div
+                      className="flex items-center p-4 hover:bg-muted/50 cursor-pointer"
+                      onClick={() => toggleOrderExpanded(order.id)}
+                    >
+                      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 flex-1">
                         <div>
-                          {order.orderItems.every((item) => item.productFulfillmentStatus === "fulfilled") ? (
-                            <BadgeWithVariants
-                              variant="success"
-                              className="bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900 dark:text-green-100 dark:hover:bg-green-800"
-                            >
-                              Fulfilled
-                            </BadgeWithVariants>
+                          <p className="text-sm font-medium text-foreground">Order ID</p>
+                          <p className="text-sm text-muted-foreground">
+                            {expandedOrders[order.id] ? order.order_id : truncate(order.order_id, 8)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Customer</p>
+                          {order.user ? (
+                            <div className="flex items-center gap-2">
+                              {order.user.userdp && (
+                                <img
+                                  src={order.user.userdp || "/placeholder.svg"}
+                                  alt={order.user.name || "User"}
+                                  className="w-6 h-6 rounded-full object-cover"
+                                />
+                              )}
+                              <div>
+                                <p className="text-sm text-foreground font-medium">
+                                  {order.user.name || "Unknown User"}
+                                </p>
+                              </div>
+                            </div>
                           ) : (
-                            <BadgeWithVariants variant="outline" className="border-border text-foreground">
-                              Pending
-                            </BadgeWithVariants>
+                            <p className="text-sm text-muted-foreground">User #{order.userId}</p>
                           )}
                         </div>
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="sm" className="ml-auto hover:bg-accent">
-                      {expandedOrders[order.id] ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                  <CollapsibleContent>
-                    <div className="p-4 pt-0 bg-muted/20">
-                      <div className="rounded-md border border-border bg-background">
-                        <Table>
-                          <TableHeader>
-                            <TableRow className="border-border hover:bg-muted/50">
-                              <TableHead className="text-muted-foreground">Product ID</TableHead>
-                              <TableHead className="text-muted-foreground">Product Name</TableHead>
-                              <TableHead className="text-muted-foreground">Business Page</TableHead>
-                              <TableHead className="text-muted-foreground">Quantity</TableHead>
-                              <TableHead className="text-muted-foreground">Price</TableHead>
-                              <TableHead className="text-muted-foreground">Customization</TableHead>
-                              <TableHead className="text-muted-foreground">Recieve By</TableHead>
-                              <TableHead className="text-muted-foreground">Slot</TableHead>
-                              <TableHead className="text-muted-foreground">Employee</TableHead>
-                              <TableHead className="text-muted-foreground">Status</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Date</p>
+                          <p className="text-sm text-muted-foreground">{formatDate(order.createdAt)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Items</p>
+                          <p className="text-sm text-muted-foreground">
                             {(() => {
-                              // Group identical items logic remains the same
-                              const groupedItems = []
+                              const uniqueProducts = new Set()
                               order.orderItems.forEach((item) => {
-                                const existingItemIndex = groupedItems.findIndex((groupedItem) => {
-                                  if (groupedItem.product.id !== item.product.id) return false
-                                  const sameCustomization = groupedItem.customization === item.customization
-                                  const sameBusinessPage =
-                                    groupedItem.product.businessPageId === item.product.businessPageId
-                                  const samePrice = groupedItem.details?.price === item.details?.price
-                                  let sameReceiveBy = false
-                                  if (
-                                    (!groupedItem.recieveBy && !item.recieveBy) ||
-                                    (groupedItem.recieveBy &&
-                                      item.recieveBy &&
-                                      groupedItem.recieveBy.type === item.recieveBy.type)
-                                  ) {
-                                    sameReceiveBy = true
-                                  }
-                                  let sameSchedule = false
-                                  if (
-                                    (!groupedItem.details?.scheduledDateTime && !item.details?.scheduledDateTime) ||
-                                    (groupedItem.details?.scheduledDateTime &&
-                                      item.details?.scheduledDateTime &&
-                                      groupedItem.details.scheduledDateTime.date ===
-                                        item.details.scheduledDateTime.date &&
-                                      groupedItem.details.scheduledDateTime.timeSlot ===
-                                        item.details.scheduledDateTime.timeSlot)
-                                  ) {
-                                    sameSchedule = true
-                                  }
-                                  const sameFulfillmentStatus =
-                                    groupedItem.productFulfillmentStatus === item.productFulfillmentStatus
-                                  const sameOutForDelivery = groupedItem.outForDelivery === item.outForDelivery
-                                  return (
-                                    sameCustomization &&
-                                    sameBusinessPage &&
-                                    samePrice &&
-                                    sameReceiveBy &&
-                                    sameSchedule &&
-                                    sameFulfillmentStatus &&
-                                    sameOutForDelivery
-                                  )
-                                })
-
-                                if (existingItemIndex >= 0) {
-                                  groupedItems[existingItemIndex].quantity += item.quantity
-                                  if (!groupedItems[existingItemIndex].originalItemIds) {
-                                    groupedItems[existingItemIndex].originalItemIds = [
-                                      groupedItems[existingItemIndex].id,
-                                    ]
-                                  }
-                                  groupedItems[existingItemIndex].originalItemIds.push(item.id)
-                                } else {
-                                  groupedItems.push({ ...item })
-                                }
+                                const productKey = `${item.product.id}-${item.customization || ""}-${
+                                  item.details?.price || ""
+                                }-${item.recieveBy?.type || ""}-${item.details?.scheduledDateTime?.date || ""}-${
+                                  item.details?.scheduledDateTime?.timeSlot || ""
+                                }-${item.productFulfillmentStatus || ""}-${item.outForDelivery || ""}`
+                                uniqueProducts.add(productKey)
                               })
-
-                              return groupedItems.map((item, index) => (
-                                <TableRow key={index} className="border-border hover:bg-muted/50">
-                                  <TableCell className="font-medium text-foreground">{item.product.id}</TableCell>
-                                  <TableCell className="text-foreground">{item.product.name}</TableCell>
-                                  <TableCell>
-                                    <div className="flex items-center">
-                                      <BadgeWithVariants
-                                        variant="outline"
-                                        className="font-mono text-xs border-border text-foreground"
-                                      >
-                                        {truncate(item.product.businessPageId, 15)}
-                                      </BadgeWithVariants>
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="text-foreground">
-                                    {item.quantity}
-                                    {item.originalItemIds && item.originalItemIds.length > 1 && (
-                                      <Badge variant="outline" className="ml-2 border-border text-foreground">
-                                        {item.originalItemIds.length} items grouped
-                                      </Badge>
-                                    )}
-                                  </TableCell>
-                                  <TableCell className="text-foreground">
-                                    ${item.details?.price ? item.details.price.toFixed(2) : "0.00"}
-                                  </TableCell>
-                                  <TableCell>
-                                    {item.customization ? (
-                                      <div className="max-w-xs">
-                                        <BadgeWithVariants
-                                          variant="secondary"
-                                          className="font-normal whitespace-normal text-xs bg-secondary text-secondary-foreground"
-                                        >
-                                          {item.customization}
-                                        </BadgeWithVariants>
-                                      </div>
-                                    ) : (
-                                      <span className="text-muted-foreground text-xs">No customization</span>
-                                    )}
-                                  </TableCell>
-                                  <TableCell>
-                                    {item.recieveBy && Object.keys(item.recieveBy).length > 0 ? (
-                                      <div className="max-w-xs">
-                                        <BadgeWithVariants
-                                          variant="secondary"
-                                          className="font-normal whitespace-normal text-xs bg-secondary text-secondary-foreground"
-                                        >
-                                          {Object.values(item.recieveBy)[0]}
-                                        </BadgeWithVariants>
-                                      </div>
-                                    ) : (
-                                      <span className="text-muted-foreground text-xs">not Delivery</span>
-                                    )}
-                                  </TableCell>
-                                  <TableCell>
-                                    {item.details?.scheduledDateTime && (
-                                      <Badge className="bg-primary text-primary-foreground">
-                                        Day - {item.details?.scheduledDateTime.date} Time -{" "}
-                                        {item.details?.scheduledDateTime.timeSlot}
-                                      </Badge>
-                                    )}
-                                  </TableCell>
-                                   <TableCell>
-                                   <EmployeeTaskDropdownCell
-                                      item={item}
-                                      order={order}
-                                      allEmployees={employees} // list of all employee objects: [{ id, user: { name } }]
-
-                                      onChangeAssignment={ async(orderId, employeeId) => {
-                                         await assignTaskToEmployee({
-                                            companyId:businessId,
-                                            businessId:pageId,
-                                            employeeId,
-                                            orderId: orderId,
-                                            taskName:order.id,
-                                          });
-                                      }}
-                                    />
-                                  </TableCell>
-                                  <TableCell>
-                                    <Button
-                                      size="sm"
-                                      disabled={
-                                        item.productFulfillmentStatus === "fulfilled" || item.outForDelivery === "TRUE"
-                                      }
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        handleOpenOutForDeliveryModal(order, item)
-                                      }}
-                                      className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-                                    >
-                                      {item.outForDelivery === "TRUE" ? "Out For Delivery" : "Mark Out For Delivery"}
-                                    </Button>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Button
-                                      size="sm"
-                                      disabled={
-                                        item.productFulfillmentStatus === "fulfilled" ||
-                                        item.recieveBy?.type === "DELIVERY" ||
-                                        item.recieveBy?.type === "DELIVERY"
-                                      }
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        handleOpenOtpModal(order, item)
-                                      }}
-                                      className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-                                    >
-                                      {item.productFulfillmentStatus === "fulfilled"
-                                        ? "Fulfilled"
-                                        : "Mark as Fulfilled"}
-                                    </Button>
-                                  </TableCell>
-                                </TableRow>
-                              ))
-                            })()}
-                          </TableBody>
-                        </Table>
-                      </div>
-                      <div className="mt-4 flex justify-end items-center">
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-border hover:bg-accent bg-transparent"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setSelectedOrder(order)
-                              setIsModalOpen(true)
-                            }}
-                          >
-                            View Details
-                          </Button>
+                              return uniqueProducts.size
+                            })()} unique products
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Total</p>
+                          <p className="text-sm text-muted-foreground">
+                            $
+                            {order.orderItems
+                              .reduce((sum, item) => {
+                                const productPrice = item.details?.price || 0
+                                return sum + productPrice * item.quantity
+                              }, 0)
+                              .toFixed(2)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Fulfillment</p>
+                          <div>
+                            {order.orderItems.every((item) => item.productFulfillmentStatus === "fulfilled") ? (
+                              <BadgeWithVariants
+                                variant="success"
+                                className="bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900 dark:text-green-100 dark:hover:bg-green-800"
+                              >
+                                Fulfilled
+                              </BadgeWithVariants>
+                            ) : (
+                              <BadgeWithVariants variant="outline" className="border-border text-foreground">
+                                Pending
+                              </BadgeWithVariants>
+                            )}
+                          </div>
                         </div>
                       </div>
+                      <Button variant="ghost" size="sm" className="ml-auto hover:bg-accent">
+                        {expandedOrders[order.id] ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
                     </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              ))}
+                    <CollapsibleContent>
+                      <div className="p-4 pt-0 bg-muted/20">
+                        {order.user && expandedOrders[order.id] && (
+                          <div className="mb-4 p-4 bg-background rounded-lg border border-border">
+                            <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                              <User className="h-4 w-4" />
+                              Customer Details
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              <div className="flex items-center gap-3">
+                                {order?.user?.userdp && (
+                                  <img
+                                    src={order?.user?.userdp || "/placeholder.svg"}
+                                    alt={order?.user?.name || "User"}
+                                    className="w-12 h-12 rounded-full object-cover border-2 border-border"
+                                  />
+                                )}
+                                <div>
+                                  <p className="text-sm font-medium text-foreground">
+                                    {order.user.name || "Unknown User"}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">{order.user.email || "No email"}</p>
+                                </div>
+                              </div>
+
+                              {order.user.userDetails?.phoneNumber && (
+                                <div>
+                                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                    Phone
+                                  </p>
+                                  <p className="text-sm text-foreground">{order.user.userDetails.phoneNumber}</p>
+                                </div>
+                              )}
+
+                              {order.user.userDetails?.addresses && order.user.userDetails.addresses.length > 0 && (
+                                <div>
+                                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                    Address
+                                  </p>
+                                  <div className="space-y-1">
+                                    {order.user.userDetails.addresses.slice(0, 2).map((address, index) => (
+                                      <p key={index} className="text-sm text-foreground">
+                                        {typeof address === "string" ? address : JSON.stringify(address)}
+                                      </p>
+                                    ))}
+                                    {order.user.userDetails.addresses.length > 2 && (
+                                      <p className="text-xs text-muted-foreground">
+                                        +{order.user.userDetails.addresses.length - 2} more addresses
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="rounded-md border border-border bg-background">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="border-border hover:bg-muted/50">
+                                <TableHead className="text-muted-foreground">Product ID</TableHead>
+                                <TableHead className="text-muted-foreground">Product Name</TableHead>
+                                <TableHead className="text-muted-foreground">Business Page</TableHead>
+                                <TableHead className="text-muted-foreground">Quantity</TableHead>
+                                <TableHead className="text-muted-foreground">Price</TableHead>
+                                <TableHead className="text-muted-foreground">Customization</TableHead>
+                                <TableHead className="text-muted-foreground">Recieve By</TableHead>
+                                <TableHead className="text-muted-foreground">Slot</TableHead>
+                                <TableHead className="text-muted-foreground">Employee</TableHead>
+                                <TableHead className="text-muted-foreground">Status</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {(() => {
+                                // Group identical items logic remains the same
+                                const groupedItems = []
+                                order.orderItems.forEach((item) => {
+                                  const existingItemIndex = groupedItems.findIndex((groupedItem) => {
+                                    if (groupedItem.product.id !== item.product.id) return false
+                                    const sameCustomization = groupedItem.customization === item.customization
+                                    const sameBusinessPage =
+                                      groupedItem.product.businessPageId === item.product.businessPageId
+                                    const samePrice = groupedItem.details?.price === item.details?.price
+                                    let sameReceiveBy = false
+                                    if (
+                                      (!groupedItem.recieveBy && !item.recieveBy) ||
+                                      (groupedItem.recieveBy &&
+                                        item.recieveBy &&
+                                        groupedItem.recieveBy.type === item.recieveBy.type)
+                                    ) {
+                                      sameReceiveBy = true
+                                    }
+                                    let sameSchedule = false
+                                    if (
+                                      (!groupedItem.details?.scheduledDateTime && !item.details?.scheduledDateTime) ||
+                                      (groupedItem.details?.scheduledDateTime &&
+                                        item.details?.scheduledDateTime &&
+                                        groupedItem.details.scheduledDateTime.date ===
+                                          item.details.scheduledDateTime.date &&
+                                        groupedItem.details.scheduledDateTime.timeSlot ===
+                                          item.details.scheduledDateTime.timeSlot)
+                                    ) {
+                                      sameSchedule = true
+                                    }
+                                    const sameFulfillmentStatus =
+                                      groupedItem.productFulfillmentStatus === item.productFulfillmentStatus
+                                    const sameOutForDelivery = groupedItem.outForDelivery === item.outForDelivery
+                                    return (
+                                      sameCustomization &&
+                                      sameBusinessPage &&
+                                      samePrice &&
+                                      sameReceiveBy &&
+                                      sameSchedule &&
+                                      sameFulfillmentStatus &&
+                                      sameOutForDelivery
+                                    )
+                                  })
+
+                                  if (existingItemIndex >= 0) {
+                                    groupedItems[existingItemIndex].quantity += item.quantity
+                                    if (!groupedItems[existingItemIndex].originalItemIds) {
+                                      groupedItems[existingItemIndex].originalItemIds = [
+                                        groupedItems[existingItemIndex].id,
+                                      ]
+                                    }
+                                    groupedItems[existingItemIndex].originalItemIds.push(item.id)
+                                  } else {
+                                    groupedItems.push({ ...item })
+                                  }
+                                })
+
+                                return groupedItems.map((item, index) => (
+                                  <TableRow key={index} className="border-border hover:bg-muted/50">
+                                    <TableCell className="font-medium text-foreground">{item.product.id}</TableCell>
+                                    <TableCell className="text-foreground">{item.product.name}</TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center">
+                                        <BadgeWithVariants
+                                          variant="outline"
+                                          className="font-mono text-xs border-border text-foreground"
+                                        >
+                                          {truncate(item.product.businessPageId, 15)}
+                                        </BadgeWithVariants>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-foreground">
+                                      {item.quantity}
+                                      {item.originalItemIds && item.originalItemIds.length > 1 && (
+                                        <Badge variant="outline" className="ml-2 border-border text-foreground">
+                                          {item.originalItemIds.length} items grouped
+                                        </Badge>
+                                      )}
+                                    </TableCell>
+                                    <TableCell className="text-foreground">
+                                      ${item.details?.price ? item.details.price.toFixed(2) : "0.00"}
+                                    </TableCell>
+                                    <TableCell>
+                                      {item.customization ? (
+                                        <div className="max-w-xs">
+                                          <BadgeWithVariants
+                                            variant="secondary"
+                                            className="font-normal whitespace-normal text-xs bg-secondary text-secondary-foreground"
+                                          >
+                                            {item.customization}
+                                          </BadgeWithVariants>
+                                        </div>
+                                      ) : (
+                                        <span className="text-muted-foreground text-xs">No customization</span>
+                                      )}
+                                    </TableCell>
+                                    <TableCell>
+                                      {item.recieveBy && Object.keys(item.recieveBy).length > 0 ? (
+                                        <div className="max-w-xs">
+                                          <BadgeWithVariants
+                                            variant="secondary"
+                                            className="font-normal whitespace-normal text-xs bg-secondary text-secondary-foreground"
+                                          >
+                                            {Object.values(item.recieveBy)[0]}
+                                          </BadgeWithVariants>
+                                        </div>
+                                      ) : (
+                                        <span className="text-muted-foreground text-xs">not Delivery</span>
+                                      )}
+                                    </TableCell>
+                                    <TableCell>
+                                      {item.details?.scheduledDateTime && (
+                                        <Badge className="bg-primary text-primary-foreground">
+                                          Day - {item.details?.scheduledDateTime.date} Time -{" "}
+                                          {item.details?.scheduledDateTime.timeSlot}
+                                        </Badge>
+                                      )}
+                                    </TableCell>
+                                    <TableCell>
+                                      <EmployeeTaskDropdownCell
+                                        item={item}
+                                        order={order}
+                                        allEmployees={employees} // list of all employee objects: [{ id, user: { name } }]
+                                        onChangeAssignment={async (orderId, employeeId) => {
+                                          await assignTaskToEmployee({
+                                            companyId: businessId,
+                                            businessId: pageId,
+                                            employeeId,
+                                            orderId: orderId,
+                                            taskName: order.id,
+                                          })
+                                        }}
+                                      />
+                                    </TableCell>
+                                    <TableCell>
+                                      <Button
+                                        size="sm"
+                                        disabled={
+                                          item.productFulfillmentStatus === "fulfilled" ||
+                                          item.outForDelivery === "TRUE"
+                                        }
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          handleOpenOutForDeliveryModal(order, item)
+                                        }}
+                                        className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                                      >
+                                        {item.outForDelivery === "TRUE" ? "Out For Delivery" : "Mark Out For Delivery"}
+                                      </Button>
+                                    </TableCell>
+                                    <TableCell>
+                                      <Button
+                                        size="sm"
+                                        disabled={
+                                          item.productFulfillmentStatus === "fulfilled" ||
+                                          item.recieveBy?.type === "DELIVERY" ||
+                                          item.recieveBy?.type === "DELIVERY"
+                                        }
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          handleOpenOtpModal(order, item)
+                                        }}
+                                        className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                                      >
+                                        {item.productFulfillmentStatus === "fulfilled"
+                                          ? "Fulfilled"
+                                          : "Mark as Fulfilled"}
+                                      </Button>
+                                    </TableCell>
+                                  </TableRow>
+                                ))
+                              })()}
+                            </TableBody>
+                          </Table>
+                        </div>
+                        <div className="mt-4 flex justify-end items-center">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-border hover:bg-accent bg-transparent"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setSelectedOrder(order)
+                                setIsModalOpen(true)
+                              }}
+                            >
+                              View Details
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                )
+              })}
             </div>
           ) : (
             <div className="text-center py-10">
