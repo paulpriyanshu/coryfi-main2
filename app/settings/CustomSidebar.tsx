@@ -27,23 +27,23 @@ export function CustomSidebar({ className }: CustomSidebarProps) {
 
   return (
     <div className={cn(
-      "flex flex-col h-screen sticky top-0",
+      "flex flex-col h-screen sticky top-0 ",
       className
     )}>
-      <div className={cn(
-        "flex flex-col h-full bg-background transition-all duration-300 ease-in-out",
-        isCollapsed ? "w-16" : "w-64"
-      )}>
-        {/* Header */}
-        <div className="p-4 border-b">
-          <div className="flex items-center justify-between">
-          {!isCollapsed && (
-  <div className="flex flex-row items-center ml-3 w-full">
-    <Settings className="text-lg font-semibold mr-2" />
-    <span>Settings</span>
-  </div>
-)}
-            <Button
+              <div className={cn(
+                "flex flex-col h-full bg-background transition-all duration-300 ease-in-out",
+                isCollapsed ? "w-16" : "w-64"
+                          )}>
+                            {/* Header */}
+                            <div className="p-4 border-b">
+                              <div className="flex items-center justify-between">
+                              {!isCollapsed && (
+                      <div className="flex flex-row items-center ml-3 w-full">
+                        <Settings className="text-lg font-semibold mr-2" />
+                        <span>Settings</span>
+                      </div>
+                    )}
+                    <Button
               variant="ghost"
               size="icon"
               className={cn("", isCollapsed ? "mx-auto" : "ml-auto")}

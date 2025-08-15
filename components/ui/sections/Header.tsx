@@ -1,6 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Home, Network, Store } from "lucide-react"
+import { Home, ListTodo, Network, Store } from "lucide-react"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { fetchUserId } from "@/app/api/actions/media"
@@ -61,6 +61,7 @@ export default async function Header() {
     { icon: <Home className="h-5 w-5 dark:text-white " />, href: "/feed", tooltip: "Home" },
     { icon: <Network className="h-5 w-5 dark:text-white" />, href: "/", tooltip: "Network" },
     { icon: <Store className="h-5 w-5 dark:text-white" />, href: "/explore", tooltip: "Businesses" },
+    { icon: <ListTodo className="h-5 w-5 dark:text-white"/>, href: "/settings/tasks", tooltip: "Task" },
   ]
 
   // Determine dashboard link based on merchant status
