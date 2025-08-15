@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { load } from "@cashfreepayments/cashfree-js";
 import { generateOrderId } from "@/app/api/business/order/order";
-import { moveCartToOrder } from "@/app/api/business/products";
+import { deleteCart, moveCartToOrder } from "@/app/api/business/products";
 import { fetchUserData } from "@/app/api/actions/media";
 import { Loader2 } from "lucide-react"; // if you're using lucide-react icons
 import { generateOTP } from "./otp";
@@ -66,6 +66,7 @@ function Checkout({ userId, user_name, user_email, user_phone, total_amount, car
       );
 
       console.log("moved cart to order", cartToOrder);
+      await deleteCart(cart.id)
 
       await doPayment(data.paymentSessionId);
     } catch (err) {
