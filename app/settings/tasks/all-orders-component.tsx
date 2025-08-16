@@ -100,7 +100,7 @@ interface AllOrdersComponentProps {
 }
 
 const getStatusColor = (status: string) => {
-  switch (status.toLowerCase()) {
+  switch (status?.toLowerCase()) {
     case "pending":
       return "bg-yellow-100 text-yellow-800"
     case "completed":
