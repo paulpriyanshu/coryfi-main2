@@ -115,7 +115,7 @@ const getStatusColor = (status: string) => {
 }
 
 const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString("en-US", {
+  return new Date(dateString)?.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -129,13 +129,13 @@ export default function AllOrdersComponent({ orders }: AllOrdersComponentProps) 
   const groupedOrders = useMemo(() => {
     const grouped = new Map<string, Order>()
 
-    orders.forEach((order) => {
+    orders?.forEach((order) => {
       const existingOrder = grouped.get(order.order_id)
 
       if (existingOrder) {
         // Merge order items and tasks without duplicating
-        existingOrder.orderItems = [...existingOrder.orderItems, ...order.orderItems]
-        existingOrder.tasks = [...existingOrder.tasks, ...order.tasks]
+        existingOrder.orderItems = [...existingOrder?.orderItems, ...order?.orderItems]
+        existingOrder.tasks = [...existingOrder?.tasks, ...order?.tasks]
         // Don't add total cost again, keep the original
       } else {
         // Create a new grouped order
@@ -146,7 +146,7 @@ export default function AllOrdersComponent({ orders }: AllOrdersComponentProps) 
     return Array.from(grouped.values())
   }, [orders])
 
-  if (!orders || orders.length === 0) {
+  if (!orders || orders?.length === 0) {
     return (
       <div className="text-center p-8">
         <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -158,8 +158,8 @@ export default function AllOrdersComponent({ orders }: AllOrdersComponentProps) 
 
   const toggleOrder = (orderId: string) => {
     const newOpenOrders = new Set(openOrders)
-    if (newOpenOrders.has(orderId)) {
-      newOpenOrders.delete(orderId)
+    if (newOpenOrders?.has(orderId)) {
+      newOpenOrders?.delete(orderId)
     } else {
       newOpenOrders.add(orderId)
     }
@@ -169,7 +169,7 @@ export default function AllOrdersComponent({ orders }: AllOrdersComponentProps) 
   // Function to get assigned employee for a specific product based on business matching
   const getAssignedEmployeeForProduct = (orderItem: OrderItem, allTasks: Task[]) => {
     // Find tasks that belong to the same business as the product
-    const matchingTask = allTasks.find(
+    const matchingTask = allTasks?.find(
       (task) => task.businessId === orderItem.product.businessPageId && task.status !== "cancelled",
     )
 

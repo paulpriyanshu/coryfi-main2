@@ -7,9 +7,9 @@ import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
 import TaskComponent from "./task-component"
+import { getAssignedTasksForEmployee } from "@/app/api/actions/employees"
 import { fetchUserId } from "@/app/api/actions/media"
-// import { getAllBusinessTasksForEmployee } from "@/lib/get-all-business-tasks-for-employee"
-import { getAllBusinessTasksForEmployee } from "@/app/api/actions/employees"
+import { getLatestOrdersByBusinessPage } from "@/app/api/business/order/order"
 import AllOrdersComponent from "./all-orders-component"
 
 interface Task {
@@ -22,20 +22,13 @@ interface Task {
   updatedAt: string
   employee: any
   businessId: string
-  isCurrentAssignment?: boolean
   order: {
     id: string
     order_id: string
     userId: string
-    username: string
-    userPhone: string
-    userAddress: any
     totalCost: number
-    status: string
     fulfillmentStatus: string
-    address: string
-    createdAt: string
-    updatedAt: string
+    orderDate: string
     orderItems: Array<{
       id: string
       quantity: number
@@ -48,7 +41,6 @@ interface Task {
       productName: string
       businessName: string
       businessImage: string
-      recieveBy: string
     }>
   }
 }
@@ -59,117 +51,184 @@ interface TaskData {
 
 export default function TaskPageWithTabs() {
   const { data: session, status } = useSession()
+  const [assignedTasks, setAssignedTasks] = useState<TaskData | null>(null)
   const [allTasks, setAllTasks] = useState<TaskData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("assigned")
-  const [userId, setUserId] = useState<number | null>(null)
+  const [businessIds, setBusinessIds] = useState<string[]>([])
 
-  const fetchAllTasks = useCallback(async (userId: number) => {
+  const fetchAllTasks = async (businessIds: string[]) => {
     try {
-      console.log("Fetching all business tasks for user:", userId)
+      console.log("fetchAllTasks called with businessIds:", businessIds)
 
-      const result = await getAllBusinessTasksForEmployee(userId)
-      console.log("all tasks",result)
-
-      if (result.success) {
-        // Transform the data to match the expected Task interface
-        const transformedTasks: Task[] = result.data.map((task: any) => ({
-          id: task.id.toString(),
-          task_id: task.task_id,
-          name: task.name,
-          status: task.status,
-          employeeId: task.employeeId?.toString() || null,
-          createdAt: task.createdAt,
-          updatedAt: task.updatedAt,
-          employee: task.employee,
-          businessId: task.businessId,
-          isCurrentAssignment: task.isCurrentAssignment,
-          order: {
-            id: task.order.id.toString(),
-            order_id: task.order.order_id,
-            userId: task.order.userId.toString(),
-            username: task.order.username,
-            userPhone: task.order.userPhone,
-            userAddress: task.order.userAddress,
-            totalCost: task.order.totalCost,
-            status: task.order.status,
-            fulfillmentStatus: task.order.fulfillmentStatus,
-            address: task.order.address,
-            createdAt: task.order.createdAt,
-            updatedAt: task.order.updatedAt,
-            orderItems: task.order.orderItems.map((item: any) => ({
-              id: item.id.toString(),
-              quantity: item.quantity,
-              customization: item.customization,
-              details: item.details,
-              otp: item.otp,
-              productFulfillmentStatus: item.productFulfillmentStatus,
-              outForDelivery: item.outForDelivery,
-              productId: item.product?.id?.toString() || "",
-              productName: item.product?.name || "",
-              businessName: item.businessName,
-              businessImage: item.businessImage,
-              recieveBy: item.recieveBy,
-            })),
-          },
-        }))
-
-        setAllTasks({ data: transformedTasks })
-        console.log("Successfully fetched and transformed tasks:", transformedTasks.length)
-      } else {
-        console.error("Failed to fetch tasks:", result.message)
-        setError(result.message)
+      if (!businessIds || businessIds.length === 0) {
+        console.log("No business IDs available")
         setAllTasks({ data: [] })
+        return
       }
-    } catch (error) {
-      console.error("Error fetching all business tasks:", error)
-      setError("Failed to fetch tasks")
-      setAllTasks({ data: [] })
-    }
-  }, [])
 
-  const initializeTasks = useCallback(async () => {
+      const allTasksData: any[] = []
+
+      // Use Promise.allSettled for better error handling
+      const results = await Promise.allSettled(
+        businessIds.map((businessId) => getLatestOrdersByBusinessPage(businessId)),
+      )
+      console.log("results",results)
+
+      results.forEach((result, index) => {
+        if (result.status === "fulfilled" && result.value?.data?.length > 0) {
+          console.log(`Fetched tasks for ${businessIds[index]}:`, result.value.data)
+          allTasksData.push(...result.value.data)
+        } else if (result.status === "rejected") {
+          console.error(`Error fetching for business ${businessIds[index]}:`, result.reason)
+        }
+      })
+      console.log("results",results)
+
+      console.log("Final All Tasks Data:", allTasksData)
+
+      // Set raw order data instead of transforming
+      setAllTasks({ data: allTasksData })
+    } catch (error) {
+      console.error("Error in fetchAllTasks:", error)
+      setError("Failed to fetch all tasks")
+    }
+  }
+
+  const fetchAssignedTasks = useCallback(async () => {
     try {
       if (!session?.user?.email) return
 
       const userData = await fetchUserId(session.user.email)
-      setUserId(userData.id)
-      await fetchAllTasks(userData.id)
+      const taskData = await getAssignedTasksForEmployee(userData.id)
+      console.log("result",taskData)
+      const businessIds = [...new Set(taskData.data.map((task: any) => task.businessId))]
+
+      console.log("businessIds", businessIds)
+      setBusinessIds(businessIds)
+      setAssignedTasks(taskData)
+
+      // Call fetchAllTasks with the businessIds
+      await fetchAllTasks(businessIds)
     } catch (error) {
-      console.error("Error initializing tasks:", error)
-      setError("Failed to initialize tasks")
+      console.error("Error fetching assigned tasks:", error)
+      setError("Failed to fetch assigned tasks")
     }
-  }, [session?.user?.email, fetchAllTasks])
+  }, [session?.user?.email])
+
+  // Transform the all tasks data structure to match TaskComponent expectations
+  const transformAllTasksData = (allTasksResponse: any): Task[] => {
+    if (!allTasksResponse?.data) return []
+
+    const transformedTasks: Task[] = []
+    const processedOrders = new Set<string>()
+
+    allTasksResponse.data.forEach((order: any) => {
+      // Skip duplicate orders
+      if (processedOrders.has(order.id)) {
+        return
+      }
+      processedOrders.add(order.id)
+
+      // If order has tasks, process each task
+      if (order.tasks && order.tasks.length > 0) {
+        order.tasks.forEach((task: any) => {
+          const transformedTask: Task = {
+            id: task.id,
+            task_id: task.task_id || task.name,
+            name: task.name,
+            status: task.status,
+            employeeId: task.employeeId,
+            createdAt: task.createdAt,
+            updatedAt: task.updatedAt,
+            employee: task.employee,
+            businessId: task.employee?.businessId,
+            order: {
+              id: order.id,
+              order_id: order.order_id,
+              userId: order.userId,
+              totalCost: order.totalCost,
+              fulfillmentStatus: order.fulfillmentStatus,
+              orderDate: order.createdAt,
+              orderItems:
+                order.orderItems?.map((item: any) => ({
+                  id: item.id,
+                  quantity: item.quantity,
+                  customization: item.customization,
+                  details: item.details,
+                  otp: item.OTP,
+                  productFulfillmentStatus: item.productFulfillmentStatus,
+                  outForDelivery: item.outForDelivery,
+                  productId: item.product?.id,
+                  productName: item.product?.name,
+                  businessName: item.product?.businessPageId,
+                  businessImage: item.details?.images?.[0] || "/placeholder.svg",
+                })) || [],
+            },
+          }
+          transformedTasks.push(transformedTask)
+        })
+      } else {
+        // Create placeholder task for orders without assigned tasks
+        const placeholderTask: Task = {
+          id: `order-${order.id}`,
+          task_id: order.order_id,
+          name: `Order ${order.order_id}`,
+          status: "unassigned",
+          employeeId: null,
+          createdAt: order.createdAt,
+          updatedAt: order.createdAt,
+          employee: null,
+          businessId: order.orderItems?.[0]?.product?.businessPageId || null,
+          order: {
+            id: order.id,
+            order_id: order.order_id,
+            userId: order.userId,
+            totalCost: order.totalCost,
+            fulfillmentStatus: order.fulfillmentStatus,
+            orderDate: order.createdAt,
+            orderItems:
+              order.orderItems?.map((item: any) => ({
+                id: item.id,
+                quantity: item.quantity,
+                customization: item.customization,
+                details: item.details,
+                otp: item.OTP,
+                productFulfillmentStatus: item.productFulfillmentStatus,
+                outForDelivery: item.outForDelivery,
+                productId: item.product?.id,
+                productName: item.product?.name,
+                businessName: item.product?.businessPageId,
+                businessImage: item.details?.images?.[0] || "/placeholder.svg",
+              })) || [],
+          },
+        }
+        transformedTasks.push(placeholderTask)
+      }
+    })
+
+    return transformedTasks
+  }
 
   const fetchTasks = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      await initializeTasks()
+      await fetchAssignedTasks()
     } catch (error) {
       setError("Failed to load tasks")
     } finally {
       setLoading(false)
     }
-  }, [initializeTasks])
+  }, [fetchAssignedTasks])
 
   useEffect(() => {
     if (status === "authenticated") {
-      console.log("Authentication status:", status)
+      console.log("status", status)
       fetchTasks()
     }
   }, [status, fetchTasks])
-
-  const getAssignedTasks = (): Task[] => {
-    if (!allTasks?.data || !userId) return []
-
-    return allTasks.data.filter((task) => task.employeeId === userId.toString() && task.isCurrentAssignment)
-  }
-
-  const getAllOrderTasks = (): Task[] => {
-    return allTasks?.data || []
-  }
 
   if (status === "loading") {
     return (
@@ -231,16 +290,13 @@ export default function TaskPageWithTabs() {
     )
   }
 
-  const assignedTasks = getAssignedTasks()
-  const allOrderTasks = getAllOrderTasks()
-
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Task Management</h1>
         <div className="flex gap-2">
-          <Badge variant="outline">Assigned: {assignedTasks.length}</Badge>
-          <Badge variant="outline">All Orders: {allOrderTasks.length}</Badge>
+          <Badge variant="outline">Assigned: {assignedTasks?.data?.length || 0}</Badge>
+          <Badge variant="outline">All Tasks: {allTasks?.data?.length || 0}</Badge>
         </div>
       </div>
 
@@ -248,17 +304,17 @@ export default function TaskPageWithTabs() {
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="assigned" className="flex items-center gap-2">
             Your Tasks
-            {assignedTasks.length > 0 && (
+            {assignedTasks?.data?.length > 0 && (
               <Badge variant="secondary" className="ml-2">
-                {assignedTasks.length}
+                {assignedTasks.data.length}
               </Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="all" className="flex items-center gap-2">
-            All Orders
-            {allOrderTasks.length > 0 && (
+            All Tasks
+            {allTasks?.data?.length > 0 && (
               <Badge variant="secondary" className="ml-2">
-                {allOrderTasks.length}
+                {allTasks.data.length}
               </Badge>
             )}
           </TabsTrigger>
@@ -268,10 +324,10 @@ export default function TaskPageWithTabs() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">My Assigned Tasks</h2>
-              <Badge variant="outline">{assignedTasks.length} tasks</Badge>
+              <Badge variant="outline">{assignedTasks?.data?.length || 0} tasks</Badge>
             </div>
-            {assignedTasks.length > 0 ? (
-              <TaskComponent sampleData={{ data: assignedTasks }} />
+            {assignedTasks?.data?.length > 0 ? (
+              <TaskComponent sampleData={assignedTasks} />
             ) : (
               <div className="flex flex-col items-center justify-center p-12 bg-muted/30 rounded-lg">
                 <div className="text-center">
@@ -286,16 +342,16 @@ export default function TaskPageWithTabs() {
         <TabsContent value="all" className="mt-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">All Orders</h2>
-              <Badge variant="outline">{allOrderTasks.length} orders</Badge>
+              <h2 className="text-lg font-semibold">All Tasks</h2>
+              <Badge variant="outline">{allTasks?.data?.length || 0} tasks</Badge>
             </div>
-            {allOrderTasks.length > 0 ? (
-              <AllOrdersComponent orders={allOrderTasks} />
+            {allTasks?.data?.length > 0 ? (
+              <AllOrdersComponent orders={allTasks.data} />
             ) : (
               <div className="flex flex-col items-center justify-center p-12 bg-muted/30 rounded-lg">
                 <div className="text-center">
-                  <h3 className="text-xl font-medium">No orders available</h3>
-                  <p className="text-muted-foreground mt-2">There are currently no orders in the system.</p>
+                  <h3 className="text-xl font-medium">No tasks available</h3>
+                  <p className="text-muted-foreground mt-2">There are currently no tasks in the system.</p>
                 </div>
               </div>
             )}
