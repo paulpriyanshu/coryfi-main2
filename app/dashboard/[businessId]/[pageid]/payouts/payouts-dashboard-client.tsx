@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/Input"
+import { Input } from "@/components/ui/input"
 import { OrdersTable } from "./orders-table"
 import { PayoutsTable } from "./payouts-table"
 
@@ -60,34 +60,23 @@ export default function PayoutsDashboardClient({
   }
 
   // Format date for input (ensure it's in YYYY-MM-DD format)
-  // const formatDateForInput = (dateString) => {
-  //   if (!dateString) return ""
-
-  //   // If it's already in the correct format, return as is
-  //   if (typeof dateString === "string" && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-  //     return dateString
-  //   }
-    
-
-  //   // Try to parse and format the date
-  //   try {
-  //     const date = new Date(dateString)
-  //     if (isNaN(date.getTime())) return ""
-  //     return date.toISOString().split("T")[0]
-  //   } catch {
-  //     return ""
-  //   }
-  // }
   const formatDateForInput = (dateString) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
+    if (!dateString) return ""
+
+    // If it's already in the correct format, return as is
+    if (typeof dateString === "string" && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return dateString
+    }
+
+    // Try to parse and format the date
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return ""
+      return date.toISOString().split("T")[0]
+    } catch {
+      return ""
+    }
+  }
 
   const dailyAverage = daysWithPayouts ? totalPayoutAmount / daysWithPayouts : 0
   const avgOrdersPerDay = daysWithPayouts ? totalOrderCount / daysWithPayouts : 0
