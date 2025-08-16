@@ -174,7 +174,7 @@ export const authOptions: NextAuthOptions = {
         // console.log("Redirecting to original URL:", url);
         return url;
       }
-      
+        
       // Add baseUrl to relative paths
       if (url.startsWith('/')) {
         // console.log("Redirecting to path:", url);

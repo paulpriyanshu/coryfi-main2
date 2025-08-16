@@ -27,7 +27,7 @@ export default function CartButton({ userId }) {
     }
 
     fetchCart()
-    const interval = setInterval(fetchCart, 30000)
+    const interval = setInterval(fetchCart, 5000)
     return () => clearInterval(interval)
   }, [userid])
 

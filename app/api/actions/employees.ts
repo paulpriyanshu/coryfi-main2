@@ -600,7 +600,176 @@ export async function getAssignedTasksForEmployee(userId: number) {
     };
   }
 }
+export async function getAllBusinessTasksForEmployee(userId: number) {
+  try {
+    // 1️⃣ Find all employee records (because a user can be employee in multiple businesses)
+    const employees = await db.employee.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        businessId: true,
+      },
+    });
 
+    if (!employees.length) {
+      return {
+        success: false,
+        message: "No employee record found for this user.",
+        data: [],
+      };
+    }
+
+    // 2️⃣ Map employeeId → businessId
+    const employeeMap = new Map<number, string>();
+    employees.forEach((emp) => {
+      employeeMap.set(emp.id, emp.businessId);
+    });
+    const businessIds = Array.from(new Set(employees.map((e) => e.businessId)));
+
+    // 3️⃣ Fetch all tasks from these businesses (regardless of who they’re assigned to)
+    const allBusinessTasks = await db.task.findMany({
+      where: {
+        order: {
+          orderItems: {
+            some: {
+              product: {
+                businessPageId: { in: businessIds },
+              },
+            },
+          },
+        },
+      },
+      include: {
+        order: {
+          select: {
+            userId: true,
+            id: true,
+            order_id: true,
+            totalCost: true,
+            status: true,
+            fulfillmentStatus: true,
+            address: true,
+            createdAt: true,
+            updatedAt: true,
+            orderItems: {
+              include: {
+                product: {
+                  include: {
+                    business: {
+                      select: {
+                        name: true,
+                        dpImageUrl: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    // 4️⃣ Get unique task_ids and latest assignment (to mark current assignment)
+    const taskIds = Array.from(new Set(allBusinessTasks.map((t) => t.task_id)));
+    const latestAssignments = await db.task.findMany({
+      where: { task_id: { in: taskIds } },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const latestTaskMap = new Map<string, number>(); // task_id → employeeId
+    for (const task of latestAssignments) {
+      if (!latestTaskMap.has(task.task_id)) {
+        latestTaskMap.set(task.task_id, task.employeeId);
+      }
+    }
+
+    // 5️⃣ Fetch unique users linked to these tasks
+    const uniqueUserIds = Array.from(new Set(allBusinessTasks.map((task) => task.order.userId)));
+    const users = await db.user.findMany({
+      where: { id: { in: uniqueUserIds } },
+      select: {
+        id: true,
+        name: true,
+        userDetails: {
+          select: {
+            phoneNumber: true,
+            addresses: true,
+          },
+        },
+      },
+    });
+    const userMap = new Map<number, { name: string; phone: string; address: any }>();
+    users.forEach((u) => {
+      userMap.set(u.id, {
+        name: u.name,
+        phone: u.userDetails.phoneNumber,
+        address: u.userDetails.addresses,
+      });
+    });
+
+    // 6️⃣ Format tasks
+    const formattedTasks = allBusinessTasks.map((task) => {
+      const businessId = task.order.orderItems[0]?.product.businessPageId || null;
+      const userInfo = userMap.get(task.order.userId) || { name: "", phone: "", address: "" };
+
+      return {
+        id: task.id,
+        name: task.name,
+        status: task.status,
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt,
+        task_id: task.task_id,
+        employeeId: task.employeeId,
+        businessId,
+        isCurrentAssignment: latestTaskMap.get(task.task_id) === task.employeeId,
+        order: {
+          id: task.order.id,
+          order_id: task.order.order_id,
+          userId: task.order.userId,
+          username: userInfo.name,
+          userPhone: userInfo.phone,
+          userAddress: userInfo.address,
+          totalCost: task.order.totalCost,
+          status: task.order.status,
+          fulfillmentStatus: task.order.fulfillmentStatus,
+          address: task.order.address,
+          createdAt: task.order.createdAt,
+          updatedAt: task.order.updatedAt,
+          orderItems: task.order.orderItems.map((item) => ({
+            id: item.id,
+            quantity: item.quantity,
+            details: item.details,
+            productFulfillmentStatus: item.productFulfillmentStatus,
+            otp: item.OTP,
+            customization: item.customization,
+            recieveBy: item.recieveBy,
+            product: item.product,
+            outForDelivery: item.outForDelivery,
+            businessImage: item.product.business.dpImageUrl,
+            businessName: item.product.business.name,
+          })),
+        },
+      };
+    });
+
+    return {
+      success: true,
+      message: `${formattedTasks.length} task(s) retrieved for business(es).`,
+      data: formattedTasks,
+    };
+  } catch (error) {
+    console.error("Error fetching business tasks:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Unexpected error occurred.",
+      data: [],
+    };
+  }
+}
 export async function deleteTaskAssignment(taskId: string, employeeId: number , businessPageId,businessId) {
     try {
       const deletedTask = await db.task.delete({
