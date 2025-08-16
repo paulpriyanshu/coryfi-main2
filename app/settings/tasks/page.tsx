@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import TaskComponent from "./task-component"
 import { getAssignedTasksForEmployee } from "@/app/api/actions/employees"
 import { fetchUserId } from "@/app/api/actions/media"
-import { getLatestOrdersForEmployee } from "@/app/api/actions/get-latest-orders-for-employee"
+import { getLatestOrdersForEmployee } from "@/app/api/business/order/order"
 import AllOrdersComponent from "./all-orders-component"
 
 interface Task {
