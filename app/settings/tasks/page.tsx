@@ -304,11 +304,11 @@ export default function TaskPageWithTabs() {
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="assigned" className="flex items-center gap-2">
             Your Tasks
-            {assignedTasks?.data?.length > 0 && (
-              <Badge variant="secondary" className="ml-2">
-                {assignedTasks.data.length}
-              </Badge>
-            )}
+            {assignedTasks?.data?.filter((task) => task.status === "pending").length > 0 && (
+            <Badge variant="secondary" className="ml-2">
+              {assignedTasks.data.filter((task) => task.status === "pending").length}
+            </Badge>
+          )}
           </TabsTrigger>
           <TabsTrigger value="all" className="flex items-center gap-2">
             All Tasks
