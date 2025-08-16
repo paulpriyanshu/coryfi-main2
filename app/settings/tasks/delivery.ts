@@ -45,27 +45,30 @@ export const fulfillItemsByOtp = async (
   
       // 3. Get the corresponding task assigned to this employee
       const task = await db.task.findFirst({
-        where: {
-          task_id: order.order_id,
-          employeeId,
-        },
-        include: {
-          employee: {
-            select: { businessId: true },
-          },
-          order: {
-            include: {
-              orderItems: {
-                include: {
-                  product: {
-                    select: { businessPageId: true },
-                  },
-                },
-              },
+  where: {
+    task_id: order.order_id,
+    employeeId,
+  },
+  orderBy: {
+    createdAt: "desc", // or updatedAt, id, etc. depending on your schema
+  },
+  include: {
+    employee: {
+      select: { businessId: true },
+    },
+    order: {
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              select: { businessPageId: true },
             },
           },
         },
-      });
+      },
+    },
+  },
+});
   
       if (!task) {
         return {
