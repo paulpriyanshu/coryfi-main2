@@ -74,7 +74,7 @@ export default function TaskPageWithTabs() {
       const results = await Promise.allSettled(
         businessIds.map((businessId) => getLatestOrdersByBusinessPage(businessId)),
       )
-      console.log("results",results)
+      console.log("results", results)
 
       results.forEach((result, index) => {
         if (result.status === "fulfilled" && result.value?.data?.length > 0) {
@@ -84,7 +84,7 @@ export default function TaskPageWithTabs() {
           console.error(`Error fetching for business ${businessIds[index]}:`, result.reason)
         }
       })
-      console.log("results",results)
+      console.log("results", results)
 
       console.log("Final All Tasks Data:", allTasksData)
 
@@ -102,22 +102,22 @@ export default function TaskPageWithTabs() {
 
       const userData = await fetchUserId(session.user.email)
       const taskData = await getAssignedTasksForEmployee(userData.id)
-      console.log("result",taskData)
+      console.log("result", taskData)
       const businessIds = [...new Set(taskData.data.map((task: any) => task.businessId))]
 
       console.log("businessIds", businessIds)
       setBusinessIds(businessIds)
       setAssignedTasks(taskData)
 
-      // Call fetchAllTasks with the businessIds
-      await fetchAllTasks(businessIds)
+      // Return businessIds for use in the main fetch function
+      return businessIds
     } catch (error) {
       console.error("Error fetching assigned tasks:", error)
       setError("Failed to fetch assigned tasks")
+      return []
     }
   }, [session?.user?.email])
 
-  // Transform the all tasks data structure to match TaskComponent expectations
   const transformAllTasksData = (allTasksResponse: any): Task[] => {
     if (!allTasksResponse?.data) return []
 
@@ -215,8 +215,20 @@ export default function TaskPageWithTabs() {
     setLoading(true)
     setError(null)
     try {
-      await fetchAssignedTasks()
+      // Step 1: Fetch assigned tasks for employee first
+      console.log("Step 1: Fetching assigned tasks for employee...")
+      const businessIds = await fetchAssignedTasks()
+
+      // Step 2: Then fetch all tasks using the business IDs from assigned tasks
+      if (businessIds && businessIds.length > 0) {
+        console.log("Step 2: Fetching all tasks for businesses:", businessIds)
+        await fetchAllTasks(businessIds)
+      } else {
+        console.log("No business IDs found, skipping all tasks fetch")
+        setAllTasks({ data: [] })
+      }
     } catch (error) {
+      console.error("Error in fetchTasks:", error)
       setError("Failed to load tasks")
     } finally {
       setLoading(false)
