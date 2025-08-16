@@ -188,7 +188,7 @@ export default function AllOrdersComponent({ orders }: AllOrdersComponentProps) 
                 <CardTitle className="text-lg font-semibold">Order #{order.order_id}</CardTitle>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className={getStatusColor(order?.tasks?.[order?.tasks.length - 1]?.status ?? "pending")}>
-                    {order?.tasks?.[order?.tasks.length - 1]?.status}
+                    {order?.tasks?.[order?.tasks.length - 1]?.status || "pending"}
                   </Badge>
                   <Badge variant="secondary">₹{order.totalCost}</Badge>
                 </div>
