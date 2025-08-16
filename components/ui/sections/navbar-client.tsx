@@ -52,7 +52,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, href, isActive, tooltip }) => {
   )
 }
 
-export function NavbarClient({ session, userId, userDp, navItems, dashboardLink, businessId, children }) {
+export function NavbarClient({ session, userId, userDp, navItems2,navItems, dashboardLink, businessId, children }) {
   const pathname = usePathname()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("")
@@ -108,7 +108,7 @@ export function NavbarClient({ session, userId, userDp, navItems, dashboardLink,
               <SheetContent side="left" className="w-[300px] sm:w-[400px] flex flex-col overflow-y-auto">
                 <div className="flex-grow">
                   <nav className="flex flex-col space-y-4 mt-4">
-                    {navItems.map((item) => (
+                    {navItems2.map((item) => (
                       <motion.div key={item.tooltip} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                         <Link
                           href={item.href}

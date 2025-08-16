@@ -303,7 +303,7 @@ export default function TaskPageWithTabs() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="assigned" className="flex items-center gap-2">
-            Tasks Assigned to Me
+            Your Tasks
             {assignedTasks?.data?.length > 0 && (
               <Badge variant="secondary" className="ml-2">
                 {assignedTasks.data.length}

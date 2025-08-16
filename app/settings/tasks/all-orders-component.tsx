@@ -202,15 +202,15 @@ export default function AllOrdersComponent({ orders }: AllOrdersComponentProps) 
                   <User className="h-5 w-5 text-muted-foreground" />
                   <div className="flex-1">
                     <p className="font-medium">{order.username}</p>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    {/* <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Phone className="h-4 w-4" />
-                      {/* <a
+                      <a
                         href={`tel:${order.userPhone}`}
                         className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
                       >
                         {order.userPhone}
-                      </a> */}
-                    </div>
+                      </a>
+                    </div> */}
                   </div>
                 </div>
                 <div className="text-sm text-muted-foreground">

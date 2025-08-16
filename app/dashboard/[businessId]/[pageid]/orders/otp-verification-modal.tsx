@@ -13,6 +13,7 @@ import {
 import { Loader2 } from 'lucide-react'
 import toast from "react-hot-toast"
 import { CustomOtpInput } from "./custom-otp-input"
+import { cn } from "@/lib/utils"
 
 interface OtpVerificationModalProps {
   isOpen: boolean
@@ -84,35 +85,49 @@ export function OtpVerificationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+      <DialogContent
+        className={cn(
+          "sm:max-w-md w-full",
+          "sm:rounded-lg rounded-none", // full width on mobile
+          "sm:my-auto my-0 h-full sm:h-auto flex flex-col justify-center"
+        )}
+      >
+        <DialogHeader className="px-2 sm:px-0 text-center sm:text-left">
+          <DialogTitle className="text-lg sm:text-xl">{title}</DialogTitle>
+          <DialogDescription className="text-sm sm:text-base">
+            {description}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col items-center space-y-6 py-6">
+        <div className="flex flex-col items-center space-y-6 py-6 px-2 sm:px-0">
           <CustomOtpInput 
             value={otp} 
             onChange={setOtp} 
             disabled={isVerifying}
             error={hasError}
+            className="text-lg sm:text-xl" // bigger for mobile
           />
 
           {error && (
-            <p className="text-sm font-medium text-red-500 text-center">
+            <p className="text-sm font-medium text-red-500 text-center px-2">
               {error}
             </p>
           )}
         </div>
 
-        <DialogFooter className="flex flex-row justify-end gap-2">
-          <Button variant="outline" onClick={handleClose} disabled={isVerifying}>
+        <DialogFooter className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-2 px-2 sm:px-0 pb-4 sm:pb-0">
+          <Button 
+            variant="outline" 
+            onClick={handleClose} 
+            disabled={isVerifying}
+            className="w-full sm:w-auto py-3"
+          >
             Cancel
           </Button>
           <Button 
             onClick={handleVerify} 
             disabled={otp.length !== 6 || isVerifying}
-            className="min-w-[120px]"
+            className="w-full sm:w-auto py-3 min-w-[120px]"
           >
             {isVerifying ? (
               <>

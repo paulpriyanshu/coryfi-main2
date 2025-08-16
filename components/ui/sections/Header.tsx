@@ -56,8 +56,13 @@ export default async function Header() {
       console.error("Error fetching user details:", error)
     }
   }
+   const navItems = [
+    { icon: <Home className="h-5 w-5 dark:text-white " />, href: "/feed", tooltip: "Home" },
+    { icon: <Network className="h-5 w-5 dark:text-white" />, href: "/", tooltip: "Network" },
+    { icon: <Store className="h-5 w-5 dark:text-white" />, href: "/explore", tooltip: "Businesses" },
 
-  const navItems = [
+  ]
+  const navItems2 = [
     { icon: <Home className="h-5 w-5 dark:text-white " />, href: "/feed", tooltip: "Home" },
     { icon: <Network className="h-5 w-5 dark:text-white" />, href: "/", tooltip: "Network" },
     { icon: <Store className="h-5 w-5 dark:text-white" />, href: "/explore", tooltip: "Businesses" },
@@ -77,6 +82,7 @@ export default async function Header() {
       session={session}
       userId={userId}
       userDp={userDp}
+      navItems2={navItems2}
       navItems={navItems}
       dashboardLink={dashboardLink}
       businessId={businessId}
