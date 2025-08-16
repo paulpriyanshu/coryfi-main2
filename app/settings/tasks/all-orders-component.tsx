@@ -187,7 +187,7 @@ export default function AllOrdersComponent({ orders }: AllOrdersComponentProps) 
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold">Order #{order.order_id}</CardTitle>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className={getStatusColor(order?.tasks?.[order?.tasks.length - 1]?.status ?? null)}>
+                  <Badge variant="outline" className={getStatusColor(order?.tasks?.[order?.tasks.length - 1]?.status ?? "pending")}>
                     {order?.tasks?.[order?.tasks.length - 1]?.status}
                   </Badge>
                   <Badge variant="secondary">₹{order.totalCost}</Badge>
