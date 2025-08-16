@@ -60,15 +60,30 @@ export const getOrders = async (userId: number) => {
 
 
 
-
-export const getLatestOrdersByBusinessPage = async (businessPageId: string) => {
+export const getLatestOrdersForEmployee = async (userId: number) => {
   try {
-    console.log("Fetching latest orders for business:", businessPageId);
+    console.log("Fetching latest orders for employee:", userId);
+
+    // 1. Find all businesses where this user is an employee
+    const employees = await db.employee.findMany({
+      where: { userId },
+      select: { businessId: true },
+    });
+
+    if (!employees.length) {
+      return {
+        success: false,
+        message: "No businesses found for this user.",
+        data: [],
+      };
+    }
+
+    const businessIds = employees.map((e) => e.businessId);
 
     const now = new Date();
     const sevenDaysAgo = startOfDay(subDays(now, 7));
 
-    // 1. Get all orders for the business page within the last 7 days
+    // 2. Get all orders for those businesses in last 7 days
     const orders = await db.order.findMany({
       where: {
         createdAt: {
@@ -77,7 +92,7 @@ export const getLatestOrdersByBusinessPage = async (businessPageId: string) => {
         orderItems: {
           some: {
             product: {
-              businessPageId,
+              businessPageId: { in: businessIds },
             },
           },
         },
@@ -94,8 +109,8 @@ export const getLatestOrdersByBusinessPage = async (businessPageId: string) => {
         fulfillmentStatus: true,
         address: true,
         tasks: {
-          where:{
-            businessId:businessPageId
+          where: {
+            businessId: { in: businessIds },
           },
           include: {
             employee: {
@@ -119,7 +134,7 @@ export const getLatestOrdersByBusinessPage = async (businessPageId: string) => {
         orderItems: {
           where: {
             product: {
-              businessPageId,
+              businessPageId: { in: businessIds },
             },
           },
           select: {
@@ -149,10 +164,10 @@ export const getLatestOrdersByBusinessPage = async (businessPageId: string) => {
       },
     });
 
-    // 2. Extract unique userIds from those orders
+    // 3. Extract unique userIds from orders
     const userIds = Array.from(new Set(orders.map((order) => order.userId)));
 
-    // 3. Fetch user details separately
+    // 4. Fetch user details
     const users = await db.user.findMany({
       where: {
         id: { in: userIds },
@@ -169,17 +184,19 @@ export const getLatestOrdersByBusinessPage = async (businessPageId: string) => {
       },
     });
 
-    // 4. Map userId → user info
-    const userMap = new Map<number, { name: string; phoneNumber: string; addresses: any[] }>();
+    const userMap = new Map<
+      number,
+      { name: string; phoneNumber: string; addresses: any[] }
+    >();
     users.forEach((u) => {
       userMap.set(u.id, {
         name: u.name || "",
         phoneNumber: u.userDetails?.phoneNumber || "",
-        addresses: JSON.parse(JSON.stringify(u.userDetails?.addresses || [])), // ensure serializable
+        addresses: JSON.parse(JSON.stringify(u.userDetails?.addresses || [])),
       });
     });
 
-    // 5. Format the final response
+    // 5. Format final response
     const formattedOrders = orders.map((order) => {
       const userInfo = userMap.get(order.userId) || {
         name: "",

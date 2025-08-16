@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import TaskComponent from "./task-component"
 import { getAssignedTasksForEmployee } from "@/app/api/actions/employees"
 import { fetchUserId } from "@/app/api/actions/media"
-import { getLatestOrdersByBusinessPage } from "@/app/api/business/order/order"
+import { getLatestOrdersForEmployee } from "@/app/api/actions/get-latest-orders-for-employee"
 import AllOrdersComponent from "./all-orders-component"
 
 interface Task {
@@ -58,38 +58,27 @@ export default function TaskPageWithTabs() {
   const [activeTab, setActiveTab] = useState("assigned")
   const [businessIds, setBusinessIds] = useState<string[]>([])
 
-  const fetchAllTasks = async (businessIds: string[]) => {
+  const fetchAllTasks = async (userId: number) => {
     try {
-      console.log("fetchAllTasks called with businessIds:", businessIds)
+      console.log("fetchAllTasks called with userId:", userId)
 
-      if (!businessIds || businessIds.length === 0) {
-        console.log("No business IDs available")
+      if (!userId) {
+        console.log("No user ID available")
         setAllTasks({ data: [] })
         return
       }
 
-      const allTasksData: any[] = []
+      // Call the new function that takes user ID and handles business lookup internally
+      const result = await getLatestOrdersForEmployee(userId)
+      console.log("getLatestOrdersForEmployee result:", result)
 
-      // Use Promise.allSettled for better error handling
-      const results = await Promise.allSettled(
-        businessIds.map((businessId) => getLatestOrdersByBusinessPage(businessId)),
-      )
-      console.log("results", results)
-
-      results.forEach((result, index) => {
-        if (result.status === "fulfilled" && result.value?.data?.length > 0) {
-          console.log(`Fetched tasks for ${businessIds[index]}:`, result.value.data)
-          allTasksData.push(...result.value.data)
-        } else if (result.status === "rejected") {
-          console.error(`Error fetching for business ${businessIds[index]}:`, result.reason)
-        }
-      })
-      console.log("results", results)
-
-      console.log("Final All Tasks Data:", allTasksData)
-
-      // Set raw order data instead of transforming
-      setAllTasks({ data: allTasksData })
+      if (result.success && result.data) {
+        console.log("Fetched orders for employee:", result.data)
+        setAllTasks({ data: result.data })
+      } else {
+        console.log("No orders found or error occurred:", result)
+        setAllTasks({ data: [] })
+      }
     } catch (error) {
       console.error("Error in fetchAllTasks:", error)
       setError("Failed to fetch all tasks")
@@ -109,12 +98,11 @@ export default function TaskPageWithTabs() {
       setBusinessIds(businessIds)
       setAssignedTasks(taskData)
 
-      // Return businessIds for use in the main fetch function
-      return businessIds
+      return userData.id
     } catch (error) {
       console.error("Error fetching assigned tasks:", error)
       setError("Failed to fetch assigned tasks")
-      return []
+      return null
     }
   }, [session?.user?.email])
 
@@ -217,14 +205,14 @@ export default function TaskPageWithTabs() {
     try {
       // Step 1: Fetch assigned tasks for employee first
       console.log("Step 1: Fetching assigned tasks for employee...")
-      const businessIds = await fetchAssignedTasks()
+      const userId = await fetchAssignedTasks()
 
-      // Step 2: Then fetch all tasks using the business IDs from assigned tasks
-      if (businessIds && businessIds.length > 0) {
-        console.log("Step 2: Fetching all tasks for businesses:", businessIds)
-        await fetchAllTasks(businessIds)
+      // Step 2: Then fetch all tasks using the user ID
+      if (userId) {
+        console.log("Step 2: Fetching all tasks for user:", userId)
+        await fetchAllTasks(userId)
       } else {
-        console.log("No business IDs found, skipping all tasks fetch")
+        console.log("No user ID found, skipping all tasks fetch")
         setAllTasks({ data: [] })
       }
     } catch (error) {
