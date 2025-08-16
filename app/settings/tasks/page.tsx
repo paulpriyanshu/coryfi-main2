@@ -70,6 +70,7 @@ export default function TaskPageWithTabs() {
       console.log("Fetching all business tasks for user:", userId)
 
       const result = await getAllBusinessTasksForEmployee(userId)
+      console.log("all tasks",result)
 
       if (result.success) {
         // Transform the data to match the expected Task interface
