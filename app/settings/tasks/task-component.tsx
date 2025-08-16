@@ -48,6 +48,7 @@ export default function TaskComponent({ sampleData }) {
       // Process the data to get only the latest instance of each task ID
       const processedData = getLatestTaskInstances(sampleData.data)
       setTasks(processedData)
+      console.log("processed data",processedData)
     }
   }, [sampleData])
 
@@ -184,7 +185,7 @@ export default function TaskComponent({ sampleData }) {
             <XCircle className="h-4 w-4 mr-1" /> Cancelled
           </Badge>
         )
-      case "fulfilled":
+      case "completed":
         return (
           <Badge variant="outline">
             <CheckCircle className="h-4 w-4 mr-1" /> Completed
