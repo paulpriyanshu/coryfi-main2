@@ -184,7 +184,7 @@ export default function TaskComponent({ sampleData }) {
             <XCircle className="h-4 w-4 mr-1" /> Cancelled
           </Badge>
         )
-      case "completed":
+      case "fulfilled":
         return (
           <Badge variant="outline">
             <CheckCircle className="h-4 w-4 mr-1" /> Completed
