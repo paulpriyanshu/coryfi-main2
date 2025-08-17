@@ -59,7 +59,7 @@ export default async function MarketplacePage() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
            {allBusinesses
-            .filter((business) => business.visibility) // only keep visible ones
+            .filter((business) => business?.visibility) // only keep visible ones
             .map((business) => (
               <BusinessCard
                 key={business.pageId}
