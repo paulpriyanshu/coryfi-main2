@@ -581,6 +581,7 @@ export async function getAssignedTasksForEmployee(userId: number) {
             outForDelivery: item.outForDelivery,
             businessImage: item.product.business.dpImageUrl,
             businessName: item.product.business.name,
+            cancellationReason:item.cancellationReason
           })),
         },
       };
