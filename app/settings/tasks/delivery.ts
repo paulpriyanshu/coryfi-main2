@@ -96,10 +96,14 @@ export const overRideCancellation = async (
       };
     }
 
-    // 2. Get external order_id for task lookup
+    // 2. Get order + external order_id
     const order = await db.order.findUnique({
       where: { id: orderId },
-      select: { id: true, order_id: true },
+      include: {
+        orderItems: {
+          select: { id: true, productFulfillmentStatus: true },
+        },
+      },
     });
 
     if (!order) {
@@ -109,26 +113,39 @@ export const overRideCancellation = async (
       };
     }
 
-    // 3. Cancel tasks linked to this order (via order_id → task_id)
+    // 3. Get tasks linked to this order
     const tasks = await db.task.findMany({
       where: { task_id: order.order_id },
-      select: { id: true },
-    });
-
-    if (tasks.length > 0) {
-      await db.task.updateMany({
-        where: { task_id: order.order_id },
-        data: { status: "cancelled" },
-      });
-    }
-
-    // 4. If all items are cancelled → cancel order too
-    const remainingItems = await db.orderItem.count({
-      where: {
-        orderId: orderId,
-        productFulfillmentStatus: { not: "cancelled" },
+      include: {
+        order: {
+          select: {
+            orderItems: {
+              select: { productFulfillmentStatus: true },
+            },
+          },
+        },
       },
     });
+
+    // 4. Cancel only tasks whose orderItems are all cancelled
+    let cancelledTasks = 0;
+    for (const task of tasks) {
+      const allCancelled = task.order.orderItems.every(
+        (item) => item.productFulfillmentStatus === "cancelled"
+      );
+      if (allCancelled) {
+        await db.task.update({
+          where: { id: task.id },
+          data: { status: "cancelled" },
+        });
+        cancelledTasks++;
+      }
+    }
+
+    // 5. Cancel the order if ALL items are cancelled
+    const remainingItems = order.orderItems.filter(
+      (item) => item.productFulfillmentStatus !== "cancelled"
+    ).length;
 
     if (remainingItems === 0) {
       await db.order.update({
@@ -140,14 +157,14 @@ export const overRideCancellation = async (
       });
     }
 
-    // 5. Revalidate tasks page (Next.js)
+    // 6. Revalidate tasks page
     if (typeof revalidatePath === "function") {
       revalidatePath("/settings/tasks");
     }
 
     return {
       success: true,
-      message: `${updatedItems.count} item(s) cancelled with reason: "${cancellationReason}". ${tasks.length} task(s) marked as cancelled. ${
+      message: `${updatedItems.count} item(s) cancelled with reason: "${cancellationReason}". ${cancelledTasks} task(s) marked as cancelled. ${
         remainingItems === 0 ? `Order ${order.order_id} marked as cancelled.` : ""
       } (Override mode)`,
     };
