@@ -511,16 +511,19 @@ export default function TaskComponent({ sampleData }) {
                                 : ""
                           }`}
                         >
-                          {
-                               item?.cancellationReason && item?.productFullfillmentStatus==="cancelled"  && ( 
-                                <Alert variant="destructive">
+                          <div>
+                            {item?.cancellationReason && item?.productFulfillmentStatus === "cancelled" && (
+                                <Alert
+                                  variant="destructive"
+                                  className="border border-red-300 bg-red-50 text-red-800 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+                                >
                                   <AlertCircle className="h-4 w-4" />
                                   <AlertDescription>
                                     {item.cancellationReason}
                                   </AlertDescription>
                                 </Alert>
-                           )
-                          }
+                              )}
+                          </div>
                           <div className="flex justify-between items-start mb-2">
                             <div>
                               <h4 className="font-medium flex">
