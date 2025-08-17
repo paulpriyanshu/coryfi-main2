@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
-import { Check, ChevronDown, ChevronRight, ChevronUp } from "lucide-react"
+import { AlertCircle, AlertCircleIcon, ChevronDown, ChevronUp } from "lucide-react"
 import Image from "next/image"
 
 import { Badge } from "@/components/ui/badge"
@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator"
 // First, add a new import for the modal components at the top of the file
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FileText, Printer, Truck } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 function Orderdetails({ orderData }) {
   // Initialize state with a default expanded order if available
@@ -59,7 +60,7 @@ function Orderdetails({ orderData }) {
 
   // Add a new function to handle invoice viewing after the formatDate function
   const viewInvoice = (type, data) => {
-    console.log("subtotal data check",data)
+    console.log("subtotal data check", data)
     setSelectedInvoice({ type, data })
   }
 
@@ -68,10 +69,9 @@ function Orderdetails({ orderData }) {
     // const basePrice = item.details?.basePrice || 0
     // const deliveryCharge = item.details?.recieveBy?.charge || 0
 
-
     // The price already includes customizations as per the data structure
     // where details.price is the total product price including customizations
-    return (item.details?.price) * item.quantity
+    return item.details?.price * item.quantity
   }
 
   // Add a new helper function after calculateItemTotal to show price breakdown
@@ -90,7 +90,7 @@ function Orderdetails({ orderData }) {
 
   // Add a function to group order items by business
   const groupItemsByBusiness = (items) => {
-    console.log("grouped items",items)
+    console.log("grouped items", items)
     const businessGroups = {}
 
     items.forEach((item) => {
@@ -146,7 +146,14 @@ function Orderdetails({ orderData }) {
 
       <div className="space-y-6">
         {orderData.data.map((order) => (
-          <Card key={order.id} className="overflow-hidden dark:bg-slate-950">
+          <Card
+            key={order.id}
+            className={`overflow-hidden dark:bg-slate-950 ${
+              order.fulfillmentStatus === "cancelled"
+                ? "bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800"
+                : ""
+            }`}
+          >
             {/* Separate div for click handling to avoid nested component issues */}
             <div
               className="cursor-pointer"
@@ -156,7 +163,13 @@ function Orderdetails({ orderData }) {
                 toggleOrderExpansion(order.id)
               }}
             >
-              <CardHeader className="bg-muted/30 hover:bg-muted/50 transition-colors">
+              <CardHeader
+                className={`bg-muted/30 hover:bg-muted/50 transition-colors ${
+                  order.fulfillmentStatus === "cancelled"
+                    ? "bg-red-100/50 hover:bg-red-100/70 dark:bg-red-900/30 dark:hover:bg-red-900/50"
+                    : ""
+                }`}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                     <div className="flex flex-wrap gap-1">
@@ -182,16 +195,28 @@ function Orderdetails({ orderData }) {
                                 </span>
                               ))}
                             </span>
-                            <Badge  className="ml-1 text-xs bg-green-100 text-black">
-                              OTP: {otp}
-                            </Badge>
+                            <Badge className="ml-1 text-xs bg-green-100 text-black">OTP: {otp}</Badge>
                           </span>
                         ))
                       })()}
                     </div>
-                    <Badge variant="default" className="capitalize w-fit">
-                      {order.order_id}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="default" className="capitalize w-fit">
+                        {order.order_id}
+                      </Badge>
+                      <Badge
+                        variant={order.fulfillmentStatus === "cancelled" ? "destructive" : "secondary"}
+                        className={`capitalize ${
+                          order.fulfillmentStatus === "cancelled"
+                            ? "bg-red-500 text-white hover:bg-red-600"
+                            : order.fulfillmentStatus === "pending"
+                              ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                              : "bg-green-100 text-green-800 hover:bg-green-200"
+                        }`}
+                      >
+                        {order.fulfillmentStatus}
+                      </Badge>
+                    </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right hidden sm:block">
@@ -222,9 +247,7 @@ function Orderdetails({ orderData }) {
                     // Render each OTP group
                     return Object.entries(otpGroups).map(([otp, items]) => (
                       <div key={otp} className="flex flex-col items-center border rounded-md p-2 bg-muted/20">
-                        <Badge  className="mb-2 bg-green-100  text-black">
-                          OTP: {otp}
-                        </Badge>
+                        <Badge className="mb-2 bg-green-100  text-black">OTP: {otp}</Badge>
                         <div className="flex gap-1">
                           {items.slice(0, 3).map((item, idx) => (
                             <div
@@ -258,7 +281,27 @@ function Orderdetails({ orderData }) {
 
             {expandedOrders[order.id] && (
               <>
-                <CardContent className="pt-6 dark:bg-gray-900">
+                <CardContent
+                  className={`pt-6 dark:bg-gray-900 ${
+                    order.fulfillmentStatus === "cancelled" ? "bg-red-50/30 dark:bg-red-950/30" : ""
+                  }`}
+                >
+                  {order.fulfillmentStatus === "cancelled" && (
+                    <div className="mb-4 p-3 bg-red-100 border border-red-200 rounded-md dark:bg-red-900/50 dark:border-red-800">
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">!</span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-red-800 dark:text-red-200">Order Cancelled</p>
+                          <p className="text-sm text-red-600 dark:text-red-300">
+                            This order has been cancelled and will not be fulfilled.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid gap-6 md:grid-cols-3">
                     <div className="md:col-span-2 space-y-6">
                       <Card className="dark:bg-gray-900">
@@ -272,10 +315,26 @@ function Orderdetails({ orderData }) {
                         </CardHeader>
                         <CardContent className="space-y-4">
                           {order.orderItems.map((item, index) => (
-                            <div
-                              key={index}
-                              className={item.productFulfillmentStatus === "fulfilled" ? "bg-green-100 dark:bg-green-200  text-black rounded-md" : ""}
-                            >
+                          <div
+                            key={index}
+                            className={
+                              item.productFulfillmentStatus === "fulfilled"
+                                ? "bg-green-100 dark:bg-green-200 text-black rounded-md"
+                                : item.productFulfillmentStatus === "cancelled"
+                                ? "bg-red-300 dark:bg-red-900 text-black rounded-md"
+                                : ""
+                            }
+                          >
+                               { item.productFulfillmentStatus==="cancelled" && 
+                             <Alert className="border border-yellow-400 bg-yellow-50 text-yellow-800">
+                                <div className="flex items-center space-x-2">
+                                  <AlertCircle className="h-4 w-4 text-yellow-600" />
+                                  <AlertDescription>
+                                    {item.cancellationReason}
+                                  </AlertDescription>
+                                </div>
+                              </Alert>
+                                }
                               <div className="flex gap-4 p-2">
                                 <div className="w-20 h-20 relative rounded-md overflow-hidden flex-shrink-0 bg-muted dark:bg-gray-900">
                                   <Image
@@ -288,7 +347,7 @@ function Orderdetails({ orderData }) {
                                 </div>
                                 <div className="flex-1 ">
                                   <div className="flex justify-between ">
-                                    <h3 className="font-medium capitalize"> 
+                                    <h3 className="font-medium capitalize">
                                       {item.product.name}
                                       {item.OTP && (
                                         <Badge variant="secondary" className="ml-2 bg-green-100 text-black">
@@ -337,45 +396,53 @@ function Orderdetails({ orderData }) {
                                         <span>₹{item.details?.basePrice?.toFixed(2) || "0.00"}</span>
                                       </div>
 
-                                   {item.details?.customization &&
-                                  item.details.customization.split(",").map((custom, i) => {
-                                    const trimmed = custom.trim()
-                                    let name = ""
-                                    let quantity = 1
-                                    let cost = 0
+                                      {item.details?.customization &&
+                                        item.details.customization.split(",").map((custom, i) => {
+                                          const trimmed = custom.trim()
+                                          let name = ""
+                                          let quantity = 1
+                                          let cost = 0
 
-                                    // Handle "key: value" or just "key"
-                                    if (trimmed.includes(":")) {
-                                      const [rawName, rawValue] = trimmed.split(":")
-                                      name = rawName.trim()
-                                      quantity = parseInt(rawValue.trim(), 10) || 1
-                                    } else {
-                                      name = trimmed
-                                    }
+                                          // Handle "key: value" or just "key"
+                                          if (trimmed.includes(":")) {
+                                            const [rawName, rawValue] = trimmed.split(":")
+                                            name = rawName.trim()
+                                            quantity = Number.parseInt(rawValue.trim(), 10) || 1
+                                          } else {
+                                            name = trimmed
+                                          }
 
-                                    // Check in counterItems
-                                    if (item.details.counterItems && item.details.counterItems[name]) {
-                                      const { cost: itemCost, count, default: defaultCount } = item.details.counterItems[name]
-                                      const extraCount = quantity - defaultCount
-                                      cost = extraCount > 0 ? extraCount * itemCost : 0
-                                    }
+                                          // Check in counterItems
+                                          if (item.details.counterItems && item.details.counterItems[name]) {
+                                            const {
+                                              cost: itemCost,
+                                              count,
+                                              default: defaultCount,
+                                            } = item.details.counterItems[name]
+                                            const extraCount = quantity - defaultCount
+                                            cost = extraCount > 0 ? extraCount * itemCost : 0
+                                          }
 
-                                    // Check in fields
-                                    else if (
-                                      item.details.fields &&
-                                      Object.values(item.details.fields).some(f => f.key === name)
-                                    ) {
-                                      const matchedField = Object.values(item.details.fields).find(f => f.key === name)
-                                      cost = matchedField?.value || 0
-                                    }
+                                          // Check in fields
+                                          else if (
+                                            item.details.fields &&
+                                            Object.values(item.details.fields).some((f) => f.key === name)
+                                          ) {
+                                            const matchedField = Object.values(item.details.fields).find(
+                                              (f) => f.key === name,
+                                            )
+                                            cost = matchedField?.value || 0
+                                          }
 
-                                    return (
-                                      <div key={i} className="flex justify-between">
-                                        <span>{name} × {quantity}:</span>
-                                        <span>₹{cost.toFixed(2)}</span>
-                                      </div>
-                                    )
-                                  })}
+                                          return (
+                                            <div key={i} className="flex justify-between">
+                                              <span>
+                                                {name} × {quantity}:
+                                              </span>
+                                              <span>₹{cost.toFixed(2)}</span>
+                                            </div>
+                                          )
+                                        })}
 
                                       {item.details?.recieveBy?.charge > 0 && (
                                         <div className="flex justify-between">
@@ -386,12 +453,7 @@ function Orderdetails({ orderData }) {
 
                                       <div className="flex justify-between font-medium pt-1 border-t mt-1">
                                         <span>Item Total</span>
-                                        <span className="text-lg">
-                                          ₹
-                                          {(
-                                            (item.details?.price || 0)
-                                          ).toFixed(2)}
-                                        </span>
+                                        <span className="text-lg">₹{(item.details?.price || 0).toFixed(2)}</span>
                                       </div>
                                     </div>
 
@@ -469,7 +531,6 @@ function Orderdetails({ orderData }) {
                         </CardContent>
                       </Card>
 
-                  
                       <Card className="dark:bg-gray-900">
                         <CardHeader>
                           <CardTitle>Invoices</CardTitle>
@@ -485,7 +546,11 @@ function Orderdetails({ orderData }) {
                                     {group.otps.length > 0 && (
                                       <div className="flex flex-wrap gap-1 mt-1">
                                         {group.otps.map((otp) => (
-                                          <Badge key={otp} variant="outline" className="text-xs bg-green-100 text-black">
+                                          <Badge
+                                            key={otp}
+                                            variant="outline"
+                                            className="text-xs bg-green-100 text-black"
+                                          >
                                             OTP: {otp}
                                           </Badge>
                                         ))}
@@ -594,7 +659,12 @@ function Orderdetails({ orderData }) {
                     Date: {formatDate(selectedInvoice.data.order.createdAt)}
                   </p>
                 </div>
-                <Button variant="outline" size="sm" className="flex items-center gap-1" onClick={() => window.print()}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1 bg-transparent"
+                  onClick={() => window.print()}
+                >
                   <Printer className="h-4 w-4" />
                   <span>Print Invoice</span>
                 </Button>
@@ -655,44 +725,52 @@ function Orderdetails({ orderData }) {
                                   </div>
 
                                   {item.details?.customization &&
-                                  item.details.customization.split(",").map((custom, i) => {
-                                    const trimmed = custom.trim()
-                                    let name = ""
-                                    let quantity = 1
-                                    let cost = 0
+                                    item.details.customization.split(",").map((custom, i) => {
+                                      const trimmed = custom.trim()
+                                      let name = ""
+                                      let quantity = 1
+                                      let cost = 0
 
-                                    // Handle "key: value" or just "key"
-                                    if (trimmed.includes(":")) {
-                                      const [rawName, rawValue] = trimmed.split(":")
-                                      name = rawName.trim()
-                                      quantity = parseInt(rawValue.trim(), 10) || 1
-                                    } else {
-                                      name = trimmed
-                                    }
+                                      // Handle "key: value" or just "key"
+                                      if (trimmed.includes(":")) {
+                                        const [rawName, rawValue] = trimmed.split(":")
+                                        name = rawName.trim()
+                                        quantity = Number.parseInt(rawValue.trim(), 10) || 1
+                                      } else {
+                                        name = trimmed
+                                      }
 
-                                    // Check in counterItems
-                                    if (item.details.counterItems && item.details.counterItems[name]) {
-                                      const { cost: itemCost, count, default: defaultCount } = item.details.counterItems[name]
-                                      const extraCount = quantity - defaultCount
-                                      cost = extraCount > 0 ? extraCount * itemCost : 0
-                                    }
+                                      // Check in counterItems
+                                      if (item.details.counterItems && item.details.counterItems[name]) {
+                                        const {
+                                          cost: itemCost,
+                                          count,
+                                          default: defaultCount,
+                                        } = item.details.counterItems[name]
+                                        const extraCount = quantity - defaultCount
+                                        cost = extraCount > 0 ? extraCount * itemCost : 0
+                                      }
 
-                                    // Check in fields
-                                    else if (
-                                      item.details.fields &&
-                                      Object.values(item.details.fields).some(f => f.key === name)
-                                    ) {
-                                      const matchedField = Object.values(item.details.fields).find(f => f.key === name)
-                                      cost = matchedField?.value || 0
-                                    }
+                                      // Check in fields
+                                      else if (
+                                        item.details.fields &&
+                                        Object.values(item.details.fields).some((f) => f.key === name)
+                                      ) {
+                                        const matchedField = Object.values(item.details.fields).find(
+                                          (f) => f.key === name,
+                                        )
+                                        cost = matchedField?.value || 0
+                                      }
 
-                                    return (
-                                      <div key={i} className="flex justify-between">
-                                        <span>{name} × {quantity}:</span>
-                                        <span>₹{cost.toFixed(2)}</span>
-                                      </div>
-                                    )
-                                  })}
+                                      return (
+                                        <div key={i} className="flex justify-between">
+                                          <span>
+                                            {name} × {quantity}:
+                                          </span>
+                                          <span>₹{cost.toFixed(2)}</span>
+                                        </div>
+                                      )
+                                    })}
 
                                   {item.details?.recieveBy?.charge > 0 && (
                                     <div className="flex justify-between">
@@ -703,10 +781,7 @@ function Orderdetails({ orderData }) {
 
                                   <div className="flex justify-between font-medium pt-1 border-t">
                                     <span>Total:</span>
-                                    <span>
-                                      ₹
-                                      {((item.details?.price || 0)).toFixed(2)}
-                                    </span>
+                                    <span>₹{(item.details?.price || 0).toFixed(2)}</span>
                                   </div>
                                 </div>
                               </td>
@@ -782,10 +857,7 @@ function Orderdetails({ orderData }) {
 
                                   <div className="flex justify-between font-medium pt-1 border-t">
                                     <span>Total:</span>
-                                    <span>
-                                      ₹
-                                      {((item.details?.price || 0)).toFixed(2)}
-                                    </span>
+                                    <span>₹{(item.details?.price || 0).toFixed(2)}</span>
                                   </div>
                                 </div>
                               </td>

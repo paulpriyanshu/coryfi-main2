@@ -133,7 +133,7 @@ export function CustomOtpInput({
             disabled={disabled}
             className={cn(
               "w-10 h-12 sm:w-12 sm:h-14 text-center text-lg font-semibold rounded-lg border-2 transition-all",
-              "focus:outline-none focus:ring-2 focus:ring-offset-1",
+              "focus:outline-none focus:ring-2 focus:ring-offset-1 dark:bg-black dark:text-white",
               error
                 ? "border-red-500 focus:ring-red-500 bg-red-50"
                 : "border-gray-300 focus:border-primary focus:ring-primary",

@@ -4,7 +4,6 @@ import { Download, Search, ShoppingBag, Package, User, ChevronDown, ChevronUp, F
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/Input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
@@ -12,11 +11,17 @@ import { OrderDetailsModal } from "./order-details-modal"
 import { AssignTaskModal } from "./assign-task-modal"
 import { OtpVerificationModal } from "./otp-verification-modal"
 import { OutForDeliveryModal } from "./out-for-delivery-modal"
+import { OverrideConfirmationModal } from "./override-confirmation-modal"
+import { OverrideCancellationModal } from "./override-cancellation-modal"
 import { getEmployeesByBusiness, assignTaskToEmployee } from "@/app/api/actions/employees"
 import { Toaster } from "react-hot-toast"
 import { fulfillNonDliveryItem } from "@/app/settings/tasks/delivery"
 import { getOrdersByBusinessPage, MarkOutForDelivery } from "@/app/api/business/order/order"
+import { overRideFulfillment } from "@/app/settings/tasks/delivery"
+import { overRideCancellation } from "@/app/settings/tasks/delivery"
 import EmployeeTaskDropdownCell from "./employeedropdown"
+import { useSession } from "next-auth/react"
+import toast from "react-hot-toast"
 
 // Custom Badge variants
 const BadgeWithVariants = ({ variant, ...props }) => {
@@ -59,17 +64,22 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
   const [isOutForDeliveryModalOpen, setIsOutForDeliveryModalOpen] = useState(false)
   const [selectedOrderForDelivery, setSelectedOrderForDelivery] = useState(null)
   const [processedOrders, setProcessedOrders] = useState([])
+  const [isOverrideModalOpen, setIsOverrideModalOpen] = useState(false)
+  const [selectedOrderForOverride, setSelectedOrderForOverride] = useState(null)
+  const [isOverrideCancellationModalOpen, setIsOverrideCancellationModalOpen] = useState(false)
+  const [selectedOrderForCancellation, setSelectedOrderForCancellation] = useState(null)
+  const { data: session, status } = useSession()
 
   // All useEffect hooks at the top - NEVER conditional
   useEffect(() => {
-    const interval = setInterval(async () => {
+    async function fetchOrders() {
       const updatedData = await getOrdersByBusinessPage(pageId)
 
       console.log("order data", updatedData.data)
       setOrdersData(updatedData)
       setLoading(false)
-    }, 3000)
-    return () => clearInterval(interval)
+    }
+    fetchOrders()
   }, [pageId])
 
   // Initialize processed orders
@@ -301,6 +311,91 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
     return order.user || null
   }
 
+  const handleOverrideFulfillment = async (order) => {
+    const totalItems = order.orderItems.reduce((sum, item) => sum + item.quantity, 0)
+    setSelectedOrderForOverride({
+      order_id: order.order_id,
+      orderId: order.id,
+      totalItems,
+    })
+    setIsOverrideModalOpen(true)
+  }
+
+  const confirmOverrideFulfillment = async () => {
+    if (!selectedOrderForOverride) return
+
+    try {
+      const result = await overRideFulfillment(selectedOrderForOverride.orderId)
+
+      if (result.success) {
+        // Update the local state to reflect the changes
+        const updatedOrders = [...processedOrders]
+        const orderIndex = updatedOrders.findIndex((o) => o.id === selectedOrderForOverride.orderId)
+
+        if (orderIndex >= 0) {
+          // Mark all items as fulfilled
+          updatedOrders[orderIndex].orderItems = updatedOrders[orderIndex].orderItems.map((item) => ({
+            ...item,
+            productFulfillmentStatus: "fulfilled",
+          }))
+          setProcessedOrders(updatedOrders)
+        }
+
+        toast.success(result.message)
+      } else {
+        toast.error(result.message || "Failed to override fulfillment")
+      }
+    } catch (error) {
+      console.error("Error overriding fulfillment:", error)
+      toast.error("An error occurred while overriding fulfillment")
+    }
+  }
+
+  const handleOverrideCancellation = async (order,item) => {
+    const totalItems = order.orderItems.reduce((sum, item) => sum + item.quantity, 0)
+    console.log("cancelling item",item)
+    console.log("cancelling order",order)
+    setSelectedOrderForCancellation({
+      product_id:item.product.id,
+      order_id: order.order_id,
+      orderId: order.id,
+      totalItems,
+    })
+    setIsOverrideCancellationModalOpen(true)
+  }
+
+  const confirmOverrideCancellation = async (cancellationReason) => {
+    if (!selectedOrderForCancellation) return
+
+    try {
+      console.log("cancellation order",selectedOrderForCancellation)
+      const result = await overRideCancellation(selectedOrderForCancellation.orderId ,selectedOrderForCancellation.product_id,cancellationReason)
+
+      if (result.success) {
+        // Update the local state to reflect the changes
+        const updatedOrders = [...processedOrders]
+        const orderIndex = updatedOrders.findIndex((o) => o.id === selectedOrderForCancellation.orderId)
+
+        if (orderIndex >= 0) {
+          // Mark all items as cancelled
+          updatedOrders[orderIndex].orderItems = updatedOrders[orderIndex].orderItems.map((item) => ({
+            ...item,
+            productFulfillmentStatus: "cancelled",
+            cancellationReason,
+          }))
+          setProcessedOrders(updatedOrders)
+        }
+
+        toast.success(result.message)
+      } else {
+        toast.error(result.message || "Failed to override cancellation")
+      }
+    } catch (error) {
+      console.error("Error overriding cancellation:", error)
+      toast.error("An error occurred while overriding cancellation")
+    }
+  }
+
   return (
     <div className="container py-6 space-y-8 bg-background text-foreground">
       {/* React Hot Toast container */}
@@ -423,7 +518,7 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
+              <input
                 type="search"
                 placeholder="Search orders..."
                 className="w-[100px] md:w-[200px] pl-8 bg-background border-border text-foreground placeholder:text-muted-foreground"
@@ -466,7 +561,9 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                     className={`border-b border-border last:border-b-0 ${
                       order.orderItems.every((item) => item.productFulfillmentStatus === "fulfilled")
                         ? "border-4 border-green-500 bg-green-100 dark:bg-green-900/20"
-                        : ""
+                        : order.orderItems.every((item) => item.productFulfillmentStatus === "cancelled")
+                          ? "border-4 border-red-500 bg-red-100 dark:bg-red-900/20"
+                          : ""
                     }`}
                   >
                     <div
@@ -790,8 +887,11 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                                         size="sm"
                                         disabled={
                                           item.productFulfillmentStatus === "fulfilled" ||
-                                          item.recieveBy?.type === "DELIVERY" ||
-                                          item.recieveBy?.type === "DELIVERY"
+                                          item.productFulfillmentStatus === "cancelled" ||
+                                          (item.recieveBy?.type === "DELIVERY" &&
+                                            !["priyanshu.paul003@gmail.com", "sgarvit22@gmail.com"].includes(
+                                              session?.user?.email ?? "",
+                                            ))
                                         }
                                         onClick={(e) => {
                                           e.stopPropagation()
@@ -801,8 +901,36 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                                       >
                                         {item.productFulfillmentStatus === "fulfilled"
                                           ? "Fulfilled"
-                                          : "Mark as Fulfilled"}
+                                          : item.productFulfillmentStatus === "cancelled"
+                                            ? "Cancelled"
+                                            : "Mark as Fulfilled"}
                                       </Button>
+                                      {["priyanshu.paul003@gmail.com", "sgarvit22@gmail.com"].includes(
+                                        session?.user?.email ?? "",
+                                      ) && (
+                                        <div className="flex gap-2 mt-2">
+                                          <Button
+                                            size="sm"
+                                            variant="destructive"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              handleOverrideFulfillment(order)
+                                            }}
+                                          >
+                                            Override Fulfillment
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="destructive"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              handleOverrideCancellation(order,item)
+                                            }}
+                                          >
+                                            Override Cancellation
+                                          </Button>
+                                        </div>
+                                      )}
                                     </TableCell>
                                   </TableRow>
                                 ))
@@ -874,6 +1002,20 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
         onClose={() => setIsOutForDeliveryModalOpen(false)}
         onConfirm={markAsOutForDelivery}
         orderDetails={selectedOrderForDelivery}
+      />
+
+      <OverrideConfirmationModal
+        isOpen={isOverrideModalOpen}
+        onClose={() => setIsOverrideModalOpen(false)}
+        onConfirm={confirmOverrideFulfillment}
+        orderDetails={selectedOrderForOverride}
+      />
+
+      <OverrideCancellationModal
+        isOpen={isOverrideCancellationModalOpen}
+        onClose={() => setIsOverrideCancellationModalOpen(false)}
+        onConfirm={confirmOverrideCancellation}
+        orderDetails={selectedOrderForCancellation}
       />
     </div>
   )

@@ -340,6 +340,7 @@ model Product {
   deliveryCharge  Float?      @default(0) // specific to this product
   takeawayCharge  Float?      @default(0)
   dineinCharge    Float?      @default(0)
+  ProductAlertsBeforeCart    String?
 
   // Symmetric many-to-many self-relation
   variants ProductVariant[] @relation("ProductToVariant_A")
@@ -407,6 +408,7 @@ model BusinessPageLayout {
   employees           Employee[]
   payouts             Payout[]
   visibility          Boolean             @default(false)
+  PageAlertsBeforeCart    String?
 
   // posts               Post[]
   task                Task[]
@@ -500,6 +502,7 @@ model OrderItem {
   quantity  Int       @default(1)
   OTP         String?   
   productFulfillmentStatus  String? @default("pending")
+  cancellationReason      String?
   details    Json?
   outForDelivery String? @default("FALSE")
   customization Json?

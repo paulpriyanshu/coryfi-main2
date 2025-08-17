@@ -3,6 +3,165 @@ import db from "@/db"
 import { revalidatePath } from "next/cache";
 
 
+export const overRideFulfillment = async (orderId: string) => {
+  try {
+    console.log("Override fulfillment for order:", orderId);
+
+    // 1. Mark all order items as fulfilled
+    const updatedItems = await db.orderItem.updateMany({
+      where: { orderId },
+      data: { productFulfillmentStatus: "fulfilled" },
+    });
+
+    if (updatedItems.count === 0) {
+      return {
+        success: false,
+        message: "No items found for this order.",
+      };
+    }
+
+    // 2. Get `order_id` (external order identifier)
+    const order = await db.order.findUnique({
+      where: { id: orderId },
+      select: { order_id: true },
+    });
+
+    if (!order) {
+      return {
+        success: false,
+        message: "Order not found.",
+      };
+    }
+
+    // 3. Find all tasks linked to this order
+    const tasks = await db.task.findMany({
+      where: { task_id: order.order_id },
+      select: { id: true },
+    });
+
+    if (tasks.length === 0) {
+      return {
+        success: true,
+        message: `${updatedItems.count} item(s) fulfilled. No tasks found for this order.`,
+      };
+    }
+
+    // 4. Mark all tasks as completed
+    await db.task.updateMany({
+      where: { task_id: order.order_id },
+      data: { status: "completed" },
+    });
+
+    revalidatePath("/settings/tasks");
+
+    return {
+      success: true,
+      message: `${updatedItems.count} item(s) fulfilled. ${tasks.length} task(s) marked as completed. (Override mode)`,
+    };
+  } catch (error) {
+    console.error("Error overriding fulfillment:", error);
+    return {
+      success: false,
+      message: "Failed to override fulfillment.",
+      error,
+    };
+  }
+};
+
+
+export const overRideCancellation = async (
+  orderId: string,       // internal cuid (Order.id)
+  productId: number,
+  cancellationReason: string
+) => {
+  try {
+    console.log("Override cancellation for order:", orderId);
+
+    // 1. Cancel the given order item
+    const updatedItems = await db.orderItem.updateMany({
+      where: {
+        orderId: orderId,   // FK to Order.id
+        productId: productId,
+      },
+      data: {
+        productFulfillmentStatus: "cancelled",
+        cancellationReason,
+      },
+    });
+
+    if (updatedItems.count === 0) {
+      return {
+        success: false,
+        message: "No items found for this order/product.",
+      };
+    }
+
+    // 2. Get external order_id for task lookup
+    const order = await db.order.findUnique({
+      where: { id: orderId },
+      select: { id: true, order_id: true },
+    });
+
+    if (!order) {
+      return {
+        success: false,
+        message: "Order not found.",
+      };
+    }
+
+    // 3. Cancel tasks linked to this order (via order_id → task_id)
+    const tasks = await db.task.findMany({
+      where: { task_id: order.order_id },
+      select: { id: true },
+    });
+
+    if (tasks.length > 0) {
+      await db.task.updateMany({
+        where: { task_id: order.order_id },
+        data: { status: "cancelled" },
+      });
+    }
+
+    // 4. If all items are cancelled → cancel order too
+    const remainingItems = await db.orderItem.count({
+      where: {
+        orderId: orderId,
+        productFulfillmentStatus: { not: "cancelled" },
+      },
+    });
+
+    if (remainingItems === 0) {
+      await db.order.update({
+        where: { id: orderId },
+        data: {
+          status: "cancelled",
+          fulfillmentStatus: "cancelled",
+        },
+      });
+    }
+
+    // 5. Revalidate tasks page (Next.js)
+    if (typeof revalidatePath === "function") {
+      revalidatePath("/settings/tasks");
+    }
+
+    return {
+      success: true,
+      message: `${updatedItems.count} item(s) cancelled with reason: "${cancellationReason}". ${tasks.length} task(s) marked as cancelled. ${
+        remainingItems === 0 ? `Order ${order.order_id} marked as cancelled.` : ""
+      } (Override mode)`,
+    };
+  } catch (error) {
+    console.error("Error overriding cancellation:", error);
+    return {
+      success: false,
+      message: "Failed to override cancellation.",
+      error,
+    };
+  }
+};
+
+
 export const fulfillItemsByOtp = async (
     orderId: string, // This is Order.id (a string)
     otp: string,

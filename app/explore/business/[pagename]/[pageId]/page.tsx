@@ -15,6 +15,7 @@ export const dynamic = "force-dynamic"
 export async function generateMetadata({ params }): Promise<Metadata> {
   const { pageId } = params
   const { pageData } = await getBusinessPageData(pageId)
+  console.log("page data",pageData.PageAlertsBeforeCart)
 
   return {
     title: `${pageData.name} - Coryfi`,
@@ -129,7 +130,7 @@ export default async function BusinessProfile({ searchParams, params }) {
                 <SearchInput />
               </div>
 
-              <ProductGrid products={filteredProducts} params={params} />
+              <ProductGrid products={filteredProducts} params={params} pageInfo={pageData} />
             </div>
           )}
 

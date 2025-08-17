@@ -14,7 +14,7 @@ export const getOrders = async (userId: number) => {
       const orders = await db.order.findMany({
         where: {
           userId,
-          status: 'completed',
+          // status: 'completed',
         },
         orderBy: {
           createdAt: 'desc',
@@ -31,6 +31,7 @@ export const getOrders = async (userId: number) => {
               quantity: true,
               OTP:true,
               productFulfillmentStatus:true,
+              cancellationReason:true,
               details:true,
               product: {
                 select: {

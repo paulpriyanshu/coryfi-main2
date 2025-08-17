@@ -132,7 +132,7 @@ export const authOptions: NextAuthOptions = {
     async redirect({ url, baseUrl }) {
       // Safety check: if URL doesn't start with baseUrl or /, use baseUrl
       if (!url.startsWith(baseUrl) && !url.startsWith('/')) {
-        console.log("Invalid URL, redirecting to base URL:", baseUrl);
+        // console.log("Invalid URL, redirecting to base URL:", baseUrl);
         return baseUrl;
       }
 

@@ -2,17 +2,40 @@
 
 import { useState } from "react"
 // import img from "next/image"
-import { ShoppingCart, Heart, Star, Check, Plus } from "lucide-react"
+import { ShoppingCart, Heart, Star, Check, Plus, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import Image from "next/image"
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
 
-export function ProductGrid({ products , params }) {
+export function ProductGrid({ products , params ,pageInfo}) {
   // const newParams = new URLSearchParams(searchParams.toString());
   // newParams.delete("category");
 
   return (
+    <>
+   <div className="space-y-4 p-6">
+      {/* Default alert */}
+      { pageInfo?.PageAlertsBeforeCart && 
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Heads up!</AlertTitle>
+        <AlertDescription>
+          {pageInfo?.PageAlertsBeforeCart}
+        </AlertDescription>
+      </Alert>
+      }
+
+      {/* Destructive alert */}
+     {/* <Alert className="border border-red-500 text-red-600">
+        <AlertCircle className="h-4 w-4 text-red-500" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Something went wrong. Please try again later.
+        </AlertDescription>
+      </Alert> */}
+    </div>
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
       {products.map((product) => (
         <Link href={`/explore/business/${params.pagename}/${params.pageId}/product/${product.id}`}>
@@ -20,6 +43,7 @@ export function ProductGrid({ products , params }) {
         </Link>
       ))}
     </div>
+    </>
   )
 }
 

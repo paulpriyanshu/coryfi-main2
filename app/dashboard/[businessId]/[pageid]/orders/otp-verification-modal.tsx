@@ -87,14 +87,17 @@ export function OtpVerificationModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent
         className={cn(
-          "sm:max-w-md w-full",
-          "sm:rounded-lg rounded-none", // full width on mobile
-          "sm:my-auto my-0 h-full sm:h-auto flex flex-col justify-center"
+          "sm:max-w-md w-full sm:rounded-lg rounded-none",
+          "sm:my-auto my-0 h-full sm:h-auto flex flex-col justify-center",
+          "bg-white text-gray-900",
+          "dark:bg-neutral-900 dark:text-gray-100" // dark mode colors
         )}
       >
         <DialogHeader className="px-2 sm:px-0 text-center sm:text-left">
-          <DialogTitle className="text-lg sm:text-xl">{title}</DialogTitle>
-          <DialogDescription className="text-sm sm:text-base">
+          <DialogTitle className="text-lg sm:text-xl">
+            {title}
+          </DialogTitle>
+          <DialogDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             {description}
           </DialogDescription>
         </DialogHeader>
@@ -105,7 +108,7 @@ export function OtpVerificationModal({
             onChange={setOtp} 
             disabled={isVerifying}
             error={hasError}
-            className="text-lg sm:text-xl" // bigger for mobile
+            className="text-lg sm:text-xl dark:bg-neutral-800 dark:text-white dark:border-neutral-700"
           />
 
           {error && (
@@ -120,7 +123,7 @@ export function OtpVerificationModal({
             variant="outline" 
             onClick={handleClose} 
             disabled={isVerifying}
-            className="w-full sm:w-auto py-3"
+            className="w-full sm:w-auto py-3 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-neutral-800"
           >
             Cancel
           </Button>
