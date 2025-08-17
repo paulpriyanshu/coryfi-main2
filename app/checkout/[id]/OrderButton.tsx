@@ -32,6 +32,7 @@ function Checkout({ userId, user_name, user_email, user_phone, total_amount, car
     try {
       const order_id = await  generateOrderId();
       console.log("order_id",order_id)
+      const cleanPhone = user_phone.replace(/\s+/g, "");
 
       const orderPayload = {
         order_id,
@@ -39,7 +40,7 @@ function Checkout({ userId, user_name, user_email, user_phone, total_amount, car
         customer_id: userId,
         customer_name: user_name,
         customer_email: user_email,
-        customer_phone: user_phone,
+        customer_phone: cleanPhone,
         return_url: `https://connect.coryfi.com/orders/${userId}`,
       };
 
