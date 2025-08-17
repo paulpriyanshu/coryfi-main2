@@ -254,22 +254,24 @@ export const getAllBusinessPage = async (businessId) => {
 
 export const getAllPages = async () => {
   try {
-    const pageData = await db.businessPageLayout.findMany({
-      include: {
-        // Include the businesses connected through the junction table
-        businessToPageLayouts: {
-          include: {
-            business: {
-              select: {
-                Business_Id: true,
-                Business_Name: true,
-                Entity: true,
-              }
+   const pageData = await db.businessPageLayout.findMany({
+    where:{
+      visibility:true
+    },
+  include: {
+      businessToPageLayouts: {
+        include: {
+          business: {
+            select: {
+              Business_Id: true,
+              Business_Name: true,
+              Entity: true,
             }
           }
         }
       }
-    });
+    }
+  });
     
     if (pageData) {
       return { success: true, pageData }
