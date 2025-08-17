@@ -406,6 +406,7 @@ model BusinessPageLayout {
   location            String?
   employees           Employee[]
   payouts             Payout[]
+  visibility          Boolean             @default(false)
 
   // posts               Post[]
   task                Task[]
