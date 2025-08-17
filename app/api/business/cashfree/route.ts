@@ -7,6 +7,8 @@ import {
 } from "../../actions/employees";
 import { createPayoutForDay } from "../payouts";
 
+
+
 export async function POST(req: NextRequest) {
   try {
     const payload = await req.json();
@@ -83,24 +85,6 @@ export async function POST(req: NextRequest) {
             expiry,
           },
         });
-
-        // await db.transaction.create({
-        //   data: {
-        //     orderId: order_id,
-        //     transactionId: String(cf_payment_id),
-        //     paymentStatus: payment_status,
-        //     paymentAmount: payment_amount,
-        //     paymentCurrency: payment_currency,
-        //     paymentMode: payment_group ?? "unknown",
-        //     paymentTime: new Date(payment_time),
-        //     bankReference: bank_reference ?? null,
-        //     paymentMessage: payment_message ?? null,
-        //     customerName: customer_name,
-        //     customerEmail: customer_email,
-        //     customerPhone: customer_phone,
-        //     paymentDetails: payload,
-        //   },
-        // });
 
         console.log(`✅ ${selectedPlan} premium subscription created for user:`, userId);
       } else {
@@ -189,6 +173,22 @@ export async function POST(req: NextRequest) {
           updatedAt: new Date(),
         },
       });
+
+      // ✅ DELETE CART AFTER ORDER COMPLETION
+      // Delete the user's cart since the order is now completed
+      try {
+        const deletedCart = await tx.cart.deleteMany({
+          where: { userId: orderData.userId },
+        });
+        if (deletedCart.count > 0) {
+          console.log("✅ Cart deleted successfully for user:", orderData.userId);
+        } else {
+          console.log("ℹ️ No cart found for user:", orderData.userId);
+        }
+      } catch (cartError) {
+        console.warn("⚠️ Cart deletion failed:", cartError);
+        // Don't throw error as cart might already be deleted or not exist
+      }
 
       await tx.transaction.create({
         data: {
