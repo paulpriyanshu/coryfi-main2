@@ -35,6 +35,7 @@ import toast, { Toaster } from "react-hot-toast"
 import { fulfillItemsByOtp, checkAllItemsFulfilled } from "./delivery"
 
 import Image from "next/image"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function TaskComponent({ sampleData }) {
   const [tasks, setTasks] = useState(null)
@@ -489,6 +490,7 @@ export default function TaskComponent({ sampleData }) {
                   </div>
 
                   {/* Order Items - only show if they exist */}
+
                   {task.order?.orderItems && (
                     <div className="space-y-3">
                       <h3 className="font-medium flex items-center">
@@ -497,6 +499,8 @@ export default function TaskComponent({ sampleData }) {
                       </h3>
 
                       {task.order.orderItems.map((item, index) => (
+                        
+                                
                         <div
                           key={index}
                           className={`border rounded-md p-3 ${
@@ -507,6 +511,16 @@ export default function TaskComponent({ sampleData }) {
                                 : ""
                           }`}
                         >
+                          {
+                               item?.cancellationReason && item?.productFullfillmentStatus==="cancelled"  && ( 
+                                <Alert variant="destructive">
+                                  <AlertCircle className="h-4 w-4" />
+                                  <AlertDescription>
+                                    {item.cancellationReason}
+                                  </AlertDescription>
+                                </Alert>
+                           )
+                          }
                           <div className="flex justify-between items-start mb-2">
                             <div>
                               <h4 className="font-medium flex">
