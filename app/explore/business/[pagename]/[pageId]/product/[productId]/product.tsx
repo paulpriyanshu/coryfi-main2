@@ -949,37 +949,47 @@ function Product({ product, productId }) {
       </div>
 
       {/* Related Products */}
-      {product?.variants && product.variants.length > 0 && (
-        <div className="mt-16">
-          <h2 className="mb-6 text-2xl font-bold">You May Also Like</h2>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {product.variants.map((variant, index) => (
-              <Card key={index} className="overflow-hidden dark:bg-black dark:text-white">
-                <div className="aspect-square overflow-hidden">
-                  <Image
-                    src={variant.product.images?.[0] || "/placeholder.svg"}
-                    alt={variant.product.name || "Related product"}
-                    width={300}
-                    height={300}
-                    className="h-full w-full object-cover transition-transform hover:scale-105"
-                  />
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-medium">{variant.product.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-1">{variant.description}</p>
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="font-bold">₹{variant.product.basePrice?.toFixed(2) || "0.00"}</span>
-                    <Button variant="ghost" size="sm">
-                      <ShoppingCart className="h-4 w-4" />
-                      <span className="sr-only">Add to cart</span>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+    {product?.variants && product.variants.length > 0 && (
+  <div className="mt-16">
+    <h2 className="mb-6 text-2xl font-bold">You May Also Like</h2>
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      {product.variants.map((variant, index) => (
+        <Card
+          key={index}
+          className="overflow-hidden dark:bg-black dark:text-white"
+        >
+          <div className="aspect-square overflow-hidden">
+            <Image
+              src={variant.product.images?.[0] || "/placeholder.svg"}
+              alt={variant.product.name || "Related product"}
+              width={300}
+              height={300}
+              className="h-full w-full object-cover transition-transform hover:scale-105"
+            />
           </div>
-        </div>
-      )}
+
+          {/* 👇 Product Name directly under the image */}
+          <h3 className="px-4 mt-3 font-medium">{variant.product.name}</h3>
+
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground mt-1">
+              {variant.description}
+            </p>
+            <div className="mt-2 flex items-center justify-between">
+              <span className="font-bold">
+                ₹{variant.product.basePrice?.toFixed(2) || "0.00"}
+              </span>
+              <Button variant="ghost" size="sm">
+                <ShoppingCart className="h-4 w-4" />
+                <span className="sr-only">Add to cart</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  </div>
+)}
     </div>
   )
 }
