@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 export function CategoryCarousel({ categories, productSectionId }) {
   const router = useRouter()
@@ -277,13 +278,14 @@ function CategoryCard({ category, onSelect }) {
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleCategoryClick}
     >
-       <img
+       <Image
     src={category.image || "/placeholder.svg"}
     alt={category.name}
     className={cn(
       "absolute inset-0 w-full h-full object-cover transition-transform duration-700",
       isHovered ? "scale-110" : "scale-100"
     )}
+    placeholder="blur"
   />
 
       {/* Parallax elements */}

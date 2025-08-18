@@ -85,6 +85,7 @@ export default async function BusinessProfile({ searchParams, params }) {
               fill
               className="object-cover"
               priority
+              placeholder="blur"
             />
           </div>
           <div className="text-center md:text-left">

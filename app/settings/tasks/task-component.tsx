@@ -715,7 +715,9 @@ export default function TaskComponent({ sampleData }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <Toaster position="top-right" />
+      <Toaster position="top-right"  toastOptions={{
+        duration:3000
+      }}/>
     </div>
   )
 }

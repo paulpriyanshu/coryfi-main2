@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 
 interface CarouselImage {
   id: number
@@ -96,10 +97,11 @@ export function Carousel({ images, autoplaySpeed = 3000 }) {
               index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0",
             )}
           >
-            <img
+            <Image
               src={image || "/placeholder.svg"}
-              alt={index}
+               alt={`Image ${index + 1}`}
               className="object-cover w-full h-full"
+              placeholder="blur"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent" />
 
