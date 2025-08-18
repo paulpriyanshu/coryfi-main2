@@ -5,7 +5,6 @@ export default async function ProductsGrid({ pageId, businessId }) {
   // Fetch once on the server
   const res = await fetch(
     `${process.env.NEXTAUTH_URL}/api/business?businessPageId=${pageId}`,
-    { cache: "no-store" } // Ensure always fresh data if needed
   );
 
   if (!res.ok) {
