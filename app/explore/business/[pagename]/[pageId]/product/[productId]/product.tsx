@@ -956,7 +956,7 @@ function Product({ product, productId }) {
       {product.variants.map((variant, index) => (
         <Card
           key={index}
-          className="overflow-hidden dark:bg-black dark:text-white"
+          className="overflow-hidden dark:bg-black dark:text-white hover:cursor-pointer"
           onClick={()=>handleProductClick(variant.product.id)}
         >
           <div className="aspect-square overflow-hidden">

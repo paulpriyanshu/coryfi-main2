@@ -564,7 +564,7 @@ model Field {
   type      String   // Defines the type (e.g., "Cost", "Length")
   productId Int
   showCost  Boolean? @default(false)
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id],onDelete:Cascade)
 }
 
 model  Counter {
@@ -574,7 +574,7 @@ model  Counter {
   type      String?   // Defines the type (e.g., "Cost", "Length")
   description String?
   productId Int
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 // model CategoryCarouselCategory {
