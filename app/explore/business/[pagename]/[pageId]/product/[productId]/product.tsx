@@ -480,7 +480,7 @@ function Product({ product, productId }) {
                         index === selectedVariant ? "border-primary ring-1 ring-primary" : "border-muted"
                       } ${variant.product.stock <= 0 ? "opacity-50" : ""}`}
                     >
-                      <div className="flex items-center gap-2" onClick={() => handleProductClick(variant.product.id)}>
+                      <div className="items-center gap-2" onClick={() => handleProductClick(variant.product.id)}>
                         <div className="relative h-16 w-16 overflow-hidden rounded-md">
                           <Image
                             src={variant.product.images?.[0] || "/placeholder.svg"}
@@ -957,6 +957,7 @@ function Product({ product, productId }) {
         <Card
           key={index}
           className="overflow-hidden dark:bg-black dark:text-white"
+          onClick={()=>handleProductClick(variant.product.id)}
         >
           <div className="aspect-square overflow-hidden">
             <Image
@@ -979,10 +980,7 @@ function Product({ product, productId }) {
               <span className="font-bold">
                 ₹{variant.product.basePrice?.toFixed(2) || "0.00"}
               </span>
-              <Button variant="ghost" size="sm">
-                <ShoppingCart className="h-4 w-4" />
-                <span className="sr-only">Add to cart</span>
-              </Button>
+         
             </div>
           </CardContent>
         </Card>
