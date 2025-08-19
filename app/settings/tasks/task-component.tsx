@@ -661,6 +661,27 @@ export default function TaskComponent({ sampleData }) {
           </DialogHeader>
 
           <div className="space-y-4 py-4">
+           <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <label htmlFor="otp" className="text-sm font-medium">
+                    Customer OTP
+                  </label>
+                  <Input
+                    id="otp"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="Enter the 6-digit OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                    maxLength={6}
+                    className="text-center text-xl tracking-widest"
+                    autoComplete="one-time-code"
+                    autoFocus={false}
+                  />
+                  <p className="text-xs text-muted-foreground">Enter the OTP provided by the customer</p>
+                </div>
+              </div>
             <div className="bg-muted p-3 rounded-md">
               <div className="flex items-center mb-2">
                 <Package className="h-4 w-4 mr-2" />
@@ -686,27 +707,7 @@ export default function TaskComponent({ sampleData }) {
               </div>
             </div>
 
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <label htmlFor="otp" className="text-sm font-medium">
-                  Customer OTP
-                </label>
-                <Input
-                  id="otp"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  placeholder="Enter the 6-digit OTP"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                  maxLength={6}
-                  className="text-center text-xl tracking-widest"
-                  autoComplete="one-time-code"
-                  autoFocus={false}
-                />
-                <p className="text-xs text-muted-foreground">Enter the OTP provided by the customer</p>
-              </div>
-            </div>
+             
           </div>
 
           <DialogFooter className="flex-col sm:flex-row gap-2">
