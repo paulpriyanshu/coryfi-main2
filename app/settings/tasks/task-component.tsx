@@ -699,6 +699,7 @@ export default function TaskComponent({ sampleData }) {
                   maxLength={6}
                   className="text-center text-xl tracking-widest"
                   autoComplete="one-time-code"
+                  autoFocus={false}
                 />
                 <p className="text-xs text-muted-foreground">Enter the OTP provided by the customer</p>
               </div>
