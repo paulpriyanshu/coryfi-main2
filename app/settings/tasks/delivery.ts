@@ -326,7 +326,7 @@ export const  checkAllItemsFulfilled = async (orderId: string) => {
       where: { id: orderId },
       data: { status: "complete", fulfillmentStatus: "fulfilled" },
     });
-
+    console.log("updated order",updatedOrder)
     if (updatedOrder && updatedOrder.status === "complete" && updatedOrder.fulfillmentStatus === "fulfilled") {
       // Successfully updated
       revalidatePath('/settings/tasks');
