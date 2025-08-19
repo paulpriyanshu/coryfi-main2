@@ -36,6 +36,7 @@ import { fulfillItemsByOtp, checkAllItemsFulfilled } from "./delivery"
 
 import Image from "next/image"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { revalidatePath } from "next/cache"
 
 export default function TaskComponent({ sampleData }) {
   const [tasks, setTasks] = useState(null)
@@ -249,7 +250,9 @@ export default function TaskComponent({ sampleData }) {
                 : task,
             )
             setTasks(updatedTasks)
+            
             toast.success(`All items fulfilled! Order ${selectedTask.task_id} has been completed.`)
+            revalidatePath('/settings/tasks')
           } else {
             // Fetch the latest order data to update the UI with current fulfillment status
             toast?.success("Some items in this order are still pending fulfillment.")
