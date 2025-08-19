@@ -316,8 +316,8 @@ export const checkAllItemsFulfilled = async (orderId: string) => {
       }
     });
     
-    console.log("All items for this order:", allItems);
-    console.log("Total items count:", allItems.length);
+    // console.log("All items for this order:", allItems);
+    // console.log("Total items count:", allItems.length);
     
     // Count unfulfilled items with detailed logging
     const unfulfilledItems = await db.orderItem.findMany({
@@ -332,8 +332,8 @@ export const checkAllItemsFulfilled = async (orderId: string) => {
       }
     });
     
-    console.log("Unfulfilled items:", unfulfilledItems);
-    console.log("Unfulfilled count:", unfulfilledItems.length);
+    // console.log("Unfulfilled items:", unfulfilledItems);
+    // console.log("Unfulfilled count:", unfulfilledItems.length);
     
     // Also check for exact matches
     const fulfilledItems = await db.orderItem.findMany({
@@ -348,8 +348,8 @@ export const checkAllItemsFulfilled = async (orderId: string) => {
       }
     });
     
-    console.log("Fulfilled items:", fulfilledItems);
-    console.log("Fulfilled count:", fulfilledItems.length);
+    // console.log("Fulfilled items:", fulfilledItems);
+    // console.log("Fulfilled count:", fulfilledItems.length);
     
     // If there are no unfulfilled items, all are fulfilled
     if (unfulfilledItems.length === 0) {

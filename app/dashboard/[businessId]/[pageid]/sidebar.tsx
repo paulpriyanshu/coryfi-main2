@@ -9,7 +9,7 @@ export default async function ModernSidebar({ pageId }: { pageId: string }) {
   const businessData = await getMerchant(session?.user?.email)
   const businessId = businessData?.businesses?.[0]?.Business_Id || ""
 
-  console.log("this is business id", businessId)
+  // console.log("this is business id", businessId)
 
   const menuItems = [
     { name: "Home", icon: "Home", href: `/dashboard/${businessId}/${pageId}`},
