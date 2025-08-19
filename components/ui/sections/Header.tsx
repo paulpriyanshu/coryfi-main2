@@ -1,6 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Home, ListTodo, Network, Store } from "lucide-react"
+import { Home, ListTodo, Network, Store, Package } from "lucide-react"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { fetchUserId } from "@/app/api/actions/media"
@@ -8,7 +8,6 @@ import { getBusiness, getBusinessPage, verifyMerchant } from "@/app/api/business
 import { NavbarClient } from "./navbar-client"
 import CartButton from "./cart-button"
 import Notifications from "./Notifications"
-import { headers } from "next/headers"
 import { cookies } from "next/headers"
 
 export default async function Header() {
@@ -56,17 +55,19 @@ export default async function Header() {
       console.error("Error fetching user details:", error)
     }
   }
-   const navItems = [
+  const navItems = [
     { icon: <Home className="h-5 w-5 dark:text-white " />, href: "/feed", tooltip: "Home" },
     { icon: <Network className="h-5 w-5 dark:text-white" />, href: "/", tooltip: "Network" },
     { icon: <Store className="h-5 w-5 dark:text-white" />, href: "/explore", tooltip: "Businesses" },
-
   ]
   const navItems2 = [
     { icon: <Home className="h-5 w-5 dark:text-white " />, href: "/feed", tooltip: "Home" },
     { icon: <Network className="h-5 w-5 dark:text-white" />, href: "/", tooltip: "Network" },
     { icon: <Store className="h-5 w-5 dark:text-white" />, href: "/explore", tooltip: "Businesses" },
-    { icon: <ListTodo className="h-5 w-5 dark:text-white"/>, href: "/settings/tasks", tooltip: "Task" },
+    { icon: <ListTodo className="h-5 w-5 dark:text-white" />, href: "/settings/tasks", tooltip: "Task" },
+    ...(userId
+      ? [{ icon: <Package className="h-5 w-5 dark:text-white" />, href: `/orders/${userId}`, tooltip: "Your Orders" }]
+      : []),
   ]
 
   // Determine dashboard link based on merchant status
@@ -87,32 +88,32 @@ export default async function Header() {
       dashboardLink={dashboardLink}
       businessId={businessId}
     >
-     <div className="flex items-center">
-  <Link href="/" className="flex items-center justify-start md:ml-10">
-    {/* Light Logo */}
-    <Image
-      src="/coryfi-connect-dark.png"
-      alt="Company Logo"
-      width={120}
-      height={40}
-      className="w-auto h-8 md:h-10 dark:hidden"
-    />
-    {/* Dark Logo */}
-    <Image
-      src="/coryfi-connect-light.png"
-      alt="Company Logo"
-      width={120}
-      height={40}
-      className="w-auto h-8 md:h-10 hidden dark:block"
-    />
-  </Link>
-</div>
+      <div className="flex items-center">
+        <Link href="/" className="flex items-center justify-start md:ml-10">
+          {/* Light Logo */}
+          <Image
+            src="/coryfi-connect-dark.png"
+            alt="Company Logo"
+            width={120}
+            height={40}
+            className="w-auto h-8 md:h-10 dark:hidden"
+          />
+          {/* Dark Logo */}
+          <Image
+            src="/coryfi-connect-light.png"
+            alt="Company Logo"
+            width={120}
+            height={40}
+            className="w-auto h-8 md:h-10 hidden dark:block"
+          />
+        </Link>
+      </div>
 
       {userId && (
-  <span className="hidden sm:block">
-    <CartButton userId={userId} />
-  </span>
-)}
+        <span className="hidden sm:block">
+          <CartButton userId={userId} />
+        </span>
+      )}
       <Notifications />
     </NavbarClient>
   )

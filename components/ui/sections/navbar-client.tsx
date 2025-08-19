@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage } from "@/components/ui/avatar"
 import { SelectDemo } from "./SelectPage"
 import { DashboardIcon } from "@radix-ui/react-icons"
+import { getUnfulfilledOrders } from "@/app/settings/tasks/delivery"
 
 import {
   DropdownMenu,
@@ -28,9 +29,10 @@ interface NavItemProps {
   href: string
   isActive: boolean
   tooltip: string
+  badge?: number
 }
 
-const NavItem: React.FC<NavItemProps> = ({ icon, href, isActive, tooltip }) => {
+const NavItem: React.FC<NavItemProps> = ({ icon, href, isActive, tooltip, badge }) => {
   return (
     <Link
       href={href}
@@ -39,6 +41,11 @@ const NavItem: React.FC<NavItemProps> = ({ icon, href, isActive, tooltip }) => {
       } transition-all duration-200 ease-in-out`}
     >
       {icon}
+      {badge && badge > 0 && (
+        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+          {badge > 99 ? "99+" : badge}
+        </span>
+      )}
       <span className="sr-only">{tooltip}</span>
       {isActive && (
         <motion.span
@@ -52,12 +59,13 @@ const NavItem: React.FC<NavItemProps> = ({ icon, href, isActive, tooltip }) => {
   )
 }
 
-export function NavbarClient({ session, userId, userDp, navItems2,navItems, dashboardLink, businessId, children }) {
+export function NavbarClient({ session, userId, userDp, navItems2, navItems, dashboardLink, businessId, children }) {
   const pathname = usePathname()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("")
   const [isScrolled, setIsScrolled] = useState(false)
   const [mode, setMode] = useState("normal")
+  const [unfulfilledCount, setUnfulfilledCount] = useState(0)
 
   // Check if current path is a dashboard route
   const isDashboardRoute = pathname === "/dashboard" || pathname.startsWith("/dashboard/")
@@ -69,6 +77,27 @@ export function NavbarClient({ session, userId, userDp, navItems2,navItems, dash
   const handleLogout = async () => {
     await signOut()
   }
+
+  useEffect(() => {
+    const fetchUnfulfilledOrders = async () => {
+      if (userId) {
+        try {
+          const result = await getUnfulfilledOrders(userId)
+          if (result.success) {
+            setUnfulfilledCount(result.orders.length)
+          }
+        } catch (error) {
+          console.error("Error fetching unfulfilled orders:", error)
+        }
+      }
+    }
+
+    fetchUnfulfilledOrders()
+
+    // Refresh count every 30 seconds
+    const interval = setInterval(fetchUnfulfilledOrders, 30000)
+    return () => clearInterval(interval)
+  }, [userId])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -88,11 +117,12 @@ export function NavbarClient({ session, userId, userDp, navItems2,navItems, dash
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className={`sticky top-0 z-50 w-full transition-all duration-200 
-          ${isScrolled 
-            ? "bg-white/80 backdrop-blur-md shadow-md dark:bg-black/50 dark:backdrop-blur-md dark:shadow-md" 
-            : "bg-white dark:bg-black/40 dark:backdrop-blur-md"
+          ${
+            isScrolled
+              ? "bg-white/80 backdrop-blur-md shadow-md dark:bg-black/50 dark:backdrop-blur-md dark:shadow-md"
+              : "bg-white dark:bg-black/40 dark:backdrop-blur-md"
           }`}
-            >
+    >
       {/* <ThemeSwitcher/> */}
       <div className="container mx-auto px-4">
         <div className="flex h-12 md:h-16 items-center justify-between">
@@ -100,7 +130,6 @@ export function NavbarClient({ session, userId, userDp, navItems2,navItems, dash
             <Sheet>
               <SheetTrigger asChild className="md:hidden">
                 <Button variant="ghost" size="icon" className="mr-2">
-                  
                   <Menu className="h-5 w-5" />
                   <span className="sr-only">Toggle menu</span>
                 </Button>
@@ -115,7 +144,14 @@ export function NavbarClient({ session, userId, userDp, navItems2,navItems, dash
                           className="flex items-center text-lg font-bold space-x-2 text-black dark:text-white hover:dark:text-slate-900 hover:text-black"
                           onClick={() => document.querySelector("[data-state=open]")?.click()}
                         >
-                          {item.icon} 
+                          <div className="relative">
+                            {item.icon}
+                            {item.tooltip === "Your Orders" && unfulfilledCount > 0 && (
+                              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium">
+                                {unfulfilledCount > 99 ? "99+" : unfulfilledCount}
+                              </span>
+                            )}
+                          </div>
                           <span>{item.tooltip}</span>
                         </Link>
                       </motion.div>
@@ -146,7 +182,7 @@ export function NavbarClient({ session, userId, userDp, navItems2,navItems, dash
                   </div> */}
                   <Button
                     variant="outline"
-                    className="w-full mt-8"
+                    className="w-full mt-8 bg-transparent"
                     onClick={() => {
                       router.push("/settings/profile")
                       document.querySelector("[data-state=open]")?.click()
@@ -155,12 +191,11 @@ export function NavbarClient({ session, userId, userDp, navItems2,navItems, dash
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </Button>
-                    
                 </div>
-                
+
                 <Button
                   variant="outline"
-                  className="w-full mt-auto mb-4"
+                  className="w-full mt-auto mb-4 bg-transparent"
                   onClick={() => {
                     handleLogout()
                     document.querySelector("[data-state=open]")?.click()
@@ -169,8 +204,6 @@ export function NavbarClient({ session, userId, userDp, navItems2,navItems, dash
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout
                 </Button>
-                
-
               </SheetContent>
             </Sheet>
             {children && children[0]}
@@ -194,6 +227,7 @@ export function NavbarClient({ session, userId, userDp, navItems2,navItems, dash
                     href={item.href}
                     isActive={activeTab === item.href}
                     tooltip={item.tooltip}
+                    badge={item.href.includes("/orders") ? unfulfilledCount : undefined}
                   />
                 </motion.div>
               ))}
@@ -209,12 +243,15 @@ export function NavbarClient({ session, userId, userDp, navItems2,navItems, dash
             </div>
             {children && children.slice(1)}
             {session ? (
-              <DropdownMenu >
+              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="p-px rounded-full h-8 w-8">
+                  <Button variant="ghost" className="p-px rounded-full h-8 w-8 relative">
                     <Avatar className="h-8 w-8 border border-slate-200">
                       <AvatarImage src={userDp || session?.user?.image} alt="User" />
                     </Avatar>
+                    {unfulfilledCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 rounded-full h-3 w-3 border-2 border-white dark:border-black"></span>
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
 
@@ -234,8 +271,15 @@ export function NavbarClient({ session, userId, userDp, navItems2,navItems, dash
                   </Link>
                   <Link href={`/orders/${userId}`} passHref>
                     <DropdownMenuItem>
-                      <Package className="mr-2 h-4 w-4" />
-                      <span>Your Orders</span>
+                      <div className="flex items-center w-full">
+                        <Package className="mr-2 h-4 w-4" />
+                        <span>Your Orders</span>
+                        {unfulfilledCount > 0 && (
+                          <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                            {unfulfilledCount > 99 ? "99+" : unfulfilledCount}
+                          </span>
+                        )}
+                      </div>
                     </DropdownMenuItem>
                   </Link>
                   <Link href="/premium" passHref>
@@ -250,7 +294,6 @@ export function NavbarClient({ session, userId, userDp, navItems2,navItems, dash
                       <span>Dashboard</span>
                     </DropdownMenuItem>
                   </Link>
-                  
 
                   <Link href="/settings/profile" passHref>
                     <DropdownMenuItem>
@@ -258,7 +301,7 @@ export function NavbarClient({ session, userId, userDp, navItems2,navItems, dash
                       <span>Settings</span>
                     </DropdownMenuItem>
                   </Link>
-                  <ThemeSwitcher/>
+                  <ThemeSwitcher />
                   <DropdownMenuItem onSelect={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>

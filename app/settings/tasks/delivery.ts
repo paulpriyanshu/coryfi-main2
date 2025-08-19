@@ -369,3 +369,31 @@ export const checkAllItemsFulfilled = async (orderId: string) => {
     return false;
   }
 }
+
+
+export async function getUnfulfilledOrders(userId: number) {
+  try {
+    const orders = await db.order.findMany({
+      where: {
+        userId,
+        fulfillmentStatus: {
+          not: "fulfilled", // Only orders that are not fulfilled
+        },
+      },
+      include: {
+        orderItems: true, // include order items
+        transaction: true, // optional, include transaction details
+        payout: true, // optional, include payout details
+        tasks: true, // optional, include related tasks
+      },
+      orderBy: {
+        createdAt: "desc", // most recent orders first
+      },
+    })
+
+    return { success: true, orders }
+  } catch (error) {
+    console.error("Error fetching unfulfilled orders:", error)
+    return { success: false, orders: [], error: (error as Error).message }
+  }
+}
