@@ -1,6 +1,5 @@
 import Image from "next/image"
 import type { Metadata } from "next"
-// import ProductsGrid from "@/app/dashboard/[businessId]/[pageid]/products/products-grid"
 import { ProductGrid } from "@/components/ProductGrid"
 import { SearchInput } from "@/components/search-input"
 import { CategoryCarousel } from "@/components/CategoryCarousel"
@@ -11,18 +10,19 @@ import { BlurOverlay } from "./blur-overlay"
 import { LoginPrompt } from "./login-prompt"
 import { Carousel } from "./Carousel"
 
+// Metadata Generation
 export const dynamic = "force-dynamic"
 export async function generateMetadata({ params }): Promise<Metadata> {
-  const pageId = params?.pageId || "sample-page-id"
-  const result = await getBusinessPageData(pageId, 1)
-  const pageData = result.success ? result.pageData : null
+  const { pageId } = params
+  const { pageData } = await getBusinessPageData(pageId)
+  // console.log("page data",pageData.PageAlertsBeforeCart)
 
   return {
-    title: `${pageData?.name || "Business"} - Coryfi`,
-    description: `${pageData?.description || "Business page"}`,
+    title: `${pageData.name} - Coryfi`,
+    description: `${pageData.description}`,
     openGraph: {
-      title: `${pageData?.name || "Business"} - Coryfi`,
-      description: `${pageData?.description || "Business page"}`,
+      title: `${pageData.name} - Coryfi`,
+      description: `${pageData.description}`,
       images: [
         {
           url: `https://connect.coryfi.com/api/og/${pageId}`,
@@ -34,41 +34,49 @@ export async function generateMetadata({ params }): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: `${pageData?.name || "Business"} - Coryfi`,
-      description: `${pageData?.description || "Business page"}`,
+      title: `${pageData.name} - Coryfi`,
+      description: `${pageData.description}`,
       images: [`https://connect.coryfi.com/api/og/${pageId}`],
     },
   }
 }
 
+// Main Business Profile Component
 export default async function BusinessProfile({ searchParams, params }) {
-  const pageId = params?.pageId || "sample-page-id"
-  const currentPage = Number.parseInt(searchParams?.page || "1")
-  const selectedCategory = searchParams?.category || undefined
-
-  const result = await getBusinessPageData(pageId, currentPage, selectedCategory)
-
-  if (!result.success) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-lg text-muted-foreground">Page not found</p>
-      </div>
-    )
-  }
-
-  const { pageData } = result
+  const { pageData } = await getBusinessPageData(params.pageId)
+  const selectedCategory = searchParams?.category || null
 
   // Check if user is logged in
   const session = await getServerSession()
   const isLoggedIn = !!session
 
-  const profileImage = pageData?.dpImageUrl || "/placeholder.svg?height=176&width=176"
+  const filteredProducts = selectedCategory
+    ? pageData?.products.filter((product) => {
+        const categoryObj = pageData?.categories.find((cat) => cat.name === selectedCategory)
+        return categoryObj ? product.categoryId === categoryObj.id : false
+      })
+    : pageData?.products
+
+  const profileImage = pageData?.dpImageUrl || "/placeholder.svg"
+  const sampleMedia = [
+  {
+    id: 1,
+    src: "/Video-217.mp4",
+    alt: "Fashion Collection",
+    type: "image" as const,
+    title: "New Collection",
+    subtitle: "Discover our latest fashion trends and styles"
+  },
+]
 
   return (
     <div className="min-h-screen bg-background">
-      <Carousel images={pageData?.bannerImageUrls || []} />
+      {/* Non-blurred sections: Carousel and Business Logo */}
+      <Carousel  images={pageData?.bannerImageUrls} />
+      {/* <MobileCarousel media={sampleMedia}/> */}
 
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Business logo and name section - NOT blurred */}
         <div className="flex flex-col md:flex-row md:items-center gap-6 mb-12">
           <div className="relative w-32 h-32 md:w-44 md:h-44 rounded-full overflow-hidden border-4 border-background bg-slate-100 shadow-lg mx-auto md:mx-0">
             <Image
@@ -77,15 +85,18 @@ export default async function BusinessProfile({ searchParams, params }) {
               fill
               className="object-cover"
               priority
+              placeholder="blur"
             />
           </div>
           <div className="text-center md:text-left">
-            <h1 className="text-3xl font-bold">{pageData?.name || "Business Name"}</h1>
-            <p className="text-muted-foreground mt-2">{pageData?.description || "Business description"}</p>
+            <h1 className="text-3xl font-bold">{pageData?.name}</h1>
+            <p className="text-muted-foreground mt-2">{pageData?.description}</p>
           </div>
         </div>
 
+        {/* Content below business logo - will be blurred for non-logged in users */}
         <div className="relative">
+          {/* Blur overlay for non-logged in users */}
           {!isLoggedIn && <BlurOverlay />}
 
           {pageData?.categories?.length > 0 && (
@@ -106,7 +117,7 @@ export default async function BusinessProfile({ searchParams, params }) {
             </div>
           )}
 
-          {pageData?.products?.length > 0 && (
+          {filteredProducts?.length > 0 && (
             <div id="product-section" className="mb-16">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
@@ -114,24 +125,17 @@ export default async function BusinessProfile({ searchParams, params }) {
                     {selectedCategory ? `${selectedCategory} Products` : "Our Products"}
                   </h2>
                   <p className="text-muted-foreground mt-1">
-                    {selectedCategory
-                      ? `Explore our ${selectedCategory.toLowerCase()} collection`
-                      : "Discover our complete product range"}
+                    {selectedCategory ? `Explore our ${selectedCategory.toLowerCase()} collection` : ""}
                   </p>
                 </div>
                 <SearchInput />
               </div>
 
-               <ProductGrid
-                products={pageData.products || []}
-                params={params || { pageId, pagename: "business" }}
-                pageInfo={pageData}
-                currentPage={pageData.pagination?.currentPage || 1}
-                totalPages={pageData.pagination?.totalPages || 1}
-              />
+              <ProductGrid products={filteredProducts} params={params} pageInfo={pageData} />
             </div>
           )}
 
+          {/* Login prompt for non-logged in users */}
           {!isLoggedIn && <LoginPrompt />}
         </div>
       </div>

@@ -1,62 +1,57 @@
 "use client"
 
 import { useState } from "react"
-import { ShoppingCart, Star, Check, Plus, AlertCircle } from "lucide-react"
+// import img from "next/image"
+import { ShoppingCart, Heart, Star, Check, Plus, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import Image from "next/image"
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
-import { Pagination } from "./pagination"
 
-interface ProductGridProps {
-  products: any[]
-  params: any
-  pageInfo: any
-  totalPages: number
-}
-
-export function ProductGrid({ products, params, pageInfo, totalPages }: ProductGridProps) {
-  const [currentPage, setCurrentPage] = useState(1)
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-    // Scroll to top when page changes
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
+export function ProductGrid({ products , params ,pageInfo}) {
+  // const newParams = new URLSearchParams(searchParams.toString());
+  // newParams.delete("category");
 
   return (
     <>
-      <div className="space-y-4 p-6">
-        {/* Default alert */}
-        {pageInfo?.PageAlertsBeforeCart && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Heads up!</AlertTitle>
-            <AlertDescription>{pageInfo?.PageAlertsBeforeCart}</AlertDescription>
-          </Alert>
-        )}
-      </div>
+   <div className="space-y-4 p-6">
+      {/* Default alert */}
+      { pageInfo?.PageAlertsBeforeCart && 
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Heads up!</AlertTitle>
+        <AlertDescription>
+          {pageInfo?.PageAlertsBeforeCart}
+        </AlertDescription>
+      </Alert>
+      }
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
-        {products.map((product) => (
-          <Link key={product.id} href={`/explore/business/${params.pagename}/${params.pageId}/product/${product.id}`}>
-            <ProductCard product={product} pageId={params.pageId} />
-          </Link>
-        ))}
-      </div>
-
-      <div className="mt-8 mb-6">
-        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
-      </div>
+      {/* Destructive alert */}
+     {/* <Alert className="border border-red-500 text-red-600">
+        <AlertCircle className="h-4 w-4 text-red-500" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Something went wrong. Please try again later.
+        </AlertDescription>
+      </Alert> */}
+    </div>
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
+      {products.map((product) => (
+        <Link href={`/explore/business/${params.pagename}/${params.pageId}/product/${product.id}`}>
+        <ProductCard key={product.id} product={product} pageId={params.pageId} />
+        </Link>
+      ))}
+    </div>
     </>
   )
 }
 
-function ProductCard({ product, pageId }) {
+function ProductCard({ product ,pageId }) {
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [selectedColor, setSelectedColor] = useState(0)
+  console.log("all products",product)
 
   // Sample colors for demonstration
   const colors = product.colors || [
@@ -65,7 +60,7 @@ function ProductCard({ product, pageId }) {
     { name: "Blue", value: "#3b82f6" },
   ]
 
-  const handleAddToCart = () => {
+  const handleAddToCart = () => { 
     setIsAddingToCart(true)
     // Simulate API call
     setTimeout(() => {
@@ -114,17 +109,16 @@ function ProductCard({ product, pageId }) {
 
       {/* Product image */}
       <div className="aspect-square relative overflow-hidden">
-        <Image
-          src={product.images[0] || "/placeholder.svg"}
+      <Image
+          src={product.images[0]} // No need for template literal if it's already a string
           alt={product.name}
           fill
           className="object-cover transition-all duration-700 group-hover:scale-105"
           placeholder="blur"
-          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
         />
 
         {/* Overlay with quick actions */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-4">
+        {/* <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-4">
           <Button
             variant="secondary"
             size="sm"
@@ -139,7 +133,7 @@ function ProductCard({ product, pageId }) {
             )}
             {isAddingToCart ? "Added" : "Add to Cart"}
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Product info */}
@@ -157,6 +151,9 @@ function ProductCard({ product, pageId }) {
               />
             ))}
           </div>
+          {/* <span className="text-xs text-muted-foreground ml-1">
+            ({product.reviewCount || Math.floor(Math.random() * 100) + 5})
+          </span> */}
         </div>
 
         {/* Product name */}
@@ -171,16 +168,33 @@ function ProductCard({ product, pageId }) {
             <p className="text-sm text-muted-foreground line-through">₹{product.BeforeDiscountPrice.toFixed(2)}</p>
           )}
         </div>
+
+        {/* Color options */}
+        {/* <div className="flex items-center gap-1 pt-1">
+          {colors.map((color, index) => (
+            <button
+              key={index}
+              className={cn(
+                "w-5 h-5 rounded-full border transition-all duration-200",
+                selectedColor === index ? "ring-2 ring-primary ring-offset-2" : "hover:scale-110",
+              )}
+              style={{ backgroundColor: color.value }}
+              onClick={() => setSelectedColor(index)}
+              aria-label={`Select ₹{color.name} color`}
+            />
+          ))}
+        </div> */}
       </div>
 
       {/* Quick add button (mobile friendly) */}
-      <button
+      {/* <button
         className="absolute bottom-3 right-3 md:hidden bg-primary text-primary-foreground p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
         onClick={handleAddToCart}
         disabled={isAddingToCart}
       >
         {isAddingToCart ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-      </button>
+      </button> */}
     </div>
   )
 }
+
