@@ -231,7 +231,7 @@ export default function TaskComponent({ sampleData }) {
           toast.success(result.message || `${result.count} item(s) marked as fulfilled`)
 
           // Check if all items in the order are now fulfilled using the server action
-          const allFulfilled = await checkAllItemsFulfilled(selectedTask.order.id)
+          const allFulfilled = await checkAllItemsFulfilled(selectedTask.name)
           console.log("fulfilled", allFulfilled)
 
           if (allFulfilled) {
