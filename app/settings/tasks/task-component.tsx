@@ -646,7 +646,7 @@ export default function TaskComponent({ sampleData }) {
       )}
 
       <Dialog open={otpDialogOpen} onOpenChange={setOtpDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" autoFocus={false}>
           <DialogHeader>
             <DialogTitle>Verify Delivery</DialogTitle>
             <DialogDescription>
@@ -693,7 +693,7 @@ export default function TaskComponent({ sampleData }) {
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  placeholder="Enter the 4-digit OTP"
+                  placeholder="Enter the 6-digit OTP"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                   maxLength={6}
