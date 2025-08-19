@@ -491,34 +491,108 @@ export const getBusinessPageDetails=async(pageId)=>{
 
 // }
 
-export const getBusinessPageData=async(pageId)=>{
-  try {
-    const pageData=await db.businessPageLayout.findFirst({
-      where:{
-        pageId
-      },
-      include:{
-        categories:true,
-        categoryCarousel:{
-          select:{
-            categories:true,
-            products:true,
-          }
-        },
-        products:true
-      }
-     })
-    if(pageData) {
-      return {success:true,pageData}
-    }
-    return { success: false, business: null, message: "Page not found" };
-  } catch (error) {
-    console.error("Error fetching Business Page",error);
-    return { success: false, error};
+// export const getBusinessPageData=async(pageId)=>{
+//   try {
+//     const pageData=await db.businessPageLayout.findFirst({
+//       where:{
+//         pageId
+//       },
+//       include:{
+//         categories:true,
+//         categoryCarousel:{
+//           select:{
+//             categories:true,
+//             products:true,
+//           }
+//         },
+//         products:true
+//       }
+//      })
+//     if(pageData) {
+//       return {success:true,pageData}
+//     }
+//     return { success: false, business: null, message: "Page not found" };
+//   } catch (error) {
+//     console.error("Error fetching Business Page",error);
+//     return { success: false, error};
     
-  }
+//   }
 
+// }
+
+
+export const getBusinessPageData = async (pageId: string, page = 1, category?: string) => {
+  try {
+    const limit = 10
+    const offset = (page - 1) * limit
+
+    // Build the products query with pagination
+    const productsWhere = category
+      ? {
+          businessPageId: pageId,
+          category: {
+            name: category,
+          },
+        }
+      : { businessPageId: pageId }
+
+    // Get total count for pagination
+    const totalProducts = await db.product.count({
+      where: productsWhere,
+    })
+
+    const pageData = await db.businessPageLayout.findFirst({
+      where: {
+        pageId,
+      },
+      include: {
+        categories: true,
+        categoryCarousel: {
+          select: {
+            categories: true,
+            products: true,
+          },
+        },
+        products: {
+          where: category
+            ? {
+                category: {
+                  name: category,
+                },
+              }
+            : undefined,
+          take: limit,
+          skip: offset,
+          include: {
+            category: true,
+          },
+        },
+      },
+    })
+
+    if (pageData) {
+      return {
+        success: true,
+        pageData: {
+          ...pageData,
+          pagination: {
+            currentPage: page,
+            totalPages: Math.ceil(totalProducts / limit),
+            totalProducts,
+            hasNextPage: page < Math.ceil(totalProducts / limit),
+            hasPrevPage: page > 1,
+          },
+        },
+      }
+    }
+    return { success: false, business: null, message: "Page not found" }
+  } catch (error) {
+    console.error("Error fetching Business Page", error)
+    return { success: false, error }
+  }
 }
+
+
 
 // export const DeleteBusinessPage=async(pageId)=>{
 //   try {

@@ -28,6 +28,8 @@ export function CategoryTags({ categories, selectedCategory }: CategoryTagsProps
       params.set("category", categoryName)
     }
 
+    params.delete("page")
+
     router.push(`?${params.toString()}#product-section`)
   }
 
@@ -43,7 +45,7 @@ export function CategoryTags({ categories, selectedCategory }: CategoryTagsProps
             "px-3 py-1.5 rounded-full text-sm font-medium transition-colors border hover:bg-muted/80",
             !selectedCategory
               ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
-              : "bg-background text-foreground border-border"
+              : "bg-background text-foreground border-border",
           )}
         >
           All Products
@@ -57,7 +59,7 @@ export function CategoryTags({ categories, selectedCategory }: CategoryTagsProps
               "px-3 py-1.5 rounded-full text-sm font-medium transition-colors border hover:bg-muted/80",
               selectedCategory === category.name
                 ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
-                : "bg-background text-foreground border-border"
+                : "bg-background text-foreground border-border",
             )}
           >
             {category.name}
