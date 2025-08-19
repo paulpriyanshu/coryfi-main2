@@ -35,7 +35,7 @@ import toast, { Toaster } from "react-hot-toast"
 import { fulfillItemsByOtp, checkAllItemsFulfilled } from "./delivery"
 
 import Image from "next/image"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function TaskComponent({ sampleData }) {
   const [tasks, setTasks] = useState(null)
@@ -49,7 +49,7 @@ export default function TaskComponent({ sampleData }) {
       // Process the data to get only the latest instance of each task ID
       const processedData = getLatestTaskInstances(sampleData.data)
       setTasks(processedData)
-      console.log("processed data",processedData)
+      console.log("processed data", processedData)
     }
   }, [sampleData])
 
@@ -499,8 +499,6 @@ export default function TaskComponent({ sampleData }) {
                       </h3>
 
                       {task.order.orderItems.map((item, index) => (
-                        
-                                
                         <div
                           key={index}
                           className={`border rounded-md p-3 ${
@@ -513,16 +511,14 @@ export default function TaskComponent({ sampleData }) {
                         >
                           <div>
                             {item?.cancellationReason && item?.productFulfillmentStatus === "cancelled" && (
-                                <Alert
-                                  variant="destructive"
-                                  className="border border-red-300 bg-red-50 text-red-800 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
-                                >
-                                  <AlertCircle className="h-4 w-4" />
-                                  <AlertDescription>
-                                    {item.cancellationReason}
-                                  </AlertDescription>
-                                </Alert>
-                              )}
+                              <Alert
+                                variant="destructive"
+                                className="border border-red-300 bg-red-50 text-red-800 dark:border-red-400 dark:bg-red-950 dark:text-red-200"
+                              >
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertDescription>{item.cancellationReason}</AlertDescription>
+                              </Alert>
+                            )}
                           </div>
                           <div className="flex justify-between items-start mb-2">
                             <div>
@@ -650,7 +646,7 @@ export default function TaskComponent({ sampleData }) {
       )}
 
       <Dialog open={otpDialogOpen} onOpenChange={setOtpDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Verify Delivery</DialogTitle>
             <DialogDescription>
@@ -694,30 +690,41 @@ export default function TaskComponent({ sampleData }) {
                 </label>
                 <Input
                   id="otp"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   placeholder="Enter the 4-digit OTP"
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                   maxLength={6}
                   className="text-center text-xl tracking-widest"
+                  autoComplete="one-time-code"
                 />
                 <p className="text-xs text-muted-foreground">Enter the OTP provided by the customer</p>
               </div>
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOtpDialogOpen(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setOtpDialogOpen(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button onClick={verifyOtp} disabled={otp.length === 0 || !selectedTask?.order?.orderItems?.length}>
+            <Button
+              onClick={verifyOtp}
+              disabled={otp.length === 0 || !selectedTask?.order?.orderItems?.length}
+              className="w-full sm:w-auto"
+            >
               Verify & Complete
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <Toaster position="top-right"  toastOptions={{
-        duration:3000
-      }}/>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+        }}
+      />
     </div>
   )
 }
