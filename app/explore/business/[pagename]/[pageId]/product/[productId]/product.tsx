@@ -27,6 +27,7 @@ import { fetchUserId } from "@/app/api/actions/media"
 // Add these imports at the top with the other imports
 import { Label } from "@/components/ui/Label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { LoginPrompt } from "../../login-prompt"
 
 function Product({ product, productId }) {
   const [quantity, setQuantity] = useState(1)
@@ -268,6 +269,7 @@ function Product({ product, productId }) {
     }
   }
 
+  
   // Add this useEffect to show/hide the date time picker based on receiveBy selection
   useEffect(() => {
     if (selectedReceiveBy === "DINEIN" || selectedReceiveBy === "TAKEAWAY") {
@@ -354,6 +356,11 @@ function Product({ product, productId }) {
     return `${selectedYear}-${month}-${day}`
   }
 
+  if(!session){
+    <>
+    <LoginPrompt/>
+    </>
+  }
   // Function to get readable date
   const getReadableDate = () => {
     if (!selectedDay || !selectedMonth || !selectedYear) return ""

@@ -117,7 +117,7 @@ export default async function BusinessProfile({ searchParams, params }) {
             </div>
           )}
           {!isLoggedIn && <LoginPrompt />}
-          {filteredProducts?.length > 0 && (
+          {isLoggedIn && (filteredProducts?.length > 0 && (
             <div id="product-section" className="mb-16">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
@@ -133,7 +133,7 @@ export default async function BusinessProfile({ searchParams, params }) {
 
               <ProductGrid products={filteredProducts} params={params} pageInfo={pageData} />
             </div>
-          )}
+          ))}
 
           {/* Login prompt for non-logged in users */}
           
