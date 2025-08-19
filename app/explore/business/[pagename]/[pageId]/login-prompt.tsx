@@ -49,12 +49,12 @@ export function LoginPrompt() {
         {/* Header */}
         <div className="text-center">
           <h2 className="text-3xl font-extrabold text-gray-800">Sign In to Continue</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          {/* <p className="mt-2 text-sm text-gray-600">
             Or{" "}
             <a href="/signup" className="font-medium text-blue-600 hover:underline">
               create a new account
             </a>
-          </p>
+          </p> */}
         </div>
 
         {/* Google Sign-In Button */}
