@@ -71,7 +71,7 @@ export default function SimplePathsFlow({
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
-  console.log("users", users)
+  // console.log("users", users)
 
   // Fixed logic: skip step 2 if users is undefined or users.users is empty
   const skipStep2 = !users || !users.users || users.users.length === 0
@@ -117,7 +117,7 @@ export default function SimplePathsFlow({
       try {
         setIsLoadingCategories(true)
         const fetchedCategories = await getCategories()
-        console.log("categories", fetchedCategories)
+        // console.log("categories", fetchedCategories)
         setCategories(fetchedCategories || [])
       } catch (error) {
         console.error("Failed to fetch categories:", error)
@@ -197,7 +197,7 @@ export default function SimplePathsFlow({
 
     setIsSubmittingInterests(true)
     try {
-      console.log("selected subcategories", selectedSubcategories)
+      // console.log("selected subcategories", selectedSubcategories)
       await saveUserSubcategories(userId, selectedSubcategories)
 
       setIsTransitioning(true)
@@ -216,7 +216,7 @@ export default function SimplePathsFlow({
     try {
       setSetupStatus("Setting Up...")
       await doneIntroductoryFlow(session?.user?.email)
-      console.log("Setup complete! Would navigate to home page.")
+      // console.log("Setup complete! Would navigate to home page.")
       setSetupStatus("Setup Complete!")
     } catch (error) {
       console.error("Setup failed:", error)
@@ -246,14 +246,14 @@ export default function SimplePathsFlow({
   }
 
   const toggleSubcategory = (subcategoryId: number) => {
-    console.log("Toggling subcategory:", subcategoryId, "Current selected:", selectedSubcategories)
+    // console.log("Toggling subcategory:", subcategoryId, "Current selected:", selectedSubcategories)
 
     setSelectedSubcategories((prev) => {
       if (prev.includes(subcategoryId)) {
-        console.log("Removing subcategory:", subcategoryId)
+        // console.log("Removing subcategory:", subcategoryId)
         return prev.filter((id) => id !== subcategoryId)
       } else {
-        console.log("Adding subcategory:", subcategoryId)
+        // console.log("Adding subcategory:", subcategoryId)
         return [...prev, subcategoryId]
       }
     })

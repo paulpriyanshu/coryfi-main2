@@ -62,7 +62,7 @@ users = {
 }
 if (session) {
   userInterests=await fetchUserInterests(session?.user?.email)
-  console.log("top users",users)
+  // console.log("top users",users)
 }
 
 // console.log("paths flow",await checkPathsFlow(session?.user?.email))

@@ -320,14 +320,27 @@ export const  checkAllItemsFulfilled = async (orderId: string) => {
       })
      
       // Return true if all items are fulfilled
-      if (totalItems > 0 && totalItems === fulfilledItems) {
+     if (totalItems > 0 && totalItems === fulfilledItems) {
+  try {
+    const updatedOrder = await db.order.update({
+      where: { id: orderId },
+      data: { status: "complete", fulfillmentStatus: "fulfilled" },
+    });
 
-         await db.order.update({
-              where: { id: orderId },
-              data: { status: "complete", fulfillmentStatus: "fulfilled" },
-            });
-        revalidatePath('/settings/tasks')
-        return true
+    if (updatedOrder && updatedOrder.status === "complete" && updatedOrder.fulfillmentStatus === "fulfilled") {
+      // Successfully updated
+      revalidatePath('/settings/tasks');
+      return true;
+    } else {
+          // Somehow not updated as expected
+          console.error("Order update did not set the expected values");
+          return false;
+        }
+      } catch (err) {
+        // Order with orderId might not exist or some other error
+        console.error("Failed to update order:", err);
+        return false;
+      }
     }
     return false
 
