@@ -321,6 +321,11 @@ export const  checkAllItemsFulfilled = async (orderId: string) => {
      
       // Return true if all items are fulfilled
       if (totalItems > 0 && totalItems === fulfilledItems) {
+
+         await db.order.update({
+              where: { id: orderId },
+              data: { status: "complete", fulfillmentStatus: "fulfilled" },
+            });
         revalidatePath('/settings/tasks')
         return true
     }
