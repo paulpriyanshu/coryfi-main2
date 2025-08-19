@@ -116,7 +116,7 @@ export default async function BusinessProfile({ searchParams, params }) {
               <CategoryTags categories={pageData.categories} selectedCategory={selectedCategory} />
             </div>
           )}
-
+          {!isLoggedIn && <LoginPrompt />}
           {filteredProducts?.length > 0 && (
             <div id="product-section" className="mb-16">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -136,7 +136,7 @@ export default async function BusinessProfile({ searchParams, params }) {
           )}
 
           {/* Login prompt for non-logged in users */}
-          {!isLoggedIn && <LoginPrompt />}
+          
         </div>
       </div>
     </div>

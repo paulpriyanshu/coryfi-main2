@@ -1,9 +1,4 @@
-"use client"
-
-import { useState } from "react"
-// import img from "next/image"
-import { ShoppingCart, Heart, Star, Check, Plus, AlertCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Star, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import Image from "next/image"
@@ -48,31 +43,7 @@ export function ProductGrid({ products , params ,pageInfo}) {
 }
 
 function ProductCard({ product ,pageId }) {
-  const [isAddingToCart, setIsAddingToCart] = useState(false)
-  const [isWishlisted, setIsWishlisted] = useState(false)
-  const [selectedColor, setSelectedColor] = useState(0)
-  console.log("all products",product)
 
-  // Sample colors for demonstration
-  const colors = product.colors || [
-    { name: "Black", value: "#000000" },
-    { name: "White", value: "#ffffff" },
-    { name: "Blue", value: "#3b82f6" },
-  ]
-
-  const handleAddToCart = () => { 
-    setIsAddingToCart(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsAddingToCart(false)
-    }, 1000)
-  }
-
-  const toggleWishlist = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsWishlisted(!isWishlisted)
-  }
 
   return (
     <div className="group relative rounded-xl overflow-hidden bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -94,18 +65,7 @@ function ProductCard({ product ,pageId }) {
         </div>
       )}
 
-      {/* Wishlist button */}
-      <button
-        onClick={toggleWishlist}
-        className={cn(
-          "absolute top-3 right-3 z-10 p-1.5 rounded-full transition-all duration-300",
-          isWishlisted
-            ? "bg-red-50 text-red-500"
-            : "bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-foreground",
-        )}
-      >
-        {/* <Heart className={cn("h-4 w-4 transition-all", isWishlisted && "fill-red-500 scale-110")} /> */}
-      </button>
+
 
       {/* Product image */}
       <div className="aspect-square relative overflow-hidden">
