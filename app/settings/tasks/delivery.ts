@@ -302,19 +302,57 @@ export const fulfillItemsByOtp = async (
       throw error; // optional: re-throw if you want to handle it elsewhere
     }
   };
-export const  checkAllItemsFulfilled = async (orderId: string) => {
-    try {
-      // Count total order items for this order
-      console.log("order Id",orderId)
-    const unfulfilledCount = await db.orderItem.count({
+export const checkAllItemsFulfilled = async (orderId: string) => {
+  try {
+    console.log("Checking order ID:", orderId);
+    
+    // First, let's see all items for this order to debug
+    const allItems = await db.orderItem.findMany({
+      where: { orderId },
+      select: {
+        id: true,
+        productId: true,
+        productFulfillmentStatus: true,
+      }
+    });
+    
+    console.log("All items for this order:", allItems);
+    console.log("Total items count:", allItems.length);
+    
+    // Count unfulfilled items with detailed logging
+    const unfulfilledItems = await db.orderItem.findMany({
       where: {
         orderId,
         NOT: { productFulfillmentStatus: "fulfilled" },
       },
+      select: {
+        id: true,
+        productId: true,
+        productFulfillmentStatus: true,
+      }
     });
-    console.log("unfulfilled cound",unfulfilledCount)
+    
+    console.log("Unfulfilled items:", unfulfilledItems);
+    console.log("Unfulfilled count:", unfulfilledItems.length);
+    
+    // Also check for exact matches
+    const fulfilledItems = await db.orderItem.findMany({
+      where: {
+        orderId,
+        productFulfillmentStatus: "fulfilled",
+      },
+      select: {
+        id: true,
+        productId: true,
+        productFulfillmentStatus: true,
+      }
+    });
+    
+    console.log("Fulfilled items:", fulfilledItems);
+    console.log("Fulfilled count:", fulfilledItems.length);
+    
     // If there are no unfulfilled items, all are fulfilled
-    if (unfulfilledCount === 0) {
+    if (unfulfilledItems.length === 0) {
       const updatedOrder = await db.order.update({
         where: { id: orderId },
         data: { status: "complete", fulfillmentStatus: "fulfilled" },
@@ -323,13 +361,11 @@ export const  checkAllItemsFulfilled = async (orderId: string) => {
       revalidatePath('/settings/tasks');
       return true;
     } else {
-          // Somehow not updated as expected
-          console.error("Order update did not set the expected values");
-          return false;
-        }
-      } catch (err) {
-        // Order with orderId might not exist or some other error
-        console.error("Failed to update order:", err);
-        return false;
-      }
+      console.log(`Order ${orderId} still has ${unfulfilledItems.length} unfulfilled items`);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to check/update order:", err);
+    return false;
+  }
 }
