@@ -74,7 +74,6 @@ function ProductCard({ product ,pageId }) {
           alt={product.name}
           fill
           className="object-cover transition-all duration-700 group-hover:scale-105"
-          placeholder="blur"
         />
 
         {/* Overlay with quick actions */}

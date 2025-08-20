@@ -98,11 +98,12 @@ export function Carousel({ images, autoplaySpeed = 3000 }) {
             )}
           >
             <Image
-              src={image || "/placeholder.svg"}
-               alt={`Image ${index + 1}`}
-              className="object-cover w-full h-full"
-              placeholder="blur"
-            />
+               src={image}
+            alt={`Banner ${index + 1}`}
+            fill
+            className="object-cover"
+            priority={index === 0} // first image loads fast
+          />
             <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent" />
 
             <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 lg:p-12 text-white z-20">

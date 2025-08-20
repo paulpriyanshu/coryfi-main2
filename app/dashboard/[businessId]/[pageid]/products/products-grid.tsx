@@ -1,17 +1,33 @@
-// ProductsGrid.tsx
-import ProductsList from "./products-list";
+"use client"
 
-export default async function ProductsGrid({ pageId, businessId }) {
-  // Fetch once on the server
-  const res = await fetch(
-    `${process.env.NEXTAUTH_URL}/api/business?businessPageId=${pageId}`,
-  );
+import { useEffect, useState } from "react"
+import ProductsList from "./products-list"
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch products");
-  }
+export default function ProductsGrid({ pageId, businessId }) {
+  const [products, setProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const products = await res.json();
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true)
+        const res = await fetch(
+          `/api/business?businessPageId=${pageId}`, 
+          { cache: "no-store" } // ensures latest only on first load
+        )
+        if (!res.ok) throw new Error("Failed to fetch products")
+        const data = await res.json()
+        setProducts(data)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProducts()
+  }, [pageId])
+
+  if (loading) return <p>Loading products...</p>
 
   return (
     <ProductsList 
@@ -19,5 +35,5 @@ export default async function ProductsGrid({ pageId, businessId }) {
       pageId={pageId} 
       businessId={businessId} 
     />
-  );
+  )
 }

@@ -1,13 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
+import { useState, useEffect, useRef } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/Input"
 import { Textarea } from "@/components/ui/textarea"
@@ -34,11 +28,34 @@ export function AddProductModal({ isOpen, onClose, onSubmit }) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
 
+  const fileInputRef = useRef(null)
+
   const receiveByOptions = [
     { id: "DELIVERY", label: "Delivery" },
     { id: "DINEIN", label: "Dine In" },
     { id: "TAKEAWAY", label: "Takeaway" },
   ]
+
+  useEffect(() => {
+    if (!isOpen) {
+      setFormData({
+        name: "",
+        description: "",
+        basePrice: "",
+        beforeDiscountPrice: "",
+        sales: "",
+        stock: null,
+        SKU: "",
+        images: [],
+        receiveBy: [],
+        takeawayCharge: "",
+        deliveryCharge: "",
+        dineinCharge: "",
+      })
+      setIsUploading(false)
+      setUploadProgress(0)
+    }
+  }, [isOpen])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -78,25 +95,19 @@ export function AddProductModal({ isOpen, onClose, onSubmit }) {
       try {
         const timestamp = Date.now()
         const uniqueFilename = `${timestamp}_${file.name}`
-        const uploadUrlResponse = await axios.get(
-          `https://media.coryfi.com/api/imageUpload/${uniqueFilename}`
-        )
+        const uploadUrlResponse = await axios.get(`https://media.coryfi.com/api/imageUpload/${uniqueFilename}`)
         const { url, filename } = uploadUrlResponse.data
 
         await axios.put(url, file, {
           headers: { "Content-Type": file.type },
           onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            )
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
             setUploadProgress(percentCompleted)
           },
         })
 
-        const previewResponse = await axios.get(
-          `https://media.coryfi.com/api/image/${filename}`
-        )
-        console.log("preview Response",previewResponse)
+        const previewResponse = await axios.get(`https://media.coryfi.com/api/image/${filename}`)
+        console.log("preview Response", previewResponse)
         setFormData((prevData) => ({
           ...prevData,
           images: [...prevData.images, previewResponse.data.url],
@@ -109,7 +120,6 @@ export function AddProductModal({ isOpen, onClose, onSubmit }) {
 
     setIsUploading(false)
     setUploadProgress(0)
-    e.target.value = ""
   }
 
   const handleRemoveImage = (index) => {
@@ -125,8 +135,14 @@ export function AddProductModal({ isOpen, onClose, onSubmit }) {
     onClose()
   }
 
+  const handleOpenChange = (open) => {
+    if (!open) {
+      onClose()
+    }
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
@@ -137,21 +153,10 @@ export function AddProductModal({ isOpen, onClose, onSubmit }) {
             <Input id="name" name="name" value={formData.name} onChange={handleChange} />
 
             <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-            />
+            <Textarea id="description" name="description" value={formData.description} onChange={handleChange} />
 
             <Label htmlFor="basePrice">Base Price</Label>
-            <Input
-              id="basePrice"
-              name="basePrice"
-              type="number"
-              value={formData.basePrice}
-              onChange={handleChange}
-            />
+            <Input id="basePrice" name="basePrice" type="number" value={formData.basePrice} onChange={handleChange} />
 
             <Label htmlFor="beforeDiscountPrice">Before Discount Price</Label>
             <Input
@@ -163,23 +168,10 @@ export function AddProductModal({ isOpen, onClose, onSubmit }) {
             />
 
             <Label htmlFor="sales">Sales</Label>
-            <Input
-              id="sales"
-              name="sales"
-              type="number"
-              value={formData.sales}
-              onChange={handleChange}
-            />
+            <Input id="sales" name="sales" type="number" value={formData.sales} onChange={handleChange} />
 
             <Label htmlFor="stock">Stock</Label>
-            <Input
-              id="stock"
-              name="stock"
-              type="number"
-              value={formData.stock}
-              onChange={handleChange}
-              min="0"
-            />
+            <Input id="stock" name="stock" type="number" value={formData.stock} onChange={handleChange} min="0" />
 
             <Label htmlFor="SKU">SKU</Label>
             <Input id="SKU" name="SKU" value={formData.SKU} onChange={handleChange} />
@@ -202,38 +194,53 @@ export function AddProductModal({ isOpen, onClose, onSubmit }) {
               </div>
             </div>
             <Label htmlFor="takeawayCharge">Takeaway Charge</Label>
-              <Input
-                id="takeawayCharge"
-                name="takeawayCharge"
-                type="number"
-                value={formData.takeawayCharge}
-                onChange={handleChange}
-                disabled={!formData.receiveBy.includes("TAKEAWAY")}
-              />
+            <Input
+              id="takeawayCharge"
+              name="takeawayCharge"
+              type="number"
+              value={formData.takeawayCharge}
+              onChange={handleChange}
+              disabled={!formData.receiveBy.includes("TAKEAWAY")}
+            />
 
-              <Label htmlFor="deliveryCharge">Delivery Charge</Label>
-              <Input
-                id="deliveryCharge"
-                name="deliveryCharge"
-                type="number"
-                value={formData.deliveryCharge}
-                onChange={handleChange}
-                disabled={!formData.receiveBy.includes("DELIVERY")}
-              />
+            <Label htmlFor="deliveryCharge">Delivery Charge</Label>
+            <Input
+              id="deliveryCharge"
+              name="deliveryCharge"
+              type="number"
+              value={formData.deliveryCharge}
+              onChange={handleChange}
+              disabled={!formData.receiveBy.includes("DELIVERY")}
+            />
 
-              <Label htmlFor="dineinCharge">Dine-in Charge</Label>
+            <Label htmlFor="dineinCharge">Dine-in Charge</Label>
+            <Input
+              id="dineinCharge"
+              name="dineinCharge"
+              type="number"
+              value={formData.dineinCharge}
+              onChange={handleChange}
+              disabled={!formData.receiveBy.includes("DINEIN")}
+            />
+
+            <div className="space-y-2">
+              <Label htmlFor="images">Product Images (Max 5)</Label>
               <Input
-                id="dineinCharge"
-                name="dineinCharge"
-                type="number"
-                value={formData.dineinCharge}
-                onChange={handleChange}
-                disabled={!formData.receiveBy.includes("DINEIN")}
+                ref={fileInputRef}
+                id="images"
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={isUploading || formData.images.length >= 5}
+                className="cursor-pointer"
               />
+            </div>
+
             {isUploading && (
               <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div
-                  className="bg-blue-600 h-2.5 rounded-full"
+                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
@@ -241,14 +248,10 @@ export function AddProductModal({ isOpen, onClose, onSubmit }) {
             <div className="flex gap-2 mt-2 flex-wrap">
               {formData.images.map((img, index) => (
                 <div key={index} className="relative">
-                  <img
-                    src={img || "/placeholder.svg"}
-                    alt="Uploaded"
-                    className="w-20 h-20 object-cover rounded"
-                  />
+                  <img src={img || "/placeholder.svg"} alt="Uploaded" className="w-20 h-20 object-cover rounded" />
                   <button
                     type="button"
-                    className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full"
+                    className="absolute -top-1 -right-1 bg-red-500 text-white w-5 h-5 rounded-full text-xs flex items-center justify-center hover:bg-red-600"
                     onClick={() => handleRemoveImage(index)}
                   >
                     ×
@@ -258,7 +261,12 @@ export function AddProductModal({ isOpen, onClose, onSubmit }) {
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">Add Product</Button>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isUploading}>
+              {isUploading ? "Uploading..." : "Add Product"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

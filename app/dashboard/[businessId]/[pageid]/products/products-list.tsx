@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { motion } from "framer-motion"
 import { Search, Plus, Package, Edit, Trash2, ChevronRight, GripVertical } from "lucide-react"
 import { Input } from "@/components/ui/Input"
@@ -38,12 +38,7 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const [editedProduct, setEditedProduct] = useState(null)
   const [isPending, startTransition] = useTransition()
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [localEditedProduct, setLocalEditedProduct] = useState(null)
-  const [isUploadingImages, setIsUploadingImages] = useState(false)
 
   const sortedProducts = [...products].sort((a, b) => {
     const valueA = a[sortBy]
@@ -64,7 +59,6 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
       deliveryCharge: formData.deliveryCharge ? Number.parseFloat(formData.deliveryCharge) : null,
       takeawayCharge: formData.takeawayCharge ? Number.parseFloat(formData.takeawayCharge) : null,
       dineinCharge: formData.dineinCharge ? Number.parseFloat(formData.dineinCharge) : null,
-      // Note: backend expects receiveBy but we're using recieveBy in the frontend
     }
     console.log("adding prod", updatedFormData)
     const result = await addProduct(updatedFormData)
@@ -80,8 +74,10 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
     if (result.success) {
       setProducts((prevProducts) => prevProducts.map((product) => (product.id === productId ? result.data : product)))
       setIsEditing(false)
+      return result.data
     } else {
       console.error("Error editing product:", result.error)
+      return null
     }
   }
 
@@ -227,13 +223,10 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
     const [uploadProgress, setUploadProgress] = useState(0)
     const [localEditedProduct, setLocalEditedProduct] = useState(null)
     const [isUploadingImages, setIsUploadingImages] = useState(false)
+    const isInitialized = useRef(false)
 
     useEffect(() => {
-      if (
-        selectedProductData &&
-        !isUploadingImages &&
-        (!localEditedProduct || localEditedProduct.id !== selectedProductData.id)
-      ) {
+      if (selectedProductData && (!isInitialized.current || !isEditing)) {
         setLocalEditedProduct({
           ...selectedProductData,
           images: [...(selectedProductData.images || [])].slice(0, 5),
@@ -242,8 +235,13 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
           takeawayCharge: selectedProductData.takeawayCharge,
           dineinCharge: selectedProductData.dineinCharge,
         })
+        isInitialized.current = true
       }
-    }, [selectedProductData.id])
+    }, [selectedProductData?.id, isEditing])
+
+    useEffect(() => {
+      isInitialized.current = false
+    }, [selectedProductData?.id])
 
     const handleInputChange = (field, value) => {
       setLocalEditedProduct((prev) => ({
@@ -317,7 +315,17 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
         dineinCharge: localEditedProduct.dineinCharge,
       }
 
-      await handleEditProduct(selectedProduct, productData)
+      const updatedProduct = await handleEditProduct(selectedProduct, productData)
+      if (updatedProduct) {
+        setLocalEditedProduct({
+          ...updatedProduct,
+          images: [...(updatedProduct.images || [])].slice(0, 5),
+          recieveBy: updatedProduct.recieveBy || ["DELIVERY"],
+          deliveryCharge: updatedProduct.deliveryCharge,
+          takeawayCharge: updatedProduct.takeawayCharge,
+          dineinCharge: updatedProduct.dineinCharge,
+        })
+      }
     }
 
     const onDragEnd = (result) => {
@@ -360,7 +368,7 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
             {isEditing ? (
               <Input
                 type="text"
-                value={localEditedProduct.name}
+                value={localEditedProduct?.name || ""}
                 onChange={(e) => handleInputChange("name", e.target.value)}
               />
             ) : (
@@ -376,7 +384,14 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
                   size="sm"
                   onClick={() => {
                     setIsEditing(false)
-                    setLocalEditedProduct(selectedProductData)
+                    setLocalEditedProduct({
+                      ...selectedProductData,
+                      images: [...(selectedProductData.images || [])].slice(0, 5),
+                      recieveBy: selectedProductData.recieveBy || ["DELIVERY"],
+                      deliveryCharge: selectedProductData.deliveryCharge,
+                      takeawayCharge: selectedProductData.takeawayCharge,
+                      dineinCharge: selectedProductData.dineinCharge,
+                    })
                   }}
                 >
                   Cancel
@@ -391,7 +406,14 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
                 size="sm"
                 onClick={() => {
                   setIsEditing(true)
-                  setLocalEditedProduct(selectedProductData)
+                  setLocalEditedProduct({
+                    ...selectedProductData,
+                    images: [...(selectedProductData.images || [])].slice(0, 5),
+                    recieveBy: selectedProductData.recieveBy || ["DELIVERY"],
+                    deliveryCharge: selectedProductData.deliveryCharge,
+                    takeawayCharge: selectedProductData.takeawayCharge,
+                    dineinCharge: selectedProductData.dineinCharge,
+                  })
                 }}
               >
                 <Edit className="h-4 w-4" />
@@ -493,8 +515,8 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
             {isEditing ? (
               <Input
                 type="number"
-                value={localEditedProduct.basePrice}
-                onChange={(e) => handleInputChange("basePrice", Number.parseFloat(e.target.value))}
+                value={localEditedProduct?.basePrice || ""}
+                onChange={(e) => handleInputChange("basePrice", e.target.value)}
               />
             ) : (
               <p className="text-lg font-medium">₹{selectedProductData.basePrice?.toFixed(2)}</p>
@@ -505,7 +527,7 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
             {isEditing ? (
               <Input
                 type="number"
-                value={localEditedProduct.stock}
+                value={localEditedProduct?.stock || ""}
                 onChange={(e) => handleInputChange("stock", Number.parseInt(e.target.value, 10))}
               />
             ) : (
@@ -839,7 +861,7 @@ export default function ProductsList({ initialProducts, pageId, businessId }) {
         </Card>
 
         <Card className="hidden lg:block lg:col-span-7 bg-white">
-          <ScrollArea className="h-[calc(100vh-220px)] p-6">
+          <ScrollArea className="h-[calc(100%-80px)] p-6">
             {selectedProductData ? (
               <ProductDetails />
             ) : (

@@ -69,7 +69,7 @@ export const checkUserPremiumStatus = async (userEmail: string): Promise<boolean
 
     const isActive = isAfter(new Date(subscription.expiry), new Date());
 
-    console.log("Subscription active:", isActive);
+    // console.log("Subscription active:", isActive);
 
     return isActive;
   } catch (error) {
