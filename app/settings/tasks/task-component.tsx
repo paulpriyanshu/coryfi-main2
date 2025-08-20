@@ -406,7 +406,7 @@ export default function TaskComponent({ sampleData }) {
                   <div>
                     <span className="text-sm text-muted-foreground">Total Cost:</span>
                     <span className="ml-2 font-semibold">
-                      $
+                      ₹ 
                       {task.order.orderItems
                         ? task.order.orderItems
                             .reduce(
@@ -573,13 +573,13 @@ export default function TaskComponent({ sampleData }) {
                             <div className="space-y-1 text-sm">
                               <div className="flex justify-between">
                                 <span>Base Price:</span>
-                                <span>${item?.details?.price}</span>
+                                <span>₹ {item?.details?.price}</span>
                               </div>
 
                               {item?.details?.recieveBy && (
                                 <div className="flex justify-between">
                                   <span>{item?.details?.recieveBy.type} Charge:</span>
-                                  <span>${item?.details?.recieveBy.charge}</span>
+                                  <span>₹ {item?.details?.recieveBy.charge}</span>
                                 </div>
                               )}
 
@@ -589,7 +589,7 @@ export default function TaskComponent({ sampleData }) {
                                     <span>
                                       {category} ({field.key}):
                                     </span>
-                                    <span>${field.value}</span>
+                                    <span>₹ {field.value}</span>
                                   </div>
                                 ))}
 
@@ -599,7 +599,7 @@ export default function TaskComponent({ sampleData }) {
                                     <span>
                                       {name} (x{details?.count}):
                                     </span>
-                                    <span>${details?.cost * details?.count}</span>
+                                    <span>₹ {details?.cost * details?.count}</span>
                                   </div>
                                 ))}
 
@@ -608,7 +608,7 @@ export default function TaskComponent({ sampleData }) {
                               <div className="flex justify-between font-medium">
                                 <span>Item Total:</span>
                                 <span>
-                                  ${(item?.details?.price * (Number.parseInt(item?.quantity) || 1)).toFixed(2)}
+                                  ₹ {(item?.details?.price * (Number.parseInt(item?.quantity) || 1)).toFixed(2)}
                                 </span>
                               </div>
                             </div>
