@@ -278,17 +278,14 @@ function CategoryCard({ category, onSelect }) {
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleCategoryClick}
     >
-          <div className="relative w-full h-48"> {/* container defines size */}
-            <Image
-              src={category.image || "/placeholder.svg"}
-              alt={category.name}
-              fill
-              className={cn(
-                "object-cover transition-transform duration-700",
-                isHovered ? "scale-110" : "scale-100"
-              )}
-            />
-          </div>
+       <Image
+    src={category.image || "/placeholder.svg"}
+    alt={category.name}
+    className={cn(
+      "absolute inset-0 w-full h-full object-cover transition-transform duration-700",
+      isHovered ? "scale-110" : "scale-100"
+    )}
+  />
 
       {/* Parallax elements */}
       <div
