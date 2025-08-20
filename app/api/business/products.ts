@@ -970,22 +970,44 @@ export async function moveCartToOrder(
       otpMap.set(otpKey, String(generateOTP(6)));
     }
   }
+const orderItemsData = parsedCartItems.map((item: any) => {
+  const businessId = productToBusinessMap.get(item.productId)!;
+  const recieveBy = item.recieveBy?.type.toUpperCase?.() || "UNKNOWN";
+  const otpKey = `${businessId}_${recieveBy}`;
+  const otp = otpMap.get(otpKey);
 
-  const orderItemsData = parsedCartItems.map((item: any) => {
-    const businessId = productToBusinessMap.get(item.productId)!;
-    const recieveBy = item.recieveBy?.type.toUpperCase?.() || "UNKNOWN";
-    const otpKey = `${businessId}_${recieveBy}`;
-    const otp = otpMap.get(otpKey);
+  // Build customization string
+  let customizations: string[] = [];
 
-    return {
-      productId: item.productId,
-      quantity: item.quantity || 1,
-      details: item || null,
-      customization: item.customization,
-      recieveBy: item.recieveBy || null,
-      OTP: otp,
-    };
-  });
+  // From fields
+  if (item.fields) {
+    for (const [label, field] of Object.entries(item.fields)) {
+      const f = field as any;
+      if (f?.key) customizations.push(f.key);
+    }
+  }
+
+  // From counterItems
+  if (item.counterItems) {
+    for (const [key, ci] of Object.entries(item.counterItems)) {
+      const c = ci as any;
+      if (c?.count && c.count > 0) {
+        customizations.push(`${key}: ${c.count}`);
+      }
+    }
+  }
+
+  const customization = customizations.join(", ") || null;
+
+  return {
+    productId: item.productId,
+    quantity: item.quantity || 1,
+    details: item || null,
+    customization,
+    recieveBy: item.recieveBy || null,
+    OTP: otp,
+  };
+});
 
   const order = await db.order.create({
     data: {
