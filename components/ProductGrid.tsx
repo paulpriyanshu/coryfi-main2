@@ -12,29 +12,44 @@ export function ProductGrid({ products , params ,pageInfo}) {
     <>
    <div className="space-y-4 p-6">
       {/* Default alert */}
-  {pageInfo?.PageAlertsBeforeCart && (
-  <>
-    {/* Alerts */}
-    {pageInfo.PageAlertsBeforeCart.alerts?.map((alert: any, idx: number) => (
-      <Alert key={idx} className="mb-2">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>{alert.title}</AlertTitle>
-        <AlertDescription>{alert.message}</AlertDescription>
-      </Alert>
-    ))}
+{(() => {
+  let pageAlerts = null;
+  try {
+    pageAlerts =
+      typeof pageInfo?.PageAlertsBeforeCart === "string"
+        ? JSON.parse(pageInfo.PageAlertsBeforeCart)
+        : pageInfo?.PageAlertsBeforeCart;
+  } catch (e) {
+    console.error("Invalid JSON in PageAlertsBeforeCart", e);
+  }
 
-    {/* Timings */}
-    {pageInfo.PageAlertsBeforeCart.timings && (
-      <Alert className="mt-2">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Opening & Closing Hours</AlertTitle>
-        <AlertDescription>
-          {pageInfo.PageAlertsBeforeCart.timings.open} – {pageInfo.PageAlertsBeforeCart.timings.close}
-        </AlertDescription>
-      </Alert>
-    )}
-  </>
-)}
+  return (
+    pageAlerts && (
+      <>
+        {/* Alerts */}
+        {Array.isArray(pageAlerts.alerts) &&
+          pageAlerts.alerts.map((alert: any, idx: number) => (
+            <Alert key={idx} className="mb-2">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>{alert.title}</AlertTitle>
+              <AlertDescription>{alert.message}</AlertDescription>
+            </Alert>
+          ))}
+
+        {/* Timings */}
+        {pageAlerts.timings && (
+          <Alert className="mt-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Opening & Closing Hours</AlertTitle>
+            <AlertDescription>
+              {pageAlerts.timings.open} – {pageAlerts.timings.close}
+            </AlertDescription>
+          </Alert>
+        )}
+      </>
+    )
+  );
+})()}
 
       {/* Destructive alert */}
      {/* <Alert className="border border-red-500 text-red-600">
