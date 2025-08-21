@@ -790,7 +790,7 @@ function Product({ product, productId }) {
     activeAlert = alerts.find((a) => a.active);
   } else if (alerts && typeof alerts === "object") {
     // pick header first, else aboveBuyButton
-    activeAlert = alerts.header || alerts.aboveBuyButton;
+    activeAlert = alerts.aboveBuyButton;
   }
 
   return (
