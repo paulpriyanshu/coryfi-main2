@@ -15,56 +15,61 @@ export function ProductGrid({ products , params ,pageInfo}) {
    <div className="space-y-4 p-6">
       {/* Default alert */}
 {(() => {
-  let pageAlerts = null;
+  let pageAlerts: any = null;
+
   try {
-    pageAlerts =
-      typeof pageInfo?.PageAlertsBeforeCart === "string"
-        ? JSON.parse(pageInfo.PageAlertsBeforeCart)
-        : pageInfo?.PageAlertsBeforeCart;
+    if (pageInfo?.PageAlertsBeforeCart) {
+      pageAlerts =
+        typeof pageInfo.PageAlertsBeforeCart === "string"
+          ? JSON.parse(pageInfo.PageAlertsBeforeCart)
+          : pageInfo.PageAlertsBeforeCart;
+    }
   } catch (e) {
-    console.error("Invalid JSON in PageAlertsBeforeCart", e);
+    console.error("❌ Invalid JSON in PageAlertsBeforeCart", e);
   }
 
+  console.log("✅ Parsed PageAlertsBeforeCart:", pageAlerts);
+
+  if (!pageAlerts) return null;
+
   return (
-    pageAlerts && (
-      <>
-        {/* Alerts */}
-        {Array.isArray(pageAlerts.alerts) &&
-          pageAlerts.alerts
-            .filter((a: any) => a.active)
-            .map((alert: any, idx: number) => {
-              const priorityStyles =
+    <>
+      {/* Alerts */}
+      {Array.isArray(pageAlerts.alerts) &&
+        pageAlerts.alerts
+          .filter((a: any) => a.active)
+          .map((alert: any, idx: number) => (
+            <Alert
+              key={idx}
+              className={`mb-2 ${
                 alert.priority === "high"
                   ? "border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-900/40 dark:text-red-200"
-                  : "border-yellow-300 bg-yellow-50 text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200";
+                  : "border-yellow-300 bg-yellow-50 text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200"
+              }`}
+            >
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>{alert.title}</AlertTitle>
+              <AlertDescription>{alert.message}</AlertDescription>
+            </Alert>
+          ))}
 
-              return (
-                <Alert key={idx} className={`mb-2 ${priorityStyles}`}>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>{alert.title}</AlertTitle>
-                  <AlertDescription>{alert.message}</AlertDescription>
-                </Alert>
-              );
-            })}
-
-        {/* Timings */}
-        {pageAlerts.timings && (
-          <Alert className="mt-2 border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Opening & Closing Hours</AlertTitle>
-            <AlertDescription>
-              {pageAlerts.timings.open} – {pageAlerts.timings.close}
-              {pageAlerts.timings.special && (
-                <div className="mt-2 text-xs text-muted-foreground dark:text-gray-400">
-                  <p>Friday: {pageAlerts.timings.special.friday}</p>
-                  <p>Sunday: {pageAlerts.timings.special.sunday}</p>
-                </div>
-              )}
-            </AlertDescription>
-          </Alert>
-        )}
-      </>
-    )
+      {/* Timings */}
+      {pageAlerts.timings && (
+        <Alert className="mt-2 border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Opening & Closing Hours</AlertTitle>
+          <AlertDescription>
+            {pageAlerts.timings.open} – {pageAlerts.timings.close}
+            {pageAlerts.timings.special && (
+              <div className="mt-2 text-xs text-muted-foreground dark:text-gray-400">
+                <p>Friday: {pageAlerts.timings.special.friday}</p>
+                <p>Sunday: {pageAlerts.timings.special.sunday}</p>
+              </div>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+    </>
   );
 })()}
       {/* Destructive alert */}

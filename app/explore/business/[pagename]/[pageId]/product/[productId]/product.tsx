@@ -773,7 +773,7 @@ function Product({ product, productId }) {
               </div>
             )}
           {/* <div className="text-red-500">Online orders coming soon!!</div> */}
-       {(() => {
+{(() => {
   let alerts = null;
   try {
     alerts =
@@ -784,14 +784,19 @@ function Product({ product, productId }) {
     console.error("Invalid JSON in ProductAlertsBeforeCart", e);
   }
 
+  // Handle array structure
+  const activeAlert = Array.isArray(alerts) 
+    ? alerts.find(alert => alert.active) 
+    : alerts?.aboveBuyButton;
+
   return (
-    alerts?.aboveBuyButton && (
+    activeAlert && (
       <div className="my-4 border border-blue-200 bg-blue-50 p-3 rounded-md">
         <p className="text-lg font-semibold text-blue-800">
-          {alerts.aboveBuyButton.title}
+          {activeAlert.title}
         </p>
         <p className="text-sm text-blue-700 mt-1">
-          {alerts.aboveBuyButton.message}
+          {activeAlert.message}
         </p>
       </div>
     )
