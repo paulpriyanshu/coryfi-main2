@@ -774,28 +774,32 @@ function Product({ product, productId }) {
             )}
           {/* <div className="text-red-500">Online orders coming soon!!</div> */}
 {(() => {
-  let alerts2 = null;
+  let alerts = null;
   try {
-    alerts2 =
+    alerts =
       typeof product?.ProductAlertsBeforeCart === "string"
-        ? JSON.parse(product.ProductAlertsBeforeCart).alerts2
-        : product?.ProductAlertsBeforeCart?.alerts2;
+        ? JSON.parse(product.ProductAlertsBeforeCart).alerts
+        : product?.ProductAlertsBeforeCart?.alerts;
   } catch (e) {
     console.error("Invalid JSON in ProductAlertsBeforeCart", e);
   }
 
-  // Handle array structure
-  const activeAlert = Array.isArray(alerts2) 
-    ? alerts2.find(alert => alert.active) 
-    : alerts2?.aboveBuyButton;
+  let activeAlert = null;
+
+  if (Array.isArray(alerts)) {
+    activeAlert = alerts.find((a) => a.active);
+  } else if (alerts && typeof alerts === "object") {
+    // pick header first, else aboveBuyButton
+    activeAlert = alerts.header || alerts.aboveBuyButton;
+  }
 
   return (
     activeAlert && (
-      <div className="my-4 border border-blue-200 bg-blue-50 p-3 rounded-md">
-        <p className="text-lg font-semibold text-blue-800">
+      <div className="my-4 border border-blue-200 bg-blue-50 p-3 rounded-md dark:border-blue-800 dark:bg-blue-950">
+        <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
           {activeAlert.title}
         </p>
-        <p className="text-sm text-blue-700 mt-1">
+        <p className="text-sm text-blue-700 mt-1 dark:text-blue-300">
           {activeAlert.message}
         </p>
       </div>
