@@ -8,9 +8,8 @@ import { useEffect } from "react"
 export function ProductGrid({ products , params ,pageInfo}) {
   // const newParams = new URLSearchParams(searchParams.toString());
   // newParams.delete("category");
-  useEffect(()=>{
-    console.log("page info",pageInfo)
-  },[pageInfo])
+  console.log("page info",pageInfo)
+
 
   return (
     <>
