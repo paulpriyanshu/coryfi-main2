@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useCallback, useRef } from "react"
 import { Check, ChevronsUpDown, ImagePlus, X } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/Input"
@@ -48,12 +48,14 @@ export function AddCategoryModal({ isOpen, onClose, onSubmit, categories, produc
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const formRef = useRef<HTMLFormElement>(null)
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  }, [])
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       setIsUploading(true)
@@ -77,8 +79,8 @@ export function AddCategoryModal({ isOpen, onClose, onSubmit, categories, produc
         setImagePreview(previewResponse.data.url)
         setFormData((prev) => ({
           ...prev,
-          images: [...prev.images, previewResponse.data.url] // Append new URL
-        }));
+          images: [...prev.images, previewResponse.data.url], // Append new URL
+        }))
       } catch (error) {
         console.error("Error uploading image:", error)
         alert("Failed to upload image")
@@ -87,55 +89,81 @@ export function AddCategoryModal({ isOpen, onClose, onSubmit, categories, produc
       setIsUploading(false)
       setUploadProgress(0)
     }
-  }
+  }, [])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSubmit(formData)
-    setFormData({ name: "", description: "", images: [], parentCategory: "", subcategories: [], products: [] })
+  const handleClose = useCallback(() => {
+    setFormData({
+      name: "",
+      description: "",
+      images: [],
+      parentCategory: null,
+      subcategories: [],
+      products: [],
+    })
     setImagePreview("")
+    setUploadProgress(0)
+    setIsUploading(false)
     onClose()
-  }
+  }, [onClose])
 
-  const toggleProduct = (productId: string) => {
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault()
+
+      if (isUploading) {
+        return
+      }
+
+      onSubmit(formData)
+      handleClose()
+    },
+    [formData, onSubmit, handleClose, isUploading],
+  )
+
+  const toggleProduct = useCallback((productId: string) => {
     setFormData((prev) => ({
       ...prev,
       products: prev.products.includes(productId)
         ? prev.products.filter((id) => id !== productId)
         : [...prev.products, productId],
     }))
-  }
+  }, [])
 
-  const toggleSubcategory = (categoryId: string) => {
+  const toggleSubcategory = useCallback((categoryId: string) => {
     setFormData((prev) => ({
       ...prev,
       subcategories: prev.subcategories.includes(categoryId)
         ? prev.subcategories.filter((id) => id !== categoryId)
         : [...prev.subcategories, categoryId],
     }))
-  }
+  }, [])
 
-  const removeProduct = (productId: string) => {
+  const removeProduct = useCallback((productId: string) => {
     setFormData((prev) => ({
       ...prev,
       products: prev.products.filter((id) => id !== productId),
     }))
-  }
+  }, [])
 
-  const removeSubcategory = (categoryId: string) => {
+  const removeSubcategory = useCallback((categoryId: string) => {
     setFormData((prev) => ({
       ...prev,
       subcategories: prev.subcategories.filter((id) => id !== categoryId),
     }))
-  }
+  }, [])
+
+  const clearImage = useCallback(() => {
+    setImagePreview("")
+    setFormData((prev) => ({ ...prev, images: [] }))
+  }, [])
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-semibold">Add New Category</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
           {/* Image Upload */}
           <div className="space-y-2">
             <Label htmlFor="image">Category Image</Label>
@@ -152,10 +180,8 @@ export function AddCategoryModal({ isOpen, onClose, onSubmit, categories, produc
                     variant="secondary"
                     size="icon"
                     className="absolute top-2 right-2"
-                    onClick={() => {
-                      setImagePreview("")
-                      setFormData((prev) => ({ ...prev, images: [] }))
-                    }}
+                    onClick={clearImage}
+                    disabled={isUploading}
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -163,7 +189,9 @@ export function AddCategoryModal({ isOpen, onClose, onSubmit, categories, produc
               ) : (
                 <div className="flex flex-col items-center justify-center h-full">
                   <ImagePlus className="h-8 w-8 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground mt-2">Click to upload image</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {isUploading ? "Uploading..." : "Click to upload image"}
+                  </p>
                   <p className="text-xs text-muted-foreground mt-1">SVG, PNG, JPG or GIF (max. 800x400px)</p>
                 </div>
               )}
@@ -173,6 +201,7 @@ export function AddCategoryModal({ isOpen, onClose, onSubmit, categories, produc
                 accept="image/*"
                 onChange={handleImageChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                disabled={isUploading}
               />
             </div>
           </div>
@@ -198,7 +227,7 @@ export function AddCategoryModal({ isOpen, onClose, onSubmit, categories, produc
                     variant="outline"
                     role="combobox"
                     aria-expanded={openParent}
-                    className="w-full justify-between"
+                    className="w-full justify-between bg-transparent"
                   >
                     {formData.parentCategory
                       ? categories.find((category) => category.id === formData.parentCategory)?.name
@@ -342,12 +371,11 @@ export function AddCategoryModal({ isOpen, onClose, onSubmit, categories, produc
           </div>
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full">
-            Add Category
+          <Button type="submit" className="w-full" disabled={isUploading}>
+            {isUploading ? "Uploading..." : "Add Category"}
           </Button>
         </form>
       </DialogContent>
     </Dialog>
   )
 }
-
