@@ -54,11 +54,13 @@ function Product({ product, productId }) {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null)
   const [showDateTimePicker, setShowDateTimePicker] = useState(false)
 
+    useEffect(()=>{
+      console.log("product data",product)
+    },[product])
   useEffect(() => { 
     
     async function fetchuserid() {
       
-
       if (session?.user?.email) {
         const data = await fetchUserId(session?.user?.email)
         if (data) {
@@ -376,7 +378,7 @@ function Product({ product, productId }) {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Product Main Section */}
-         {product?.ProductAlertsBeforeCart?.alerts?.aboveBuyButton && (
+         {product?.ProductAlertsBeforeCart?.alerts?.header && (
   <div className="my-5 border-l-4 border-yellow-400 bg-yellow-50 p-2 rounded-md">
     <p className="text-base font-semibold text-yellow-800">
       {product.ProductAlertsBeforeCart.alerts.header.title}
