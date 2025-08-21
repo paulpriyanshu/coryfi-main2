@@ -774,20 +774,20 @@ function Product({ product, productId }) {
             )}
           {/* <div className="text-red-500">Online orders coming soon!!</div> */}
 {(() => {
-  let alerts = null;
+  let alerts2 = null;
   try {
-    alerts =
+    alerts2 =
       typeof product?.ProductAlertsBeforeCart === "string"
-        ? JSON.parse(product.ProductAlertsBeforeCart).alerts
-        : product?.ProductAlertsBeforeCart?.alerts;
+        ? JSON.parse(product.ProductAlertsBeforeCart).alerts2
+        : product?.ProductAlertsBeforeCart?.alerts2;
   } catch (e) {
     console.error("Invalid JSON in ProductAlertsBeforeCart", e);
   }
 
   // Handle array structure
-  const activeAlert = Array.isArray(alerts) 
-    ? alerts.find(alert => alert.active) 
-    : alerts?.aboveBuyButton;
+  const activeAlert = Array.isArray(alerts2) 
+    ? alerts2.find(alert => alert.active) 
+    : alerts2?.aboveBuyButton;
 
   return (
     activeAlert && (
