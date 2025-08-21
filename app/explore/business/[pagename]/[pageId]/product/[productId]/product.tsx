@@ -773,39 +773,42 @@ function Product({ product, productId }) {
               </div>
             )}
           {/* <div className="text-red-500">Online orders coming soon!!</div> */}
-{(() => {
-  let alerts = null;
-  try {
-    alerts =
-      typeof product?.ProductAlertsBeforeCart === "string"
-        ? JSON.parse(product.ProductAlertsBeforeCart).alerts
-        : product?.ProductAlertsBeforeCart?.alerts;
-  } catch (e) {
-    console.error("Invalid JSON in ProductAlertsBeforeCart", e);
-  }
+        {(() => {
+          let alerts = null;
+          try {
+            alerts =
+              typeof product?.ProductAlertsBeforeCart === "string"
+                ? JSON.parse(product.ProductAlertsBeforeCart).alerts
+                : product?.ProductAlertsBeforeCart?.alerts;
+          } catch (e) {
+            console.error("Invalid JSON in ProductAlertsBeforeCart", e);
+          }
 
-  let activeAlert = null;
+          let activeAlert = null;
 
-  if (Array.isArray(alerts)) {
-    activeAlert = alerts.find((a) => a.active);
-  } else if (alerts && typeof alerts === "object") {
-    // pick header first, else aboveBuyButton
-    activeAlert = alerts.aboveBuyButton;
-  }
+          if (alerts) {
+            if (Array.isArray(alerts)) {
+              // If alerts is an array, pick the first active or fallback
+              activeAlert = alerts.find((a) => a.active);
+            } else if (typeof alerts === "object") {
+              // Always prefer aboveBuyButton if present
+              activeAlert = alerts.aboveBuyButton || alerts.header;
+            }
+          }
 
-  return (
-    activeAlert && (
-      <div className="my-4 border border-blue-200 bg-blue-50 p-3 rounded-md dark:border-blue-800 dark:bg-blue-950">
-        <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
-          {activeAlert.title}
-        </p>
-        <p className="text-sm text-blue-700 mt-1 dark:text-blue-300">
-          {activeAlert.message}
-        </p>
-      </div>
-    )
-  );
-})()}
+          return (
+            activeAlert && (
+              <div className="my-4 border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950 p-3 rounded-md">
+                <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
+                  {activeAlert.title}
+                </p>
+                <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                  {activeAlert.message}
+                </p>
+              </div>
+            )
+          );
+        })()}
             <div className="flex flex-col gap-4 sm:flex-row">
               <Button
                 className="flex-1 gap-2"
