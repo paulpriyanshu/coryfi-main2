@@ -54,9 +54,6 @@ function Product({ product, productId }) {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null)
   const [showDateTimePicker, setShowDateTimePicker] = useState(false)
 
-  useEffect(()=>{
-    console.log("product data",product)
-  },[product])
   useEffect(() => { 
     
     async function fetchuserid() {
@@ -65,8 +62,6 @@ function Product({ product, productId }) {
       if (session?.user?.email) {
         const data = await fetchUserId(session?.user?.email)
         if (data) {
-          console.log("data", data)
-          
           setUserId(Number.parseInt(data.id))
         }
       }
@@ -75,7 +70,6 @@ function Product({ product, productId }) {
   }, [session])
 
   useEffect(() => {
-    console.log("product data",product)
     if (product?.counter && Array.isArray(product.counter)) {
       const initialCounters = {}
       const initialValues = {}
