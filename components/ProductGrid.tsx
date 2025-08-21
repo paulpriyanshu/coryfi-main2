@@ -32,31 +32,21 @@ export function ProductGrid({ products , params ,pageInfo}) {
         {/* Alerts */}
         {Array.isArray(pageAlerts.alerts) &&
           pageAlerts.alerts
-            .filter((a: any) => a.active) // only show active alerts
+            .filter((a: any) => a.active) // only show active ones
             .map((alert: any, idx: number) => (
-              <Alert key={idx} className="mb-2">
+              <Alert
+                key={idx}
+                className={`mb-2 ${
+                  alert.priority === "high"
+                    ? "border-red-300 bg-red-50"
+                    : "border-yellow-300 bg-yellow-50"
+                }`}
+              >
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>{alert.title}</AlertTitle>
                 <AlertDescription>{alert.message}</AlertDescription>
               </Alert>
             ))}
-
-        {/* Offers */}
-        {Array.isArray(pageAlerts.offers) &&
-          pageAlerts.offers.map((offer: any, idx: number) => (
-            <Alert key={`offer-${idx}`} className="mb-2 border-green-300 bg-green-50">
-              <AlertCircle className="h-4 w-4 text-green-700" />
-              <AlertTitle>
-                🎉 Offer Code: <span className="font-mono">{offer.code}</span>
-              </AlertTitle>
-              <AlertDescription>
-                {offer.discount} <br />
-                <span className="text-xs text-muted-foreground">
-                  Valid till: {new Date(offer.validTill).toLocaleDateString()}
-                </span>
-              </AlertDescription>
-            </Alert>
-          ))}
 
         {/* Timings */}
         {pageAlerts.timings && (
