@@ -378,16 +378,30 @@ function Product({ product, productId }) {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Product Main Section */}
-         {product?.ProductAlertsBeforeCart?.alerts?.header && (
-  <div className="my-5 border-l-4 border-yellow-400 bg-yellow-50 p-2 rounded-md">
-    <p className="text-base font-semibold text-yellow-800">
-      {product.ProductAlertsBeforeCart.alerts.header.title}
-    </p>
-    <p className="text-sm text-yellow-700 mt-1">
-      {product.ProductAlertsBeforeCart.alerts.header.message}
-    </p>
-  </div>
-)}
+ {(() => {
+  let alerts = null;
+  try {
+    alerts =
+      typeof product?.ProductAlertsBeforeCart === "string"
+        ? JSON.parse(product.ProductAlertsBeforeCart).alerts
+        : product?.ProductAlertsBeforeCart?.alerts;
+  } catch (e) {
+    console.error("Invalid JSON in ProductAlertsBeforeCart", e);
+  }
+
+  return (
+    alerts?.header && (
+      <div className="my-5 border-l-4 border-yellow-400 bg-yellow-50 p-2 rounded-md">
+        <p className="text-base font-semibold text-yellow-800">
+          {alerts.header.title}
+        </p>
+        <p className="text-sm text-yellow-700 mt-1">
+          {alerts.header.message}
+        </p>
+      </div>
+    )
+  );
+})()}
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
         {/* Product Images */}
         <div className="relative lg:col-span-3">
@@ -759,19 +773,30 @@ function Product({ product, productId }) {
               </div>
             )}
           {/* <div className="text-red-500">Online orders coming soon!!</div> */}
-            {product?.ProductAlertsBeforeCart?.alerts?.aboveBuyButton && (
-              <div>
-                <p className="text-lg font-semibold text-foreground mt-2">
-              {product.ProductAlertsBeforeCart.alerts.aboveBuyButton.title}
-            </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {product.ProductAlertsBeforeCart.alerts.aboveBuyButton.message}
-                </p>
+       {(() => {
+  let alerts = null;
+  try {
+    alerts =
+      typeof product?.ProductAlertsBeforeCart === "string"
+        ? JSON.parse(product.ProductAlertsBeforeCart).alerts
+        : product?.ProductAlertsBeforeCart?.alerts;
+  } catch (e) {
+    console.error("Invalid JSON in ProductAlertsBeforeCart", e);
+  }
 
-              </div>
-
-             
-              )}
+  return (
+    alerts?.aboveBuyButton && (
+      <div className="my-4 border border-blue-200 bg-blue-50 p-3 rounded-md">
+        <p className="text-lg font-semibold text-blue-800">
+          {alerts.aboveBuyButton.title}
+        </p>
+        <p className="text-sm text-blue-700 mt-1">
+          {alerts.aboveBuyButton.message}
+        </p>
+      </div>
+    )
+  );
+})()}
             <div className="flex flex-col gap-4 sm:flex-row">
               <Button
                 className="flex-1 gap-2"
