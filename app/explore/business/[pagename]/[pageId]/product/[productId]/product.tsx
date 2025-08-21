@@ -1,7 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
 import Image from "next/image"
-import Link from "next/link"
 import {
   ChevronLeft,
   ChevronRight,
@@ -12,8 +11,7 @@ import {
   Share2,
   ShoppingCart,
   Star,
-  Clock,
-  AlertCircle,
+  Clock
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -780,6 +778,7 @@ function Product({ product, productId }) {
               typeof product?.ProductAlertsBeforeCart === "string"
                 ? JSON.parse(product.ProductAlertsBeforeCart).alerts
                 : product?.ProductAlertsBeforeCart?.alerts;
+            console.log("alerts",alerts)
           } catch (e) {
             console.error("Invalid JSON in ProductAlertsBeforeCart", e);
           }
