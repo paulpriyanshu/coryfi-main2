@@ -3,12 +3,11 @@ import { cn } from "@/lib/utils"
 import Link from "next/link"
 import Image from "next/image"
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
-import { useEffect } from "react"
 
 export function ProductGrid({ products , params ,pageInfo}) {
   // const newParams = new URLSearchParams(searchParams.toString());
   // newParams.delete("category");
-  console.log("page info",pageInfo)
+  console.log("page info",pageInfo.PageAlertsBeforeCart)
 
 
   return (
@@ -32,31 +31,31 @@ export function ProductGrid({ products , params ,pageInfo}) {
         {/* Alerts */}
         {Array.isArray(pageAlerts.alerts) &&
           pageAlerts.alerts
-            .filter((a: any) => a.active) // only show active ones
-            .map((alert: any, idx: number) => (
-              <Alert
-                key={idx}
-                className={`mb-2 ${
-                  alert.priority === "high"
-                    ? "border-red-300 bg-red-50"
-                    : "border-yellow-300 bg-yellow-50"
-                }`}
-              >
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>{alert.title}</AlertTitle>
-                <AlertDescription>{alert.message}</AlertDescription>
-              </Alert>
-            ))}
+            .filter((a: any) => a.active)
+            .map((alert: any, idx: number) => {
+              const priorityStyles =
+                alert.priority === "high"
+                  ? "border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-900/40 dark:text-red-200"
+                  : "border-yellow-300 bg-yellow-50 text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200";
+
+              return (
+                <Alert key={idx} className={`mb-2 ${priorityStyles}`}>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>{alert.title}</AlertTitle>
+                  <AlertDescription>{alert.message}</AlertDescription>
+                </Alert>
+              );
+            })}
 
         {/* Timings */}
         {pageAlerts.timings && (
-          <Alert className="mt-2 border-blue-300 bg-blue-50">
-            <AlertCircle className="h-4 w-4 text-blue-700" />
+          <Alert className="mt-2 border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
+            <AlertCircle className="h-4 w-4" />
             <AlertTitle>Opening & Closing Hours</AlertTitle>
             <AlertDescription>
               {pageAlerts.timings.open} – {pageAlerts.timings.close}
               {pageAlerts.timings.special && (
-                <div className="mt-2 text-xs text-muted-foreground">
+                <div className="mt-2 text-xs text-muted-foreground dark:text-gray-400">
                   <p>Friday: {pageAlerts.timings.special.friday}</p>
                   <p>Sunday: {pageAlerts.timings.special.sunday}</p>
                 </div>
@@ -68,7 +67,6 @@ export function ProductGrid({ products , params ,pageInfo}) {
     )
   );
 })()}
-
       {/* Destructive alert */}
      {/* <Alert className="border border-red-500 text-red-600">
         <AlertCircle className="h-4 w-4 text-red-500" />
