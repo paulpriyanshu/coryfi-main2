@@ -340,7 +340,7 @@ model Product {
   deliveryCharge  Float?      @default(0) // specific to this product
   takeawayCharge  Float?      @default(0)
   dineinCharge    Float?      @default(0)
-  ProductAlertsBeforeCart    String?
+  ProductAlertsBeforeCart    Json?
 
   // Symmetric many-to-many self-relation
   variants ProductVariant[] @relation("ProductToVariant_A")
@@ -408,7 +408,7 @@ model BusinessPageLayout {
   employees           Employee[]
   payouts             Payout[]
   visibility          Boolean             @default(false)
-  PageAlertsBeforeCart    String?
+  PageAlertsBeforeCart    Json?
 
   // posts               Post[]
   task                Task[]

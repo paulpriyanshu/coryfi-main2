@@ -150,7 +150,7 @@ export default function AddressFormModal({
             <Input
               id="addressLine1"
               name="addressLine1"
-              placeholder="Street address, P.O. box, company name"
+              placeholder="Block/Hostel , PG , Society "
               defaultValue={selectedAddress?.addressLine1 || ""}
               required
             />

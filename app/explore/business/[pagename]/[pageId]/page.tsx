@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic"
 export async function generateMetadata({ params }): Promise<Metadata> {
   const { pageId } = params
   const { pageData } = await getBusinessPageData(pageId)
-  // console.log("page data",pageData.PageAlertsBeforeCart)
+  console.log("page data",pageData)
 
   return {
     title: `${pageData.name} - Coryfi`,
@@ -45,7 +45,7 @@ export async function generateMetadata({ params }): Promise<Metadata> {
 export default async function BusinessProfile({ searchParams, params }) {
   const { pageData } = await getBusinessPageData(params.pageId)
   const selectedCategory = searchParams?.category || null
-
+  console.log("page info",pageData.PageAlertsBeforeCart)
   // Check if user is logged in
   const session = await getServerSession()
   const isLoggedIn = !!session
@@ -106,12 +106,12 @@ export default async function BusinessProfile({ searchParams, params }) {
                   <p className="text-muted-foreground mt-1">Browse our collections</p>
                 </div>
               </div>
-              {pageData?.categoryCarousel && (
+              {/* {pageData?.categoryCarousel && (
                 <CategoryCarousel
                   categories={pageData.categoryCarousel.categories}
                   productSectionId="product-section"
                 />
-              )}
+              )} */}
               <CategoryTags categories={pageData.categories} selectedCategory={selectedCategory} />
             </div>
           )}

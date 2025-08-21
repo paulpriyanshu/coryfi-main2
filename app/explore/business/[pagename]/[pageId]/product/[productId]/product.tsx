@@ -13,6 +13,7 @@ import {
   ShoppingCart,
   Star,
   Clock,
+  AlertCircle,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -28,6 +29,7 @@ import { fetchUserId } from "@/app/api/actions/media"
 import { Label } from "@/components/ui/Label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { LoginPrompt } from "../../login-prompt"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 function Product({ product, productId }) {
   const [quantity, setQuantity] = useState(1)
@@ -52,12 +54,19 @@ function Product({ product, productId }) {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null)
   const [showDateTimePicker, setShowDateTimePicker] = useState(false)
 
-  useEffect(() => {
+  useEffect(()=>{
+    console.log("product data",product)
+  },[product])
+  useEffect(() => { 
+    
     async function fetchuserid() {
+      
+
       if (session?.user?.email) {
         const data = await fetchUserId(session?.user?.email)
         if (data) {
           console.log("data", data)
+          
           setUserId(Number.parseInt(data.id))
         }
       }
@@ -66,6 +75,7 @@ function Product({ product, productId }) {
   }, [session])
 
   useEffect(() => {
+    console.log("product data",product)
     if (product?.counter && Array.isArray(product.counter)) {
       const initialCounters = {}
       const initialValues = {}
@@ -372,6 +382,16 @@ function Product({ product, productId }) {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Product Main Section */}
+         {product?.ProductAlertsBeforeCart?.alerts?.aboveBuyButton && (
+  <div className="my-5 border-l-4 border-yellow-400 bg-yellow-50 p-2 rounded-md">
+    <p className="text-base font-semibold text-yellow-800">
+      {product.ProductAlertsBeforeCart.alerts.header.title}
+    </p>
+    <p className="text-sm text-yellow-700 mt-1">
+      {product.ProductAlertsBeforeCart.alerts.header.message}
+    </p>
+  </div>
+)}
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
         {/* Product Images */}
         <div className="relative lg:col-span-3">
@@ -742,7 +762,20 @@ function Product({ product, productId }) {
                 </div>
               </div>
             )}
-          <div className="text-red-500">Online orders coming soon!!</div>
+          {/* <div className="text-red-500">Online orders coming soon!!</div> */}
+            {product?.ProductAlertsBeforeCart?.alerts?.aboveBuyButton && (
+              <div>
+                <p className="text-lg font-semibold text-foreground mt-2">
+              {product.ProductAlertsBeforeCart.alerts.aboveBuyButton.title}
+            </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {product.ProductAlertsBeforeCart.alerts.aboveBuyButton.message}
+                </p>
+
+              </div>
+
+             
+              )}
             <div className="flex flex-col gap-4 sm:flex-row">
               <Button
                 className="flex-1 gap-2"
