@@ -230,7 +230,7 @@ export async function POST(req: NextRequest) {
           console.warn(`⚠️ Failed to notify business ${businessPageId}:`, err);
         }
       }
-    });
+    },{timeout:15000});
 
     console.log("✅ Webhook processing complete.");
     return NextResponse.json({ success: true });
