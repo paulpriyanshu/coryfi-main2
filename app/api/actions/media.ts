@@ -509,55 +509,64 @@ export const notifyOwnersOnOrders = async (
   orderId: string
 ) => {
   try {
-    // 1. Get products + their businessPageLayouts + merchants + users
+    // 1. Fetch products with full chain: Product → BusinessPageLayout → BusinessToPageLayout → Business → Merchant → User
     const products = await db.product.findMany({
       where: { id: { in: productIds } },
-    include: {
-      business: {
-        include: {
-          businessToPageLayouts: {
-            include: {
-              business: {
-                include: {
-                  merchant: true
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    })
+      include: {
+        business: {
+          include: {
+            businessToPageLayouts: {
+              include: {
+                business: {
+                  include: {
+                    merchant: {
+                      include: {
+                        user: true, // ✅ we need the final owner
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
 
     if (products.length === 0) {
-      throw new Error("No products found for this order")
+      throw new Error("No products found for this order");
     }
 
     // 2. Collect unique owners (merchant → user)
-    const usersMap = new Map<number, { id: number; email: string | null; name?: string | null }>()
+    const usersMap = new Map<
+      number,
+      { id: number; email: string | null; name?: string | null }
+    >();
+
     for (const product of products) {
-      for (const btpl of product.businessPageLayout.businessToPageLayouts) {
-        const user = btpl.business?.merchant?.user
+      const layouts = product.business?.businessToPageLayouts ?? [];
+      for (const btpl of layouts) {
+        const user = btpl.business?.merchant?.user;
         if (user?.email) {
-          usersMap.set(user.id, user)
+          usersMap.set(user.id, user);
         }
       }
     }
-    const users = [...usersMap.values()]
 
+    const users = [...usersMap.values()];
     if (users.length === 0) {
-      throw new Error("No merchant owners (with email) found for these products")
+      throw new Error("No merchant owners (with email) found for these products");
     }
 
     // 3. Prepare product summary for email
-    const productNames = products.map((p) => p.name).join(", ")
-    console.log("product names",productNames)
+    const productNames = products.map((p) => p.name).join(", ");
+    console.log("📦 Products in order:", productNames);
 
-    const subject = `New Order #${orderId}`
-    const bodyText = `A new order (${orderId}) has been placed for product(s): ${productNames}.`
+    const subject = `New Order #${orderId}`;
+    const bodyText = `A new order (${orderId}) has been placed for product(s): ${productNames}.`;
 
     // 4. Send emails sequentially (with 500ms delay to be safe)
-    const results: any[] = []
+    const results: any[] = [];
     for (const user of users) {
       try {
         const bodyHtml = `
@@ -583,26 +592,27 @@ export const notifyOwnersOnOrders = async (
             </div>
           </body>
           </html>
-        `
+        `;
 
-        const result = await sendSESEmail(user.email, subject, bodyText, bodyHtml)
-        console.log("after mail sent result",result)
-        results.push({ status: "fulfilled", email: user.email, value: result })
+        const result = await sendSESEmail(user.email, subject, bodyText, bodyHtml);
+        console.log(`✅ Email sent to ${user.email}`, result);
+        results.push({ status: "fulfilled", email: user.email, value: result });
 
-        await new Promise((resolve) => setTimeout(resolve, 500)) // throttle
-
+        await new Promise((resolve) => setTimeout(resolve, 500)); // throttle
       } catch (error) {
-        console.error(`❌ Failed to send email to ${user.email}:`, error)
-        results.push({ status: "rejected", email: user.email, reason: error })
+        console.error(`❌ Failed to send email to ${user.email}:`, error);
+        results.push({ status: "rejected", email: user.email, reason: error });
       }
     }
 
-    return { success: true, results }
+    return { success: true, results };
   } catch (error) {
-    console.error("notifyOwnersOnOrders error:", error)
-    return { success: false, error: (error as Error).message }
+    console.error("notifyOwnersOnOrders error:", error);
+    return { success: false, error: (error as Error).message };
   }
-}
+};
+
+
 export const notifyUsersOnNewPost = async (name: string) => {
   try {
     const users = await db.user.findMany({
