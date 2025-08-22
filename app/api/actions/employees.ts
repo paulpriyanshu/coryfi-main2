@@ -363,7 +363,7 @@ export async function assignTaskToAllEmployees({
         message: error instanceof Error ? error.message : "Unexpected error occurred.",
       };
     }
-  }
+}
 export async function getBusinessInfoFromOrder(orderId: string) {
     try {
       const orderWithItems = await db.order.findUnique({

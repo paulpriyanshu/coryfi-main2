@@ -111,7 +111,7 @@ export const overRideCancellation = async (
 
     for (const item of cancelledItems) {
       if (!item.payoutId) continue; // item had no payout linked
-
+      console.log("item deduction price",item)
       const deduction = new Prisma.Decimal(item.details.price).mul(item.quantity);
 
       await db.payout.update({
