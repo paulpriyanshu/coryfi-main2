@@ -52,9 +52,9 @@ function Product({ product, productId }) {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null)
   const [showDateTimePicker, setShowDateTimePicker] = useState(false)
 
-    useEffect(()=>{
-      console.log("product data",product)
-    },[product])
+    // useEffect(()=>{
+    //   console.log("product data",product)
+    // },[product])
   useEffect(() => { 
     
     async function fetchuserid() {
@@ -69,35 +69,34 @@ function Product({ product, productId }) {
     fetchuserid()
   }, [session])
 
-  useEffect(() => {
-    if (product?.counter && Array.isArray(product.counter)) {
-      const initialCounters = {}
-      const initialValues = {}
+useEffect(() => {
+  if (product?.counter && Array.isArray(product.counter) && product.id) {
+    const initialCounters = {}
+    const initialValues = {}
 
-      product.counter.forEach((item) => {
-        // Get the first key from keyValues as the default
-        const defaultKey = Object.keys(item.keyValues)[0]
-        if (defaultKey) {
-          // Check if the keyValue is an object with cost and value
-          if (typeof item.keyValues[defaultKey] === "object" && item.keyValues[defaultKey].value !== undefined) {
-            // Store just the value, not the whole object
-            initialCounters[item.name] = item.keyValues[defaultKey].value
-            initialValues[item.name] = item.keyValues[defaultKey].value
-          } else {
-            // For simple values, store as is
-            initialCounters[item.name] = item.keyValues[defaultKey]
-            initialValues[item.name] = item.keyValues[defaultKey]
-          }
+    product.counter.forEach((item) => {
+      // Get the first key from keyValues as the default
+      const defaultKey = Object.keys(item.keyValues)[0]
+      if (defaultKey) {
+        // Check if the keyValue is an object with cost and value
+        if (typeof item.keyValues[defaultKey] === "object" && item.keyValues[defaultKey].value !== undefined) {
+          // Store just the value, not the whole object
+          initialCounters[item.name] = item.keyValues[defaultKey].value
+          initialValues[item.name] = item.keyValues[defaultKey].value
+        } else {
+          // For simple values, store as is
+          initialCounters[item.name] = item.keyValues[defaultKey]
+          initialValues[item.name] = item.keyValues[defaultKey]
         }
-      })
+      }
+    })
 
-      setCounterItems(initialCounters)
-      setInitialCounterValues(initialValues)
-      // Don't add any initial counter cost
-      setCounterCost(0)
-    }
-  }, [product])
-
+    setCounterItems(initialCounters)
+    setInitialCounterValues(initialValues)
+    // Don't add any initial counter cost
+    setCounterCost(0)
+  }
+}, [product?.id]) // 👈 Only reset when product ID changes, not on every product update
   const handleProductClick = (newProductId: string) => {
     const newURL = pathname.replace(/[^/]+$/, newProductId) // Replace last segment
     router.replace(newURL) // Update URL without reloading
