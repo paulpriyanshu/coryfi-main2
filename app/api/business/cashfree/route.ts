@@ -120,7 +120,20 @@ export async function POST(req: NextRequest) {
     }
 
     const productIds = Object.keys(productQuantities).map(Number);
+    const businessPayouts: Record<string, Decimal> = {};
+     const businessProductGroups: Record<string, number[]> = {};
 
+      for (const item of orderData.orderItems) {
+        const businessId = item.product.businessPageId;
+        const productId = item.product.id;
+        const total = new Decimal(item.details.price).mul(item.quantity);
+
+        businessPayouts[businessId] = (businessPayouts[businessId] || new Decimal(0)).add(total);
+
+        if (!businessProductGroups[businessId]) businessProductGroups[businessId] = [];
+        if (!businessProductGroups[businessId].includes(productId))
+          businessProductGroups[businessId].push(productId);
+      }
     await db.$transaction(async (tx) => {
       // ✅ Stock checks
       const products = await tx.product.findMany({ where: { id: { in: productIds } } });
@@ -176,20 +189,8 @@ export async function POST(req: NextRequest) {
       const start = startOfDay(payoutDate);
       const end = endOfDay(payoutDate);
 
-      const businessPayouts: Record<string, Decimal> = {};
-      const businessProductGroups: Record<string, number[]> = {};
-
-      for (const item of orderData.orderItems) {
-        const businessId = item.product.businessPageId;
-        const productId = item.product.id;
-        const total = new Decimal(item.details.price).mul(item.quantity);
-
-        businessPayouts[businessId] = (businessPayouts[businessId] || new Decimal(0)).add(total);
-
-        if (!businessProductGroups[businessId]) businessProductGroups[businessId] = [];
-        if (!businessProductGroups[businessId].includes(productId))
-          businessProductGroups[businessId].push(productId);
-      }
+      
+     
 
       for (const [businessPageId, amount] of Object.entries(businessPayouts)) {
         // ✅ Find or create payout
@@ -221,16 +222,16 @@ export async function POST(req: NextRequest) {
           },
           data: { payoutId: payout.payout_id },
         });
-
-        // ✅ Notifications
+      }
+    },{timeout:15000});
+    for (const [businessPageId, productIds] of Object.entries(businessProductGroups)) {
         try {
-          await notifyOwnersOnOrders(businessProductGroups[businessPageId], businessPageId);
+          await notifyOwnersOnOrders(productIds, businessPageId);
           console.log(`✅ Notification sent to business ${businessPageId}`);
         } catch (err) {
           console.warn(`⚠️ Failed to notify business ${businessPageId}:`, err);
         }
       }
-    },{timeout:15000});
 
     console.log("✅ Webhook processing complete.");
     return NextResponse.json({ success: true });
