@@ -551,6 +551,7 @@ export const notifyOwnersOnOrders = async (
 
     // 3. Prepare product summary for email
     const productNames = products.map((p) => p.name).join(", ")
+    console.log("product names",productNames)
 
     const subject = `New Order #${orderId}`
     const bodyText = `A new order (${orderId}) has been placed for product(s): ${productNames}.`
@@ -585,6 +586,7 @@ export const notifyOwnersOnOrders = async (
         `
 
         const result = await sendSESEmail(user.email, subject, bodyText, bodyHtml)
+        console.log("after mail sent result",result)
         results.push({ status: "fulfilled", email: user.email, value: result })
 
         await new Promise((resolve) => setTimeout(resolve, 500)) // throttle

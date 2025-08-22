@@ -248,7 +248,7 @@ export async function POST(req: NextRequest) {
 
         // ✅ Send grouped notifications to business owners
         const productIdsForBusiness = businessProductGroups[businessPageId];
-        
+        // console.log("productIds for Business",productIdsForBusiness)
         try {
           await notifyOwnersOnOrders(
             productIdsForBusiness,
