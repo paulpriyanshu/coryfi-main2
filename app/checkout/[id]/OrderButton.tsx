@@ -66,8 +66,8 @@ function Checkout({ userId, user_name, user_email, user_phone, total_amount, car
         
       );
 
-      console.log("moved cart to order", cartToOrder);
-      await deleteCart(cart.id)
+      // console.log("moved cart to order", cartToOrder);
+      // await deleteCart(cart.id)
 
       await doPayment(data.paymentSessionId);
     } catch (err) {
