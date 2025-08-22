@@ -6,8 +6,7 @@ import {
   getBusinessInfoFromOrder,
 } from "../../actions/employees";
 import { createPayoutForDay } from "../payouts";
-
-
+import { notifyOwnersOnOrders } from "../../actions/media";
 
 export async function POST(req: NextRequest) {
   try {
@@ -211,26 +210,56 @@ export async function POST(req: NextRequest) {
       const payoutDate = new Date(new Date(payment_time).toDateString());
 
       const businessPayouts: Record<string, Decimal> = {};
+      // ✅ Group products by business page for notifications
+      const businessProductGroups: Record<string, number[]> = {};
 
       for (const item of orderData.orderItems) {
         const businessId = item.product.businessPageId;
+        const productId = item.product.id;
         const quantity = item.quantity;
         const price = item.details.price;
         const total = new Decimal(price).mul(quantity);
 
+        // Group for payouts
         if (!businessPayouts[businessId]) {
           businessPayouts[businessId] = total;
         } else {
           businessPayouts[businessId] = businessPayouts[businessId].add(total);
         }
+
+        // ✅ Group products by business page for notifications
+        if (!businessProductGroups[businessId]) {
+          businessProductGroups[businessId] = [];
+        }
+        // Add product ID for each quantity (if you want to track individual items)
+        // Or just add unique product IDs
+        if (!businessProductGroups[businessId].includes(productId)) {
+          businessProductGroups[businessId].push(productId);
+        }
       }
 
+      // Handle payouts and notifications
       for (const [businessPageId, amount] of Object.entries(businessPayouts)) {
         await createPayoutForDay({
           businessPageId,
           payoutForDate: payoutDate,
           payoutAmount: amount,
         });
+
+        // ✅ Send grouped notifications to business owners
+        const productIdsForBusiness = businessProductGroups[businessPageId];
+        
+        try {
+          await notifyOwnersOnOrders(
+            productIdsForBusiness,
+            businessPageId
+          );
+          
+          console.log(`✅ Notification sent to business ${businessPageId} for products:`, productIdsForBusiness);
+        } catch (notificationError) {
+          console.warn(`⚠️ Failed to send notification to business ${businessPageId}:`, notificationError);
+          // Don't throw error to avoid breaking the entire transaction
+        }
       }
     });
 

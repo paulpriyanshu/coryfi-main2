@@ -504,6 +504,103 @@ const sendGmailEmail = async (
     throw error;
   }
 };
+export const notifyOwnersOnOrders = async (
+  productIds: number[],
+  orderId: string
+) => {
+  try {
+    // 1. Get products + their businessPageLayouts + merchants + users
+    const products = await db.product.findMany({
+      where: { id: { in: productIds } },
+    include: {
+      business: {
+        include: {
+          businessToPageLayouts: {
+            include: {
+              business: {
+                include: {
+                  merchant: true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    })
+
+    if (products.length === 0) {
+      throw new Error("No products found for this order")
+    }
+
+    // 2. Collect unique owners (merchant → user)
+    const usersMap = new Map<number, { id: number; email: string | null; name?: string | null }>()
+    for (const product of products) {
+      for (const btpl of product.businessPageLayout.businessToPageLayouts) {
+        const user = btpl.business?.merchant?.user
+        if (user?.email) {
+          usersMap.set(user.id, user)
+        }
+      }
+    }
+    const users = [...usersMap.values()]
+
+    if (users.length === 0) {
+      throw new Error("No merchant owners (with email) found for these products")
+    }
+
+    // 3. Prepare product summary for email
+    const productNames = products.map((p) => p.name).join(", ")
+
+    const subject = `New Order #${orderId}`
+    const bodyText = `A new order (${orderId}) has been placed for product(s): ${productNames}.`
+
+    // 4. Send emails sequentially (with 500ms delay to be safe)
+    const results: any[] = []
+    for (const user of users) {
+      try {
+        const bodyHtml = `
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <title>New Order Notification</title>
+          </head>
+          <body style="font-family: Arial, sans-serif; background:#f6f6f6; padding:20px;">
+            <div style="max-width:600px;margin:auto;background:#fff;padding:20px;border-radius:10px;">
+              <h2 style="color:#000;">Hello ${user.name || "Owner"},</h2>
+              <p>A new order (<b>#${orderId}</b>) has been placed.</p>
+              <p><b>Products:</b> ${productNames}</p>
+              <p style="margin-top:20px;">You can log into your dashboard to see details.</p>
+              <a href="https://connect.coryfi.com/orders/${orderId}" 
+                 style="display:inline-block;padding:10px 20px;background:#000;color:#fff;text-decoration:none;border-radius:5px;margin-top:20px;">
+                 View Order
+              </a>
+              <p style="font-size:12px;color:#999;margin-top:40px;">
+                Coryfi Connect © 2025 Coryfi Connect Pvt Ltd — All Rights Reserved.
+              </p>
+            </div>
+          </body>
+          </html>
+        `
+
+        const result = await sendSESEmail(user.email, subject, bodyText, bodyHtml)
+        results.push({ status: "fulfilled", email: user.email, value: result })
+
+        await new Promise((resolve) => setTimeout(resolve, 500)) // throttle
+
+      } catch (error) {
+        console.error(`❌ Failed to send email to ${user.email}:`, error)
+        results.push({ status: "rejected", email: user.email, reason: error })
+      }
+    }
+
+    return { success: true, results }
+  } catch (error) {
+    console.error("notifyOwnersOnOrders error:", error)
+    return { success: false, error: (error as Error).message }
+  }
+}
 export const notifyUsersOnNewPost = async (name: string) => {
   try {
     const users = await db.user.findMany({
@@ -749,6 +846,8 @@ export const notifyUsersOnNewPost = async (name: string) => {
     throw error;
   }
 };
+
+
 export const onLikePost = async (likerName: string,likerEmail:string, postId: number) => {
   try {
     // console.log("likin this post",postId)
