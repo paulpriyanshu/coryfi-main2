@@ -569,30 +569,38 @@ export const notifyOwnersOnOrders = async (
     const results: any[] = [];
     for (const user of users) {
       try {
-        const bodyHtml = `
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-            <meta charset="UTF-8" />
-            <title>New Order Notification</title>
-          </head>
-          <body style="font-family: Arial, sans-serif; background:#f6f6f6; padding:20px;">
-            <div style="max-width:600px;margin:auto;background:#fff;padding:20px;border-radius:10px;">
-              <h2 style="color:#000;">Hello ${user.name || "Owner"},</h2>
-              <p>A new order (<b>#${orderId}</b>) has been placed.</p>
-              <p><b>Products:</b> ${productNames}</p>
-              <p style="margin-top:20px;">You can log into your dashboard to see details.</p>
-              <a href="https://connect.coryfi.com/orders/${orderId}" 
-                 style="display:inline-block;padding:10px 20px;background:#000;color:#fff;text-decoration:none;border-radius:5px;margin-top:20px;">
-                 View Order
-              </a>
-              <p style="font-size:12px;color:#999;margin-top:40px;">
-                Coryfi Connect © 2025 Coryfi Connect Pvt Ltd — All Rights Reserved.
-              </p>
-            </div>
-          </body>
-          </html>
-        `;
+      const bodyHtml = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <title>New Order Notification</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; background:#f6f6f6; padding:20px;">
+          <div style="max-width:600px;margin:auto;background:#fff;padding:20px;border-radius:10px;">
+            <h2 style="color:#000;">Hello ${user.name || "Owner"},</h2>
+            <p>A new order (<b>#${orderId}</b>) has been placed.</p>
+            <p><b>Products:</b> ${productNames}</p>
+            <p style="margin-top:20px;">You can log into your dashboard to see details.</p>
+            <a href="https://connect.coryfi.com/orders/${orderId}" 
+              style="display:inline-block;padding:10px 20px;background:#000;color:#fff;text-decoration:none;border-radius:5px;margin-top:20px;">
+              View Order
+            </a>
+
+            <p style="font-size:12px;color:#999;margin-top:40px;">
+              Coryfi Connect © 2025 Coryfi Connect Pvt Ltd — All Rights Reserved.
+            </p>
+
+            <p style="font-size:12px;color:#999;margin-top:20px;text-align:center;">
+              If you no longer wish to receive these emails, you can 
+              <a href="https://connect.coryfi.com/unsubscribe?email=${encodeURIComponent(
+                user.email || ""
+              )}" style="color:#1376C8;text-decoration:underline;">unsubscribe here</a>.
+            </p>
+          </div>
+        </body>
+        </html>
+      `;
 
         const result = await sendSESEmail(user.email, subject, bodyText, bodyHtml);
         console.log(`✅ Email sent to ${user.email}`, result);
