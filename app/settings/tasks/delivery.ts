@@ -1,5 +1,6 @@
 "use server"
 import db from "@/db"
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 
@@ -77,7 +78,7 @@ export const overRideCancellation = async (
   try {
     console.log("Override cancellation for order:", orderId);
 
-    // 1. Cancel the given order item
+    // 1. Cancel the given order item(s)
     const updatedItems = await db.orderItem.updateMany({
       where: {
         orderId: orderId,   // FK to Order.id
@@ -96,7 +97,38 @@ export const overRideCancellation = async (
       };
     }
 
-    // 2. Get order + external order_id
+    // 2. Get cancelled item details (to adjust payout)
+    const cancelledItems = await db.orderItem.findMany({
+      where: {
+        orderId,
+        productId,
+        productFulfillmentStatus: "cancelled",
+      },
+      include: {
+        product: { select: { businessPageId: true } },
+      },
+    });
+
+    for (const item of cancelledItems) {
+      if (!item.payoutId) continue; // item had no payout linked
+
+      const deduction = new Prisma.Decimal(item.details.price).mul(item.quantity);
+
+      await db.payout.update({
+        where: { payout_id: item.payoutId },
+        data: {
+          payoutAmount: {
+            decrement: deduction,
+          },
+        },
+      });
+
+      console.log(
+        `💸 Deducted ${deduction.toString()} from payout ${item.payoutId} (order item ${item.id})`
+      );
+    }
+
+    // 3. Get order + external order_id
     const order = await db.order.findUnique({
       where: { id: orderId },
       include: {
@@ -113,7 +145,7 @@ export const overRideCancellation = async (
       };
     }
 
-    // 3. Get tasks linked to this order
+    // 4. Get tasks linked to this order
     const tasks = await db.task.findMany({
       where: { task_id: order.order_id },
       include: {
@@ -127,7 +159,7 @@ export const overRideCancellation = async (
       },
     });
 
-    // 4. Cancel only tasks whose orderItems are all cancelled
+    // 5. Cancel only tasks whose orderItems are all cancelled
     let cancelledTasks = 0;
     for (const task of tasks) {
       const allCancelled = task.order.orderItems.every(
@@ -142,7 +174,7 @@ export const overRideCancellation = async (
       }
     }
 
-    // 5. Cancel the order if ALL items are cancelled
+    // 6. Cancel the order if ALL items are cancelled
     const remainingItems = order.orderItems.filter(
       (item) => item.productFulfillmentStatus !== "cancelled"
     ).length;
@@ -157,7 +189,7 @@ export const overRideCancellation = async (
       });
     }
 
-    // 6. Revalidate tasks page
+    // 7. Revalidate tasks page
     if (typeof revalidatePath === "function") {
       revalidatePath("/settings/tasks");
     }
@@ -177,7 +209,6 @@ export const overRideCancellation = async (
     };
   }
 };
-
 
 export const fulfillItemsByOtp = async (
     orderId: string, // This is Order.id (a string)
