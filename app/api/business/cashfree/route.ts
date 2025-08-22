@@ -5,8 +5,9 @@ import {
   assignTaskToAllEmployees,
   getBusinessInfoFromOrder,
 } from "../../actions/employees";
-import { createPayoutForDay } from "../payouts";
+
 import { notifyOwnersOnOrders } from "../../actions/media";
+import { startOfDay, endOfDay } from "date-fns";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     const {
       data: {
-        order: { order_id, order_amount, order_currency },
+        order: { order_id },
         payment: {
           cf_payment_id,
           payment_status,
@@ -30,11 +31,7 @@ export async function POST(req: NextRequest) {
           bank_reference,
           payment_message,
         },
-        customer_details: {
-          customer_name,
-          customer_email,
-          customer_phone,
-        },
+        customer_details: { customer_name, customer_email, customer_phone },
       },
     } = payload;
 
@@ -47,7 +44,7 @@ export async function POST(req: NextRequest) {
     const premiumMatch = order_id.match(/^order_(\d+)_(monthly|annual)_\d+$/);
     if (premiumMatch) {
       const userId = parseInt(premiumMatch[1]);
-      const selectedPlan = premiumMatch[2]; // "monthly" or "annual"
+      const selectedPlan = premiumMatch[2];
 
       // Idempotency check
       const existingTx = await db.transaction.findUnique({
@@ -60,21 +57,13 @@ export async function POST(req: NextRequest) {
       }
 
       const existingPremium = await db.premiumSubscription.findFirst({
-        where: {
-          userId,
-          expiry: {
-            gte: new Date(), // still valid
-          },
-        },
+        where: { userId, expiry: { gte: new Date() } },
       });
 
       if (!existingPremium) {
         const expiry = new Date();
-        if (selectedPlan === "annual") {
-          expiry.setFullYear(expiry.getFullYear() + 1); // 1 year
-        } else {
-          expiry.setDate(expiry.getDate() + 30); // 30 days
-        }
+        if (selectedPlan === "annual") expiry.setFullYear(expiry.getFullYear() + 1);
+        else expiry.setDate(expiry.getDate() + 30);
 
         await db.premiumSubscription.create({
           data: {
@@ -94,8 +83,6 @@ export async function POST(req: NextRequest) {
     }
 
     // ✅ Regular order flow
-
-    // Idempotency check
     const existingTx = await db.transaction.findUnique({
       where: { transactionId: String(cf_payment_id) },
     });
@@ -107,9 +94,7 @@ export async function POST(req: NextRequest) {
 
     const orderData = await db.order.findUnique({
       where: { order_id },
-      include: {
-        orderItems: { include: { product: true } },
-      },
+      include: { orderItems: { include: { product: true } } },
     });
 
     if (!orderData) {
@@ -122,12 +107,7 @@ export async function POST(req: NextRequest) {
       const businessInfo = await getBusinessInfoFromOrder(order_id);
       if (businessInfo.success && businessInfo.businessIds?.length) {
         const taskName = orderData.id || "New Task";
-
-        // await assignTaskToAllEmployees({
-        //   businessIds: businessInfo.businessIds,
-        //   orderId: order_id,
-        //   taskName,
-        // });
+        // await assignTaskToAllEmployees({ businessIds: businessInfo.businessIds, orderId: order_id, taskName });
       }
     } catch (taskErr) {
       console.warn("Task assignment failed:", taskErr);
@@ -142,53 +122,37 @@ export async function POST(req: NextRequest) {
     const productIds = Object.keys(productQuantities).map(Number);
 
     await db.$transaction(async (tx) => {
-      const products = await tx.product.findMany({
-        where: { id: { in: productIds } },
-      });
-
+      // ✅ Stock checks
+      const products = await tx.product.findMany({ where: { id: { in: productIds } } });
       for (const product of products) {
         const available = product.stock ?? 0;
         const needed = productQuantities[product.id];
-        if (available < needed) {
-          throw new Error(`Insufficient stock for product ID ${product.id}`);
-        }
+        if (available < needed) throw new Error(`Insufficient stock for product ID ${product.id}`);
       }
 
+      // ✅ Decrement stock
       for (const product of products) {
         const qty = productQuantities[product.id];
         await tx.product.update({
           where: { id: product.id },
-          data: {
-            stock: { decrement: qty },
-            Sales: { increment: qty },
-          },
+          data: { stock: { decrement: qty }, Sales: { increment: qty } },
         });
       }
 
+      // ✅ Mark order as complete
       await tx.order.update({
         where: { order_id },
-        data: {
-          status: "completed",
-          updatedAt: new Date(),
-        },
+        data: { status: "completed", updatedAt: new Date() },
       });
 
-      // ✅ DELETE CART AFTER ORDER COMPLETION
-      // Delete the user's cart since the order is now completed
+      // ✅ Delete cart after completion
       try {
-        const deletedCart = await tx.cart.deleteMany({
-          where: { userId: orderData.userId },
-        });
-        if (deletedCart.count > 0) {
-          console.log("✅ Cart deleted successfully for user:", orderData.userId);
-        } else {
-          console.log("ℹ️ No cart found for user:", orderData.userId);
-        }
+        await tx.cart.deleteMany({ where: { userId: orderData.userId } });
       } catch (cartError) {
         console.warn("⚠️ Cart deletion failed:", cartError);
-        // Don't throw error as cart might already be deleted or not exist
       }
 
+      // ✅ Save transaction
       await tx.transaction.create({
         data: {
           orderId: order_id,
@@ -207,58 +171,63 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      // ✅ Handle payouts
       const payoutDate = new Date(new Date(payment_time).toDateString());
+      const start = startOfDay(payoutDate);
+      const end = endOfDay(payoutDate);
 
       const businessPayouts: Record<string, Decimal> = {};
-      // ✅ Group products by business page for notifications
       const businessProductGroups: Record<string, number[]> = {};
 
       for (const item of orderData.orderItems) {
         const businessId = item.product.businessPageId;
         const productId = item.product.id;
-        const quantity = item.quantity;
-        const price = item.details.price;
-        const total = new Decimal(price).mul(quantity);
+        const total = new Decimal(item.details.price).mul(item.quantity);
 
-        // Group for payouts
-        if (!businessPayouts[businessId]) {
-          businessPayouts[businessId] = total;
-        } else {
-          businessPayouts[businessId] = businessPayouts[businessId].add(total);
-        }
+        businessPayouts[businessId] = (businessPayouts[businessId] || new Decimal(0)).add(total);
 
-        // ✅ Group products by business page for notifications
-        if (!businessProductGroups[businessId]) {
-          businessProductGroups[businessId] = [];
-        }
-        // Add product ID for each quantity (if you want to track individual items)
-        // Or just add unique product IDs
-        if (!businessProductGroups[businessId].includes(productId)) {
+        if (!businessProductGroups[businessId]) businessProductGroups[businessId] = [];
+        if (!businessProductGroups[businessId].includes(productId))
           businessProductGroups[businessId].push(productId);
-        }
       }
 
-      // Handle payouts and notifications
       for (const [businessPageId, amount] of Object.entries(businessPayouts)) {
-        await createPayoutForDay({
-          businessPageId,
-          payoutForDate: payoutDate,
-          payoutAmount: amount,
+        // ✅ Find or create payout
+        let payout = await tx.payout.findFirst({
+          where: { businessPageId, payoutForDate: { gte: start, lte: end } },
         });
 
-        // ✅ Send grouped notifications to business owners
-        const productIdsForBusiness = businessProductGroups[businessPageId];
-        // console.log("productIds for Business",productIdsForBusiness)
+        if (payout) {
+          payout = await tx.payout.update({
+            where: { id: payout.id },
+            data: { payoutAmount: { increment: amount } },
+          });
+        } else {
+          payout = await tx.payout.create({
+            data: {
+              businessPageId,
+              payoutAmount: amount,
+              payoutForDate: payoutDate,
+              status: "PENDING",
+            },
+          });
+        }
+
+        // ✅ Attach payout to order items
+        await tx.orderItem.updateMany({
+          where: {
+            orderId: orderData.id,
+            product: { businessPageId },
+          },
+          data: { payoutId: payout.payout_id },
+        });
+
+        // ✅ Notifications
         try {
-          await notifyOwnersOnOrders(
-            productIdsForBusiness,
-            businessPageId
-          );
-          
-          console.log(`✅ Notification sent to business ${businessPageId} for products:`, productIdsForBusiness);
-        } catch (notificationError) {
-          console.warn(`⚠️ Failed to send notification to business ${businessPageId}:`, notificationError);
-          // Don't throw error to avoid breaking the entire transaction
+          await notifyOwnersOnOrders(businessProductGroups[businessPageId], businessPageId);
+          console.log(`✅ Notification sent to business ${businessPageId}`);
+        } catch (err) {
+          console.warn(`⚠️ Failed to notify business ${businessPageId}:`, err);
         }
       }
     });

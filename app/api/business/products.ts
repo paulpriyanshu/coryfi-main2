@@ -960,10 +960,6 @@ export async function moveCartToOrder(
     if (!otpMap.has(otpKey)) otpMap.set(otpKey, String(generateOTP(6)));
   }
 
-  // Keep track of payouts per business
-  const payoutMap = new Map<string, any>();
-  const today = new Date();
-
   const orderItemsData: any[] = [];
   for (const item of parsedCartItems) {
     const businessId = productToBusinessMap.get(item.productId)!;
@@ -971,20 +967,9 @@ export async function moveCartToOrder(
     const otpKey = `${businessId}_${recieveBy}`;
     const otp = otpMap.get(otpKey);
 
-    // Ensure payout exists or update amount
-    if (!payoutMap.has(businessId)) {
-      const payout = await createOrUpdatePayoutForDay({
-        businessPageId: businessId,
-        payoutForDate: today,
-        payoutAmount: new Prisma.Decimal(0), // later increment with real amounts
-      });
-      payoutMap.set(businessId, payout);
-    }
-
-    // Build customization
     let customizations: string[] = [];
     if (item.fields) {
-      for (const [label, field] of Object.entries(item.fields)) {
+      for (const [, field] of Object.entries(item.fields)) {
         const f = field as any;
         if (f?.key) customizations.push(f.key);
       }
@@ -1007,7 +992,7 @@ export async function moveCartToOrder(
       customization,
       recieveBy: item.recieveBy || null,
       OTP: otp,
-      payoutId: payoutMap.get(businessId).payout_id, // ✅ connect here
+      // payoutId: will be connected later after payment
     });
   }
 
@@ -1018,9 +1003,7 @@ export async function moveCartToOrder(
       totalCost,
       address: address ?? "No address provided",
       status: "pending",
-      orderItems: {
-        create: orderItemsData,
-      },
+      orderItems: { create: orderItemsData },
     },
   });
 
