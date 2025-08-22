@@ -425,7 +425,7 @@ model Payout {
   businessPage     BusinessPageLayout @relation(fields: [businessPageId], references: [pageId])
   payoutAmount     Decimal   @db.Decimal(12, 2)
   payoutForDate    DateTime              // The date the payout is for (revenue day)
-  orders           Order[]
+  orders           OrderItem[]
   status           PayoutStatus @default(PENDING)
   createdAt        DateTime  @default(now()) // When payout was actually made
 
@@ -448,8 +448,8 @@ model Order {
   updatedAt   DateTime   @updatedAt
   address     Json? 
   fulfillmentStatus String  @default("pending")
-  payoutId    String? 
-  payout      Payout?   @relation(fields: [payoutId],references: [payout_id])
+  // payoutId    String? 
+  // payout      Payout?   @relation(fields: [payoutId],references: [payout_id]). // removed as payout depends on order Items which is the orders for each outlet and each product
   tasks       Task[]     // This is still valid; it's a reverse relation.
 
   @@index([order_id])
@@ -505,6 +505,8 @@ model OrderItem {
   cancellationReason      String?
   details    Json?
   outForDelivery String? @default("FALSE")
+  payoutId    String? 
+  payout      Payout?   @relation(fields: [payoutId],references: [payout_id])
   customization Json?
   recieveBy     Json?
 }

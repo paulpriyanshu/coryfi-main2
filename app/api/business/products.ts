@@ -1,8 +1,9 @@
 "use server"
 import { generateOTP } from "@/app/checkout/[id]/otp";
 import db from "@/db"
-import { RecieveBy } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { createOrUpdatePayoutForDay } from "./payouts";
 
 
 export const getProductDetails = async (pageId: string, productId: number) => {
@@ -928,6 +929,7 @@ export async function deleteCart(cartId: string) {
 
 
 
+
 export async function moveCartToOrder(
   cartId: string,
   order_id: string,
@@ -935,10 +937,7 @@ export async function moveCartToOrder(
   address: any,
   totalCost: any
 ) {
-  const cart = await db.cart.findUnique({
-    where: { id: cartId },
-  });
-
+  const cart = await db.cart.findUnique({ where: { id: cartId } });
   if (!cart) throw new Error("Cart not found");
 
   const parsedCartItems = cart.cartItems ?? [];
@@ -946,68 +945,71 @@ export async function moveCartToOrder(
 
   const products = await db.product.findMany({
     where: { id: { in: productIds } },
-    select: {
-      id: true,
-      businessPageId: true,
-    },
+    select: { id: true, businessPageId: true },
   });
 
-  // Map productId -> businessPageId
   const productToBusinessMap = new Map<number, string>();
-  products.forEach((product) => {
-    productToBusinessMap.set(product.id, product.businessPageId);
-  });
+  products.forEach((p) => productToBusinessMap.set(p.id, p.businessPageId));
 
   // OTP grouped by (businessPageId + recieveBy)
   const otpMap = new Map<string, string>();
-
   for (const item of parsedCartItems) {
     const businessId = productToBusinessMap.get(item.productId);
     const recieveBy = item.recieveBy?.type.toUpperCase?.() || "UNKNOWN";
     const otpKey = `${businessId}_${recieveBy}`;
-
-    if (!otpMap.has(otpKey)) {
-      otpMap.set(otpKey, String(generateOTP(6)));
-    }
-  }
-const orderItemsData = parsedCartItems.map((item: any) => {
-  const businessId = productToBusinessMap.get(item.productId)!;
-  const recieveBy = item.recieveBy?.type.toUpperCase?.() || "UNKNOWN";
-  const otpKey = `${businessId}_${recieveBy}`;
-  const otp = otpMap.get(otpKey);
-
-  // Build customization string
-  let customizations: string[] = [];
-
-  // From fields
-  if (item.fields) {
-    for (const [label, field] of Object.entries(item.fields)) {
-      const f = field as any;
-      if (f?.key) customizations.push(f.key);
-    }
+    if (!otpMap.has(otpKey)) otpMap.set(otpKey, String(generateOTP(6)));
   }
 
-  // From counterItems
-  if (item.counterItems) {
-    for (const [key, ci] of Object.entries(item.counterItems)) {
-      const c = ci as any;
-      if (c?.count && c.count > 0) {
-        customizations.push(`${key}: ${c.count}`);
+  // Keep track of payouts per business
+  const payoutMap = new Map<string, any>();
+  const today = new Date();
+
+  const orderItemsData: any[] = [];
+  for (const item of parsedCartItems) {
+    const businessId = productToBusinessMap.get(item.productId)!;
+    const recieveBy = item.recieveBy?.type.toUpperCase?.() || "UNKNOWN";
+    const otpKey = `${businessId}_${recieveBy}`;
+    const otp = otpMap.get(otpKey);
+
+    // Ensure payout exists or update amount
+    if (!payoutMap.has(businessId)) {
+      const payout = await createOrUpdatePayoutForDay({
+        businessPageId: businessId,
+        payoutForDate: today,
+        payoutAmount: new Prisma.Decimal(0), // later increment with real amounts
+      });
+      payoutMap.set(businessId, payout);
+    }
+
+    // Build customization
+    let customizations: string[] = [];
+    if (item.fields) {
+      for (const [label, field] of Object.entries(item.fields)) {
+        const f = field as any;
+        if (f?.key) customizations.push(f.key);
       }
     }
+    if (item.counterItems) {
+      for (const [key, ci] of Object.entries(item.counterItems)) {
+        const c = ci as any;
+        if (c?.count && c.count > 0) {
+          customizations.push(`${key}: ${c.count}`);
+        }
+      }
+    }
+
+    const customization = customizations.join(", ") || null;
+
+    orderItemsData.push({
+      productId: item.productId,
+      quantity: item.quantity || 1,
+      details: item || null,
+      customization,
+      recieveBy: item.recieveBy || null,
+      OTP: otp,
+      payoutId: payoutMap.get(businessId).payout_id, // ✅ connect here
+    });
   }
-
-  const customization = customizations.join(", ") || null;
-
-  return {
-    productId: item.productId,
-    quantity: item.quantity || 1,
-    details: item || null,
-    customization,
-    recieveBy: item.recieveBy || null,
-    OTP: otp,
-  };
-});
 
   const order = await db.order.create({
     data: {
@@ -1020,11 +1022,10 @@ const orderItemsData = parsedCartItems.map((item: any) => {
         create: orderItemsData,
       },
     },
-  }); 
+  });
 
   return order;
 }
-
 export async function updateCart(cartId: string, cartItems: any[], address?: string) {
   // console.log("updating",cartItems)
   const totalCost = cartItems.reduce((sum, item) => sum + item.price, 0);
