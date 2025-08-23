@@ -318,6 +318,9 @@ export const getOrdersByBusinessPage = async (businessPageId: string) => {
             }
           }
         },
+        status: {
+          in:["cancelled","completed"]
+        }
       },
       orderBy: {
         createdAt: "desc"
