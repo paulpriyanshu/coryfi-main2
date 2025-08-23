@@ -386,7 +386,7 @@ export const checkAllItemsFulfilled = async (orderId: string) => {
     if (unfulfilledItems.length === 0) {
       const updatedOrder = await db.order.update({
         where: { id: orderId },
-        data: { status: "complete", fulfillmentStatus: "fulfilled" },
+        data: { status: "completed", fulfillmentStatus: "fulfilled" },
       });
       console.log("Updated order:", updatedOrder);
       revalidatePath('/settings/tasks');
