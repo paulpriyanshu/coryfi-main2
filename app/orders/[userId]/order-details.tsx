@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FileText, Printer, Truck } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import DeliveryReminder from "./deliver-reminder"
 
 function Orderdetails({ orderData }) {
   // Initialize state with a default expanded order if available
@@ -142,7 +143,8 @@ function Orderdetails({ orderData }) {
       <div className="flex flex-col gap-2 mb-6">
         <h1 className="text-3xl font-bold tracking-tight">My Orders</h1>
         <p className="text-muted-foreground">View and track your order history</p>
-      </div>
+          </div>
+      <DeliveryReminder/>
 
       <div className="space-y-6">
         {orderData.data.map((order) => (
