@@ -82,10 +82,15 @@ export function ProductGrid({ products , params ,pageInfo}) {
       </Alert> */}
     </div>
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
-      {products.map((product) => (
-        <Link href={`/explore/business/${params.pagename}/${params.pageId}/product/${product.id}`}>
-        <ProductCard key={product.id} product={product} pageId={params.pageId} />
-        </Link>
+   {products
+        .filter((product) => !product.hideProduct) // only products where hideProduct is false
+        .map((product) => (
+          <Link
+            key={product.id}
+            href={`/explore/business/${params.pagename}/${params.pageId}/product/${product.id}`}
+          >
+            <ProductCard product={product} pageId={params.pageId} />
+          </Link>
       ))}
     </div>
     </>
