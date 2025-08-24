@@ -21,11 +21,11 @@ interface PostProps {
     };
   };
   session: any;
-  userId: { id: string };
+  userId: { id: number };
 }
 
 export default function Posts({ post, session, userId }: PostProps) {
-  const MAX_LENGTH = 200;
+  const MAX_LENGTH = 300;
   const isLongContent = post.content.length > MAX_LENGTH;
   const displayedContent = post.content.substring(0, MAX_LENGTH);
 

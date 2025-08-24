@@ -20,7 +20,7 @@ import "react-quill/dist/quill.snow.css"
 import { useRouter } from "next/navigation"
 
 interface ContentCreatorProps {
-  userId: string
+  userId: number
   maxImages?: number
 }
 

@@ -341,6 +341,7 @@ model Product {
   takeawayCharge  Float?      @default(0)
   dineinCharge    Float?      @default(0)
   ProductAlertsBeforeCart    Json?
+  hideProduct     Boolean?    @default(false)
 
   // Symmetric many-to-many self-relation
   variants ProductVariant[] @relation("ProductToVariant_A")

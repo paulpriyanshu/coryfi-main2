@@ -29,7 +29,7 @@ interface Post {
 interface PostListProps {
   initialPosts: Post[]
   session: any
-  userId: { id: string } | null
+  userId: { id: number } | null
 }
 
 export default function PostList({ initialPosts, session, userId }: PostListProps) {
