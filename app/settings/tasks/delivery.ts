@@ -21,10 +21,14 @@ export const overRideFulfillment = async (orderId: string) => {
       };
     }
 
-    // 2. Get `order_id` (external order identifier)
+    // 2. Get order + external order_id + all order items
     const order = await db.order.findUnique({
       where: { id: orderId },
-      select: { order_id: true },
+      include: {
+        orderItems: {
+          select: { id: true, productFulfillmentStatus: true },
+        },
+      },
     });
 
     if (!order) {
@@ -40,24 +44,39 @@ export const overRideFulfillment = async (orderId: string) => {
       select: { id: true },
     });
 
-    if (tasks.length === 0) {
-      return {
-        success: true,
-        message: `${updatedItems.count} item(s) fulfilled. No tasks found for this order.`,
-      };
+    if (tasks.length > 0) {
+      // 4. Mark all tasks as completed
+      await db.task.updateMany({
+        where: { task_id: order.order_id },
+        data: { status: "completed" },
+      });
     }
 
-    // 4. Mark all tasks as completed
-    await db.task.updateMany({
-      where: { task_id: order.order_id },
-      data: { status: "completed" },
-    });
+    // 5. Check if ALL items are now fulfilled and update order status
+    const remainingItems = order.orderItems.filter(
+      (item) => item.productFulfillmentStatus !== "fulfilled"
+    ).length;
 
-    revalidatePath("/settings/tasks");
+    if (remainingItems === 0) {
+      await db.order.update({
+        where: { id: orderId },
+        data: {
+          status: "fulfilled",
+          fulfillmentStatus: "fulfilled",
+        },
+      });
+    }
+
+    // 6. Revalidate tasks page
+    if (typeof revalidatePath === "function") {
+      revalidatePath("/settings/tasks");
+    }
 
     return {
       success: true,
-      message: `${updatedItems.count} item(s) fulfilled. ${tasks.length} task(s) marked as completed. (Override mode)`,
+      message: `${updatedItems.count} item(s) fulfilled. ${tasks.length} task(s) marked as completed. ${
+        remainingItems === 0 ? `Order ${order.order_id} marked as fulfilled.` : ""
+      } (Override mode)`,
     };
   } catch (error) {
     console.error("Error overriding fulfillment:", error);
