@@ -1,17 +1,15 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react"
-import { Search, X, Clock, TrendingUp, User } from "lucide-react"
+import { Search, X, Clock, TrendingUp, User, ArrowRight, CommandIcon } from "lucide-react"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command"
 import { fetchAllUsers } from "@/app/api/actions/media"
 import Image from "next/image"
+import Link from "next/link"
 
-// Debounce function with added performance tracking
 function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
   let timeout: ReturnType<typeof setTimeout> | null = null
   return (...args: Parameters<F>) => {
@@ -20,7 +18,6 @@ function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (..
   }
 }
 
-// This would typically come from your API or database
 const recentSearches = ["React", "Next.js", "Tailwind CSS", "TypeScript"]
 const trendingSearches = ["JavaScript", "Node.js", "GraphQL", "Docker"]
 
@@ -44,47 +41,65 @@ interface SearchResult {
 
 function UserAvatar({ src, alt, className }: { src: string; alt: string; className?: string }) {
   const [imageError, setImageError] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative overflow-hidden ${className}`}>
       {!imageError ? (
         <Image
           src={src || "/placeholder.svg"}
           alt={alt}
-          width={16}
-          height={16}
-          className="h-4 w-4 rounded-full object-cover"
+          width={48}
+          height={48}
+          className="h-12 w-12 rounded-full object-cover ring-2 ring-background shadow-sm"
           onError={() => setImageError(true)}
-          onLoad={() => setIsLoading(false)}
         />
       ) : (
-        <div className="h-4 w-4 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-          <User className="h-2 w-2 text-gray-500 dark:text-gray-400" />
+        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center ring-2 ring-background shadow-sm">
+          <User className="h-6 w-6 text-white" />
         </div>
       )}
     </div>
   )
 }
 
-export default function SearchBar() {
+export default function ModernSearchBar() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
-  const { data: session } = useSession()
-  const router = useRouter()
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  // Cached users with faster initial search
   const [allUsers, setAllUsers] = useState<SearchResult[]>([])
   const [isUsersCached, setIsUsersCached] = useState(false)
 
-  // Fetch users with caching and quick initial loading
+  useEffect(() => {
+    if (isModalOpen && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 100)
+    }
+  }, [isModalOpen])
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsModalOpen(false)
+      }
+    }
+
+    if (isModalOpen) {
+      document.addEventListener("keydown", handleEscape)
+      document.body.style.overflow = "hidden"
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape)
+      document.body.style.overflow = "unset"
+    }
+  }, [isModalOpen])
+
   useEffect(() => {
     const loadUsers = async () => {
       try {
-        // Check if users are in localStorage to improve initial load
         const cachedUsers = localStorage.getItem("searchUsers")
         if (cachedUsers) {
           const parsedUsers = JSON.parse(cachedUsers)
@@ -92,11 +107,8 @@ export default function SearchBar() {
           setIsUsersCached(true)
         }
 
-        // Always fetch fresh data in background
         const resdata = await fetchAllUsers()
         setAllUsers(resdata)
-
-        // Update localStorage for faster subsequent loads
         localStorage.setItem("searchUsers", JSON.stringify(resdata))
         setIsUsersCached(true)
       } catch (error) {
@@ -104,54 +116,35 @@ export default function SearchBar() {
       }
     }
 
-    if (session?.user?.email) {
-      loadUsers()
-    }
-  }, [session])
-
-  // Click outside handler to close suggestions
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false)
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
+    loadUsers()
   }, [])
 
   const performSearch = useCallback(
     (term: string) => {
       const lowercaseTerm = term.toLowerCase()
 
-      // Early return if term is too short
       if (lowercaseTerm.length < 2) {
         setSearchResults([])
         return
       }
 
-      // Use faster filtering method with proper search logic
       const filteredResults = allUsers
         .filter((user) => {
           const matchName = user.name.toLowerCase().includes(lowercaseTerm)
           const matchEmail = user.email.toLowerCase().includes(lowercaseTerm)
-          return matchName || matchEmail
+          const matchBio = user.userDetails?.bio?.toLowerCase().includes(lowercaseTerm)
+          return matchName || matchEmail || matchBio
         })
-        .slice(0, 10) // Limit results to prevent performance issues
+        .slice(0, 8)
 
       setSearchResults(filteredResults)
     },
     [allUsers],
   )
 
-  // Memoized debounced search with faster response
   const debouncedSearch = useMemo(
     () =>
       debounce((term: string) => {
-        // Immediately show results if cached
         if (isUsersCached && term.length >= 2) {
           setIsLoading(true)
           try {
@@ -165,150 +158,212 @@ export default function SearchBar() {
         } else {
           setSearchResults([])
         }
-      }, 100), // Reduced debounce time
+      }, 150),
     [performSearch, isUsersCached],
   )
 
-  // Trigger search on term change
   useEffect(() => {
     debouncedSearch(searchTerm)
   }, [searchTerm, debouncedSearch])
 
-  // Handle search submission
   const handleSearch = (term: string) => {
     setSearchTerm(term)
-    setShowSuggestions(false)
+    setIsModalOpen(false)
   }
 
   const handleUserRoute = (id: number) => {
-    router.push(`/userProfile/${id}`)
-    setShowSuggestions(false)
+    // alert(`Would navigate to user profile: ${id}`)
+    
+    setIsModalOpen(false)
   }
 
-  // Clear search input
   const handleClearSearch = () => {
     setSearchTerm("")
-    setShowSuggestions(false)
+    setSearchResults([])
+  }
+
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+    setSearchTerm("")
     setSearchResults([])
   }
 
   return (
-    <div ref={searchRef} className="hidden md:block relative mb-6 dark:bg-black dark:text-white">
-      <Card className="p-2 shadow-lg dark:bg-black dark:border border">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            handleSearch(searchTerm)
-          }}
-          className="flex items-center gap-2"
+    <>
+      <div className="hidden md:block relative">
+        <Button
+          variant="outline"
+          className="w-full h-12 justify-start  text-muted-foreground hover:text-foreground hover:bg-accent/80 transition-all duration-300 border  hover:border-primary/30 bg-white dark:bg-black dark:text-white backdrop-blur-sm shadow-sm hover:shadow-md group"
+          onClick={() => setIsModalOpen(true)}
         >
-          <div className="relative flex-grow">
-            <Search className="absolute left-3 top-1/2 md:h-4 md:w-4 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search users..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value)
-                setShowSuggestions(true)
-              }}
-              onFocus={() => setShowSuggestions(true)}
-              className="pl-9 pr-12 dark:bg-black  dark:text-white dark:placeholder-gray-400"
-            />
-            {searchTerm && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent dark:bg-black dark:text-white dark:hover:bg-gray-600"
-                onClick={handleClearSearch}
-              >
-                <X className="h-4 w-4 text-muted-foreground" />
-                <span className="sr-only">Clear search</span>
-              </Button>
-            )}
+          <Search className="mr-3 h-5 w-5 text-muted-foreground dark:text-white group-hover:text-primary transition-colors" />
+          <span className="text-base">Search users...</span>
+          <div className="ml-auto flex items-center gap-2">
+            <div className="hidden lg:flex items-center gap-1">
+            </div>
           </div>
-          <Button type="submit" className="bg-primary dark:bg-black dark:border  dark:hover:bg-gray-600 dark:text-white">
-            Search
-          </Button>
-        </form>
-      </Card>
-      {showSuggestions && (
-        <Card className="absolute z-10 w-full mt-1 p-2 shadow-lg dark:bg-black dark:border-gray-700">
-          <Command className="dark:bg-black">
-            <CommandList>
-              <CommandEmpty className="dark:text-gray-400">No results found.</CommandEmpty>
-              {isLoading ? (
-                <CommandItem disabled>Loading...</CommandItem>
-              ) : (
-                <>
-                  {searchResults.length > 0 && (
-                    <CommandGroup heading="Search Results" className="dark:text-gray-300 ">
-                      {searchResults.map((result) => (
-                        <CommandItem
-                          key={result.id}
-                          onSelect={() => handleUserRoute(result.id)}
-                          className="flex items-center cursor-pointer dark:text-gray-300 dark:hover:bg-gray-700"
-                        >
-                          <UserAvatar src={result.userdp} alt={`${result.name}'s profile picture`} className="mr-2" />
-                          <div className="flex-1">
-                            <div className="font-medium">{result.name}</div>
-                            <div className="text-xs text-muted-foreground">{result?.userDetails?.bio.split(' ').slice(0,10).join(' ')}</div>
-                            {result.attachments && result.attachments.length > 0 && (
-                              <div className="text-xs text-muted-foreground">
-                                Attachments: {result.attachments.join(", ")}
-                              </div>
-                            )}
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  )}
-                  {searchTerm && searchResults.length === 0 && !isLoading && (
-                    <CommandGroup heading="Suggestions" className="dark:text-gray-300">
-                      <CommandItem
-                        onSelect={() => handleSearch(searchTerm)}
-                        className="dark:text-gray-300 dark:hover:bg-gray-700"
+        </Button>
+      </div>
+
+      <div className="md:hidden">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-10 w-10 rounded-full  bg-background/50 backdrop-blur-sm"
+          onClick={() => setIsModalOpen(true)}
+        >
+          <Search className="h-5 w-5" />
+        </Button>
+      </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[8vh] px-4">
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-md animate-in fade-in-0 duration-300"
+            onClick={handleModalClose}
+          />
+
+          <div className="relative w-full max-w-3xl animate-in zoom-in-95 slide-in-from-top-4 duration-300">
+            <Card className="border border-border/50 shadow-2xl bg-background/95 backdrop-blur-xl overflow-hidden">
+              <div className="p-6 border-b border-border/50 bg-gradient-to-r from-primary/10 via-purple-500/10 to-pink-500/10">
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      ref={inputRef}
+                      type="text"
+                      placeholder="Search for users, projects, or anything..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-5 pr-5 h-16 text-sm md:text-lg border-0 bg-background/50 backdrop-blur-sm focus-visible:ring-2 focus-visible:ring-primary/30 placeholder:text-muted-foreground/60 rounded-xl shadow-sm"
+                    />
+                    {searchTerm && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 p-0 hover:bg-muted/50 rounded-full"
+                        onClick={handleClearSearch}
                       >
-                        <Search className="mr-2 h-4 w-4" />
-                        Search for "{searchTerm}"
-                      </CommandItem>
-                    </CommandGroup>
-                  )}
-                  {!searchTerm && (
-                    <>
-                      <CommandGroup heading="Recent Searches" className="dark:text-gray-300">
-                        {recentSearches.map((term) => (
-                          <CommandItem
-                            key={term}
-                            onSelect={() => handleSearch(term)}
-                            className="dark:text-gray-300 dark:hover:bg-black"
-                          >
-                            <Clock className="mr-2 h-4 w-4" />
-                            {term}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                      <CommandGroup heading="Trending Searches" className="dark:text-gray-300">
-                        {trendingSearches.map((term) => (
-                          <CommandItem
-                            key={term}
-                            onSelect={() => handleSearch(term)}
-                            className="dark:text-gray-300 dark:hover:bg-gray-700"
-                          >
-                            <TrendingUp className="mr-2 h-4 w-4" />
-                            {term}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </>
-                  )}
-                </>
-              )}
-            </CommandList>
-          </Command>
-        </Card>
+                        <X className="h-5 w-5" />
+                      </Button>
+                    )}
+                  </div>
+                  {/* <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-10 w-10 p-0 rounded-full hover:bg-muted/50"
+                    onClick={handleModalClose}
+                  >
+                    <X className="h-5 w-5" />
+                  </Button> */}
+                </div>
+              </div>
+
+              <div className="max-h-[60vh] overflow-y-auto">
+                <Command className="bg-transparent">
+                  <CommandList>
+                    {isLoading ? (
+                      <div className="p-12 text-center">
+                        <div className="inline-flex items-center gap-3 text-muted-foreground">
+                          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                          <span className="text-lg">Searching...</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {searchResults.length > 0 && (
+                          <CommandGroup heading="People" className="p-4">
+                            <div className="space-y-2">
+                          {searchResults.map((result, index) => (
+                            <Link
+                              key={result.id}
+                              href={`https://connect.coryfi.com/userProfile/${result.id}`}
+                              className="flex items-center gap-4 p-4 cursor-pointer rounded-xl hover:bg-accent/60 transition-all duration-200 animate-in slide-in-from-left-1 border border-transparent hover:border-border/30"
+                              style={{ animationDelay: `${index * 50}ms` }}
+                            >
+                              <UserAvatar src={result.userdp} alt={`${result.name}'s profile picture`} />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-foreground truncate text-lg">{result.name}</div>
+                                <div className="text-sm text-muted-foreground truncate leading-relaxed">
+                                  {result?.userDetails?.bio?.split(" ").slice(0, 15).join(" ")}
+                                </div>
+                                <div className="text-xs text-muted-foreground/70 mt-2 font-medium">
+                                  {result.email}
+                                </div>
+                              </div>
+                              <ArrowRight className="h-5 w-5 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+                            </Link>
+                          ))}
+                            </div>
+                          </CommandGroup>
+                        )}
+
+                        {searchTerm && searchResults.length === 0 && !isLoading && (
+                          <div className="p-12 text-center">
+                            <div className="text-muted-foreground mb-6 text-lg">
+                              No results found for "{searchTerm}"
+                            </div>
+                            <Button
+                              variant="outline"
+                              onClick={() => handleSearch(searchTerm)}
+                              className="gap-2 h-12 px-6 rounded-xl"
+                            >
+                              <Search className="h-5 w-5" />
+                              Search anyway
+                            </Button>
+                          </div>
+                        )}
+
+                        {!searchTerm && (
+                          <div className="p-4 space-y-6">
+                            <CommandGroup heading="Recent Searches" className="mb-6">
+                              <div className="space-y-2">
+                                {recentSearches.map((term, index) => (
+                                  <CommandItem
+                                    key={term}
+                                    onSelect={() => handleSearch(term)}
+                                    className="flex items-center gap-4 p-4 cursor-pointer rounded-xl hover:bg-accent/60 transition-all duration-200 animate-in slide-in-from-left-1 border border-transparent hover:border-border/30"
+                                    style={{ animationDelay: `${index * 50}ms` }}
+                                  >
+                                    <div className="h-10 w-10 rounded-full bg-muted/60 flex items-center justify-center">
+                                      <Clock className="h-5 w-5 text-muted-foreground" />
+                                    </div>
+                                    <span className="flex-1 text-base">{term}</span>
+                                    <ArrowRight className="h-5 w-5 text-muted-foreground/50" />
+                                  </CommandItem>
+                                ))}
+                              </div>
+                            </CommandGroup>
+
+                            <CommandGroup heading="Trending">
+                              <div className="space-y-2">
+                                {trendingSearches.map((term, index) => (
+                                  <CommandItem
+                                    key={term}
+                                    onSelect={() => handleSearch(term)}
+                                    className="flex items-center gap-4 p-4 cursor-pointer rounded-xl hover:bg-accent/60 transition-all duration-200 animate-in slide-in-from-left-1 border border-transparent hover:border-border/30"
+                                    style={{ animationDelay: `${(index + recentSearches.length) * 50}ms` }}
+                                  >
+                                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-sm">
+                                      <TrendingUp className="h-5 w-5 text-white" />
+                                    </div>
+                                    <span className="flex-1 text-base">{term}</span>
+                                    <ArrowRight className="h-5 w-5 text-muted-foreground/50" />
+                                  </CommandItem>
+                                ))}
+                              </div>
+                            </CommandGroup>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </CommandList>
+                </Command>
+              </div>
+            </Card>
+          </div>
+        </div>
       )}
-    </div>
+    </>
   )
 }

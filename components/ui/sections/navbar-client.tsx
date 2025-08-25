@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import ThemeSwitcher from "./ThemeSwitcher"
+import SearchBar from "@/app/explore/search-bar"
+import ModernSearchBar from "./SearchBar"
 
 interface NavItemProps {
   icon: React.ReactNode
@@ -236,10 +238,7 @@ export function NavbarClient({ session, userId, userDp, navItems2, navItems, das
 
           <div className="flex items-center space-x-1">
             <div className="md:hidden">
-              <Link href="/users" className="mr-0 flex items-center gap-2 underline text-gray-800 hover:text-gray-600">
-                <Search className="h-5 w-5 dark:text-white" />
-                <span className="sr-only">Search</span>
-              </Link>
+              <ModernSearchBar/>
             </div>
             {children && children.slice(1)}
             {session ? (

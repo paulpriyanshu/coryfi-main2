@@ -35,7 +35,10 @@ export default async function Page() {
             </div>
           </div>
           <div className="lg:col-span-3 space-y-5 dark:bg-black">
-            <SearchBar />
+            <span className="hidden md:block">
+              <SearchBar />
+            </span>
+            
             <EnhancedInfiniteScrollNetwork initialPosts={initialPosts} session={session} userId={userId} />
           </div>
           <div className="hidden lg:block lg:col-span-2">
