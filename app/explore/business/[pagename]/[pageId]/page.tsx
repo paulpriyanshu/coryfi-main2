@@ -106,12 +106,12 @@ export default async function BusinessProfile({ searchParams, params }) {
                   <p className="text-muted-foreground mt-1">Browse our collections</p>
                 </div>
               </div>
-              {/* {pageData?.categoryCarousel && (
+              {pageData?.categoryCarousel && (
                 <CategoryCarousel
                   categories={pageData.categoryCarousel.categories}
                   productSectionId="product-section"
                 />
-              )} */}
+              )}
               <CategoryTags categories={pageData.categories} selectedCategory={selectedCategory} />
             </div>
           )}
