@@ -449,7 +449,7 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-card-foreground">${statistics.totalRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-card-foreground">₹{statistics.totalRevenue.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">Across all orders</p>
           </CardContent>
         </Card>
@@ -499,7 +499,7 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                     {truncate(page.id, 20)}
                   </TableCell>
                   <TableCell className="text-foreground">{page.orderCount}</TableCell>
-                  <TableCell className="text-foreground">${page.revenue.toFixed(2)}</TableCell>
+                  <TableCell className="text-foreground">₹{page.revenue.toFixed(2)}</TableCell>
                   <TableCell className="text-foreground">{page.products.size}</TableCell>
                 </TableRow>
               ))}
@@ -622,7 +622,7 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                         <div>
                           <p className="text-sm font-medium text-foreground">Total</p>
                           <p className="text-sm text-muted-foreground">
-                            $
+                            ₹
                             {order.orderItems
                               .reduce((sum, item) => {
                                 const productPrice = item.details?.price || 0
@@ -812,7 +812,7 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                                       )}
                                     </TableCell>
                                     <TableCell className="text-foreground">
-                                      ${item.details?.price ? item.details.price.toFixed(2) : "0.00"}
+                                      ₹{item.details?.price ? item.details.price.toFixed(2) : "0.00"}
                                     </TableCell>
                                     <TableCell>
                                       {item.customization ? (
