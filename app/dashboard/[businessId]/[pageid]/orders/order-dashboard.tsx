@@ -691,25 +691,33 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                                 </div>
                               )}
 
-                              {order.user.userDetails?.addresses && order.user.userDetails.addresses.length > 0 && (
-                                <div>
-                                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                    Address
-                                  </p>
-                                  <div className="space-y-1">
-                                    {order.user.userDetails.addresses.slice(0, 2).map((address, index) => (
-                                      <p key={index} className="text-sm text-foreground">
-                                        {typeof address === "string" ? address : JSON.stringify(address)}
-                                      </p>
-                                    ))}
-                                    {order.user.userDetails.addresses.length > 2 && (
-                                      <p className="text-xs text-muted-foreground">
-                                        +{order.user.userDetails.addresses.length - 2} more addresses
-                                      </p>
-                                    )}
+                          {order.user.userDetails?.addresses && order.user.userDetails.addresses.length > 0 && (
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                Address
+                              </p>
+                              <div className="space-y-2">
+                                {order.user.userDetails.addresses.slice(0, 2).map((address, index) => (
+                                  <div key={index} className="text-sm text-foreground leading-snug">
+                                    <p className="font-medium capitalize">{address.type}</p>
+                                    <p>{address.addressLine1}</p>
+                                    {address.addressLine2 && <p>{address.addressLine2}</p>}
+                                    <p>
+                                      {address.city}, {address.state} {address.zip}
+                                    </p>
+                                    <p>{address.country}</p>
+                                    {address.landmark && <p className="text-muted-foreground">Landmark: {address.landmark}</p>}
+                                    {address.instructions && <p className="text-muted-foreground">Note: {address.instructions}</p>}
                                   </div>
-                                </div>
-                              )}
+                                ))}
+                                {order.user.userDetails.addresses.length > 2 && (
+                                  <p className="text-xs text-muted-foreground">
+                                    +{order.user.userDetails.addresses.length - 2} more addresses
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
                             </div>
                           </div>
                         )}
