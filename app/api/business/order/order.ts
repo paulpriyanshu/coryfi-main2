@@ -342,7 +342,7 @@ export const getOrdersByBusinessPage = async (businessPageId: string) => {
                     name: true,
                     email: true,
                     userdp: true,
-                    userDetails: { select: { phoneNumber: true ,addresses:true} }
+                    userDetails: { select: { phoneNumber: true } }
                   }
                 }
               }
@@ -375,7 +375,7 @@ export const getOrdersByBusinessPage = async (businessPageId: string) => {
         name: true,
         email: true,
         userdp: true,
-        userDetails: { select: { phoneNumber: true} }
+        userDetails: { select: { phoneNumber: true,addresses:true} }
       }
     });
 
