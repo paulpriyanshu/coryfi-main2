@@ -274,26 +274,27 @@ export default function ModernSearchBar() {
                         {searchResults.length > 0 && (
                           <CommandGroup heading="People" className="p-4">
                             <div className="space-y-2">
-                          {searchResults.map((result, index) => (
-                            <Link
-                              key={result.id}
-                              href={`https://connect.coryfi.com/userProfile/${result.id}`}
-                              className="flex items-center gap-4 p-4 cursor-pointer rounded-xl hover:bg-accent/60 transition-all duration-200 animate-in slide-in-from-left-1 border border-transparent hover:border-border/30"
-                              style={{ animationDelay: `${index * 50}ms` }}
-                            >
-                              <UserAvatar src={result.userdp} alt={`${result.name}'s profile picture`} />
-                              <div className="flex-1 min-w-0">
-                                <div className="font-semibold text-foreground truncate text-lg">{result.name}</div>
-                                <div className="text-sm text-muted-foreground truncate leading-relaxed">
-                                  {result?.userDetails?.bio?.split(" ").slice(0, 15).join(" ")}
-                                </div>
-                                <div className="text-xs text-muted-foreground/70 mt-2 font-medium">
-                                  {result.email}
-                                </div>
+                     {searchResults.map((result, index) => (
+                          <Link
+                            key={result.id}
+                            href={`https://connect.coryfi.com/userProfile/${result.id}`}
+                            onClick={handleModalClose}
+                            className="flex items-center gap-4 p-4 cursor-pointer rounded-xl hover:bg-accent/60 transition-all duration-200 animate-in slide-in-from-left-1 border border-transparent hover:border-border/30"
+                            style={{ animationDelay: `${index * 50}ms` }}
+                          >
+                            <UserAvatar src={result.userdp} alt={`${result.name}'s profile picture`} />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold text-foreground truncate text-md md:text-lg">{result.name}</div>
+                              <div className="text-sm text-muted-foreground truncate leading-relaxed">
+                                {result?.userDetails?.bio?.split(" ").slice(0, 15).join(" ")}
                               </div>
-                              <ArrowRight className="h-5 w-5 text-muted-foreground/50 group-hover:text-primary transition-colors" />
-                            </Link>
-                          ))}
+                              {/* <div className="text-xs text-muted-foreground/70 mt-2 font-medium">
+                                {result.email}
+                              </div> */}
+                            </div>
+                            <ArrowRight className="h-5 w-5 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+                          </Link>
+                        ))}
                             </div>
                           </CommandGroup>
                         )}
