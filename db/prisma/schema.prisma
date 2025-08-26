@@ -504,6 +504,9 @@ model OrderItem {
   product   Product   @relation(fields: [productId], references: [id])
   productId Int
   quantity  Int       @default(1)
+  originalPrice Float?
+  finalPrice  Float?   
+  discount    Int?  
   OTP         String?   
   productFulfillmentStatus  String? @default("pending")
   cancellationReason      String?

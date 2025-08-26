@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "OrderItem" ADD COLUMN     "originalPrice" DOUBLE PRECISION,
+ALTER COLUMN "finalPrice" SET DATA TYPE DOUBLE PRECISION;

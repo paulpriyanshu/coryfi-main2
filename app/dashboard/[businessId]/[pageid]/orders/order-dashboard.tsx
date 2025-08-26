@@ -130,10 +130,7 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
   const statistics = useMemo(() => {
     const totalOrders = processedOrders.length
     const totalRevenue = filteredOrders.reduce((sum, order) => {
-      const orderTotal = order.orderItems.reduce((itemSum, item) => {
-        const productPrice = item.details?.price || 0
-        return itemSum + productPrice * item.quantity
-      }, 0)
+        const orderTotal=order.totalCost
       return sum + orderTotal
     }, 0)
     const totalItems = processedOrders.reduce(
@@ -623,12 +620,7 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                           <p className="text-sm font-medium text-foreground">Total</p>
                           <p className="text-sm text-muted-foreground">
                             ₹
-                            {order.orderItems
-                              .reduce((sum, item) => {
-                                const productPrice = item.details?.price || 0
-                                return sum + productPrice * item.quantity
-                              }, 0)
-                              .toFixed(2)}
+                            {order.totalCost.toFixed(2)}
                           </p>
                         </div>
                         <div>
@@ -730,6 +722,7 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                                 <TableHead className="text-muted-foreground">Product Name</TableHead>
                                 <TableHead className="text-muted-foreground">Business Page</TableHead>
                                 <TableHead className="text-muted-foreground">Quantity</TableHead>
+                                <TableHead className="text-muted-foreground">Original Price</TableHead>
                                 <TableHead className="text-muted-foreground">Price</TableHead>
                                 <TableHead className="text-muted-foreground">Customization</TableHead>
                                 <TableHead className="text-muted-foreground">Discounts</TableHead>
@@ -820,8 +813,11 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                                         </Badge>
                                       )}
                                     </TableCell>
+                                     <TableCell className="text-foreground">
+                                      ₹{item.details?.price ? (item.details.price*item.quantity) : "0.00"}
+                                    </TableCell>
                                     <TableCell className="text-foreground">
-                                      ₹{item.details?.price ? item.details.price.toFixed(2) : "0.00"}
+                                      ₹{item?.finalPrice ? item.finalPrice * item.quantity : "0.00"}
                                     </TableCell>
                                     <TableCell>
                                       {item.customization ? (
@@ -836,6 +832,28 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                                       ) : (
                                         <span className="text-muted-foreground text-xs">No customization</span>
                                       )}
+                                    </TableCell>
+                                    <TableCell>
+                                      {
+                                        item.discount ? (
+                                          <div className="max-w-xs">
+                                          <BadgeWithVariants
+                                            variant="secondary"
+                                            className="font-normal whitespace-normal text-xs bg-secondary text-secondary-foreground"
+                                          >
+                                            {item.discount}%
+                                          </BadgeWithVariants>
+                                        </div>
+                                        ):
+                                        <div className="max-w-xs">
+                                          <BadgeWithVariants
+                                            variant="secondary"
+                                            className="font-normal whitespace-normal text-xs bg-secondary text-secondary-foreground"
+                                          >
+                                            None
+                                          </BadgeWithVariants>
+                                        </div>
+                                      }
                                     </TableCell>
                                     <TableCell>
                                       {item.recieveBy && Object.keys(item.recieveBy).length > 0 ? (
@@ -917,7 +935,7 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                                       {["priyanshu.paul003@gmail.com", "sgarvit22@gmail.com"].includes(
                                         session?.user?.email ?? "",
                                       ) && (
-                                        <div className="flex gap-2 mt-2">
+                                        <div className="flex flex-col gap-2 mt-2">
                                           <Button
                                             size="sm"
                                             variant="destructive"

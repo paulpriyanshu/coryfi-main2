@@ -4,7 +4,7 @@ import db from "@/db"
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { createOrUpdatePayoutForDay } from "./payouts";
-
+import { applyBestOffer } from "@/app/cart/best-offers";
 
 export const getProductDetails = async (pageId: string, productId: number) => {
   const product = await db.product.findUnique({
@@ -929,7 +929,6 @@ export async function deleteCart(cartId: string) {
 
 
 
-
 export async function moveCartToOrder(
   cartId: string,
   order_id: string,
@@ -951,6 +950,15 @@ export async function moveCartToOrder(
   const productToBusinessMap = new Map<number, string>();
   products.forEach((p) => productToBusinessMap.set(p.id, p.businessPageId));
 
+  // ✅ Prepare orderItems for offer calculation
+  const orderItemsForOffer = parsedCartItems.map((item: any) => ({
+    productId: item.productId,
+    price: item.price, // make sure cart item has price
+  }));
+
+  // ✅ Apply offers per business
+  const offersResult = await applyBestOffer(orderItemsForOffer);
+
   // OTP grouped by (businessPageId + recieveBy)
   const otpMap = new Map<string, string>();
   for (const item of parsedCartItems) {
@@ -966,6 +974,16 @@ export async function moveCartToOrder(
     const recieveBy = item.recieveBy?.type.toUpperCase?.() || "UNKNOWN";
     const otpKey = `${businessId}_${recieveBy}`;
     const otp = otpMap.get(otpKey);
+
+    // ✅ find discounted price from offersResult
+    const businessOffer = offersResult[businessId];
+    const discountedProduct = businessOffer?.products.find(
+      (p: any) => p.productId === item.productId
+    );
+
+    const finalPrice = discountedProduct
+      ? discountedProduct.discountedPrice
+      : item.price;
 
     let customizations: string[] = [];
     if (item.fields) {
@@ -988,19 +1006,28 @@ export async function moveCartToOrder(
     orderItemsData.push({
       productId: item.productId,
       quantity: item.quantity || 1,
+      finalPrice, // ✅ set discounted price
+      // originalPrice: item.price, // ✅ keep original for reference
       details: item || null,
       customization,
       recieveBy: item.recieveBy || null,
       OTP: otp,
-      // payoutId: will be connected later after payment
+      discount: businessOffer?.appliedOffer?.discountValue || null, // ✅ optional: store applied offer
     });
   }
 
+  // ✅ recalc totalCost using discounted prices
+  const recalculatedTotal = orderItemsData.reduce(
+    (sum, i) => sum + i.finalPrice * (i.quantity || 1),
+    0
+  );
+  console.log("order item data",orderItemsData)
+  console.log("order total cost",parseFloat(recalculatedTotal))
   const order = await db.order.create({
     data: {
       order_id,
       userId,
-      totalCost,
+      totalCost: parseFloat(recalculatedTotal),
       address: address ?? "No address provided",
       status: "pending",
       orderItems: { create: orderItemsData },
@@ -1009,6 +1036,9 @@ export async function moveCartToOrder(
 
   return order;
 }
+
+
+
 export async function updateCart(cartId: string, cartItems: any[], address?: string) {
   // console.log("updating",cartItems)
   const totalCost = cartItems.reduce((sum, item) => sum + item.price, 0);

@@ -359,6 +359,9 @@ export const getOrdersByBusinessPage = async (businessPageId: string) => {
             recieveBy: true,
             OTP: true,
             productFulfillmentStatus: true,
+            finalPrice:true,
+            originalPrice:true,
+            discount:true,
             outForDelivery: true,
             product: { select: { id: true, name: true, businessPageId: true } }
           }
