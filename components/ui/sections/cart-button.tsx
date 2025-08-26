@@ -10,12 +10,12 @@ export default function CartButton({ userId }) {
   const [cartItemCount, setCartItemCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-  const userid = parseInt(userId)
+  // const userid = parseInt(userId)
 
   useEffect(() => {
     async function fetchCart() {
       try {
-        const cart = await getCartsByUserId(userid)
+        const cart = await getCartsByUserId(userId)
         if (cart && cart.cartItems) {
           setCartItemCount(cart.productIds.length)
         }
