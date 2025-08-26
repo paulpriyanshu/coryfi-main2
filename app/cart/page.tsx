@@ -111,7 +111,7 @@ const ans = await applyBestOffer(
         <p className="text-muted-foreground mb-8 text-center max-w-md">
           Looks like you haven't added any items to your cart yet. Explore our products and find something you love!
         </p>
-        <Link href="/products">
+        <Link href="/explore">
           <Button size="lg" className="px-8">
             Continue Shopping
           </Button>
