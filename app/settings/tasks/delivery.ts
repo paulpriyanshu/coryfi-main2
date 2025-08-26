@@ -433,7 +433,6 @@ export async function getUnfulfilledOrders(userId: number) {
       include: {
         orderItems: true, // include order items
         transaction: true, // optional, include transaction details
-        payout: true, // optional, include payout details
         tasks: true, // optional, include related tasks
       },
       orderBy: {

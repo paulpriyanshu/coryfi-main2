@@ -17,7 +17,7 @@ import { applyBestOffer } from "./best-offers"
 
 export default async function CartPage() {
   const session = await getServerSession(authOptions)
-  const userData = await fetchUserId(session.user.email)
+  const userData = await fetchUserId(session?.user?.email)
   // console.log("userData while checkout", userData)
   // Replace with actual user ID from your auth system
   const userId = userData.id
