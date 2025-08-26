@@ -732,6 +732,7 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                                 <TableHead className="text-muted-foreground">Quantity</TableHead>
                                 <TableHead className="text-muted-foreground">Price</TableHead>
                                 <TableHead className="text-muted-foreground">Customization</TableHead>
+                                <TableHead className="text-muted-foreground">Discounts</TableHead>
                                 <TableHead className="text-muted-foreground">Recieve By</TableHead>
                                 <TableHead className="text-muted-foreground">Slot</TableHead>
                                 <TableHead className="text-muted-foreground">Employee</TableHead>

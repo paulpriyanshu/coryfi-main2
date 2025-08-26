@@ -275,21 +275,24 @@ model Business {
 }
 model Offer {
   id              Int        @id @default(autoincrement())
-  businessPageId  String        // The user who created the offer
+  businessPageId  String
   business        BusinessPageLayout       @relation(fields: [businessPageId], references: [pageId])
 
-  title           String     // Offer title (e.g., "Diwali Sale 50% Off")
+  title           String     // Offer title (e.g., "15% OFF on orders above ₹300")
   description     String?    // Optional details about the offer
-  image          String?    // Offer banner or image
-  discountType    DiscountType // Can be FLAT or PERCENTAGE
-  discountValue   Float      // The discount value (amount or percentage)
+  image           String?    // Offer banner or image
+  discountType    DiscountType // FLAT or PERCENTAGE
+  discountValue   Float      // e.g. 15 means 15% if type = PERCENTAGE, or ₹15 if FLAT
   
-  applicableCategories Category[] @relation("OfferCategories") // Offer applies to these categories
-  applicableProducts  Product[]  @relation("OfferProducts")  // Offer applies to these products
-  
-  startDate       DateTime  // When the offer starts
-  endDate         DateTime  // When the offer expires
-  isActive        Boolean   @default(true) // Whether the offer is currently active
+  minOrderAmount  Float?     // ✅ Minimum order value required (e.g., 300 for 15% off above ₹300)
+  maxDiscountValue Float?    // ✅ Optional cap on discount (e.g., max ₹100 off even if 15% > 100)
+
+  applicableCategories Category[] @relation("OfferCategories") 
+  applicableProducts  Product[]  @relation("OfferProducts")  
+
+  startDate       DateTime
+  endDate         DateTime
+  isActive        Boolean   @default(true)
 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt

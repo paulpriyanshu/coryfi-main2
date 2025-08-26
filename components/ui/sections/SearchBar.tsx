@@ -85,6 +85,7 @@ export default function ModernSearchBar() {
         setIsModalOpen(false)
       }
     }
+    
 
     if (isModalOpen) {
       document.addEventListener("keydown", handleEscape)
