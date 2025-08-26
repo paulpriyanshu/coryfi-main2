@@ -2,6 +2,7 @@
 import db from "@/db"
 import { string, z } from "zod";
 import { fetchUserId } from "../actions/media";
+import { StepIndex } from "aws-sdk/clients/databrew";
 
 // Define validation schema using Zod
 const merchantSchema = z.object({
@@ -505,7 +506,8 @@ export const getBusinessPageData=async(pageId)=>{
             products:true,
           }
         },
-        products:true
+        products:true,
+        offers:true
       }
      })
     if(pageData) {
@@ -520,6 +522,15 @@ export const getBusinessPageData=async(pageId)=>{
 
 }
 
+// export const getOffersFromPage=async(pageId:string)=>{
+//   try {
+//     const data=await db.offer.findMany
+    
+//   } catch (error) {
+    
+//   }
+
+// }
 
 
 // export const getBusinessPageData = async (pageId: string, page = 1, category?: string) => {
