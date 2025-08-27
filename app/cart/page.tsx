@@ -42,7 +42,7 @@ export default async function CartPage() {
   }
  let cart
   try {
-    cart = await getCartsByUserId(userId)
+    cart = await getCartsByUserId(userData.id)
   } catch (error) {
     console.error("Error fetching cart:", error)
     return (
@@ -78,7 +78,7 @@ export default async function CartPage() {
   }
   // console.log("ans",JSON.stringify(ans,null,2))
 
-  // const userData=await fetchUserData(userId)
+  // const userData=await fetchUserData(userData.id)
 
   const totalCost = cart?.totalCost
   const taxAmount = 0
@@ -584,7 +584,7 @@ export default async function CartPage() {
                   Checkout Unavailable - Remove Out of Stock Items
                 </Button>
               ) : (
-                <Link href={`/checkout/${userId}`}>
+                <Link href={`/checkout/${userData.id}`}>
                   <Button className="w-full py-6 text-base" size="lg">
                     Proceed to Checkout
                   </Button>
