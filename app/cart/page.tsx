@@ -1,9 +1,19 @@
-"use client"
 import { getCartsByUserId } from "@/app/api/business/products"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { ShoppingBag, Trash2, ArrowLeft, Package, Plus, Minus, AlertTriangle, Tag, Percent, Sparkles } from "lucide-react"
+import {
+  ShoppingBag,
+  Trash2,
+  ArrowLeft,
+  Package,
+  Plus,
+  Minus,
+  AlertTriangle,
+  Tag,
+  Percent,
+  Sparkles,
+} from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
@@ -40,7 +50,7 @@ export default async function CartPage() {
       </div>
     )
   }
- let cart
+  let cart
   try {
     cart = await getCartsByUserId(userData.id)
   } catch (error) {
@@ -54,9 +64,11 @@ export default async function CartPage() {
         <p className="text-muted-foreground mb-8 text-center max-w-md">
           There was an error loading your cart. Please try again.
         </p>
-        <Button onClick={() => window.location.reload()} size="lg" className="px-8">
-          Retry
-        </Button>
+        <Link href="/cart">
+          <Button size="lg" className="px-8">
+            Retry
+          </Button>
+        </Link>
       </div>
     )
   }
@@ -65,10 +77,10 @@ export default async function CartPage() {
   if (cart?.cartItems?.length > 0) {
     try {
       ans = await applyBestOffer(
-        cart.cartItems.map(item => ({
+        cart.cartItems.map((item) => ({
           productId: item.productId,
           price: item.price,
-        }))
+        })),
       )
       console.log("ans", JSON.stringify(ans, null, 2))
     } catch (error) {
@@ -82,12 +94,12 @@ export default async function CartPage() {
 
   const totalCost = cart?.totalCost
   const taxAmount = 0
-  
+
   // Calculate total discount from all offers
   const totalDiscount = Object.values(ans).reduce((sum, offer) => sum + (offer.bestDiscount || 0), 0)
   const finalTotalAfterOffers = Object.values(ans).reduce((sum, offer) => sum + (offer.finalTotal || 0), 0)
   const totalWithTax = finalTotalAfterOffers + taxAmount
-  
+
   // console.log("user data", JSON.stringify(userData, null, 2))
   //   const quantity=cartItems.filter((item)=>item)
   // console.log("user cart", cart)
@@ -116,24 +128,23 @@ export default async function CartPage() {
               hasOffer: !!offerData.appliedOffer,
               discount: offerData.bestDiscount || 0,
               originalPrice: item.price,
-              discountedPrice: offerData.appliedOffer ? 
-                item.price - (item.price * offerData.appliedOffer.discountValue / 100) : 
-                item.price
+              discountedPrice: offerData.appliedOffer
+                ? item.price - (item.price * offerData.appliedOffer.discountValue) / 100
+                : item.price,
             }
             break
           }
         }
-        
-        groupedItems.push({ 
-          ...item, 
-          quantity: 1, 
+
+        groupedItems.push({
+          ...item,
+          quantity: 1,
           uniqueKey,
-          offerInfo: itemOfferInfo
+          offerInfo: itemOfferInfo,
         })
       }
     }
   }
-  
 
   // Remove the uniqueKey before returning the grouped items
   const finalGroupedItems = groupedItems.map(({ uniqueKey, ...rest }) => rest)
@@ -141,11 +152,11 @@ export default async function CartPage() {
   console.log("grouped items", groupedItems)
 
   // Check if any item in the cart has a stock of 0
-  const hasOutOfStockItems = groupedItems.some(item => item.stock === 0)
+  const hasOutOfStockItems = groupedItems.some((item) => item.stock === 0)
 
   // Helper function to get active offers for display
   const getActiveOffers = () => {
-    return Object.values(ans).filter(offer => offer.appliedOffer !== null)
+    return Object.values(ans).filter((offer) => offer.appliedOffer !== null)
   }
 
   if (!cart || !cart.cartItems || cart.cartItems.length === 0) {
@@ -194,7 +205,10 @@ export default async function CartPage() {
               </div>
               <div className="space-y-2">
                 {getActiveOffers().map((offer, index) => (
-                  <div key={index} className="flex items-center justify-between bg-white dark:bg-gray-800 p-3 rounded-md">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between bg-white dark:bg-gray-800 p-3 rounded-md"
+                  >
                     <div className="flex items-center">
                       <Percent className="h-4 w-4 text-green-600 mr-2" />
                       <div>
@@ -202,7 +216,10 @@ export default async function CartPage() {
                         <p className="text-xs text-muted-foreground">{offer?.appliedOffer?.description}</p>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 font-semibold">
+                    <Badge
+                      variant="secondary"
+                      className="bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 font-semibold"
+                    >
                       -₹{offer?.bestDiscount}
                     </Badge>
                   </div>
@@ -224,14 +241,15 @@ export default async function CartPage() {
             </Alert>
           )}
           {groupedItems.map((item, index) => (
-            <Card 
-              key={index} 
+            <Card
+              key={index}
               className={`
                 overflow-hidden border-muted/40 dark:bg-gray-900 transition-all duration-300
                 ${item.stock === 0 ? "border-destructive border-2" : ""} 
-                ${item.offerInfo?.hasOffer ? 
-                  "ring-2 ring-green-400 border-green-300 bg-gradient-to-r from-green-50/50 to-emerald-50/30 dark:from-green-900/20 dark:to-emerald-900/20 shadow-lg shadow-green-100/50 dark:shadow-green-900/20" : 
-                  "hover:shadow-md"
+                ${
+                  item.offerInfo?.hasOffer
+                    ? "ring-2 ring-green-400 border-green-300 bg-gradient-to-r from-green-50/50 to-emerald-50/30 dark:from-green-900/20 dark:to-emerald-900/20 shadow-lg shadow-green-100/50 dark:shadow-green-900/20"
+                    : "hover:shadow-md"
                 }
               `}
             >
@@ -241,9 +259,7 @@ export default async function CartPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
-                      <span className="text-sm font-semibold">
-                        🎊 {item.offerInfo.appliedOffer.title} Applied!
-                      </span>
+                      <span className="text-sm font-semibold">🎊 {item.offerInfo.appliedOffer.title} Applied!</span>
                     </div>
                     <Badge className="bg-white/20 text-white border-white/30 text-xs font-bold">
                       {item.offerInfo.appliedOffer.discountValue}% OFF
@@ -259,14 +275,14 @@ export default async function CartPage() {
                     {item.offerInfo?.hasOffer && (
                       <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-emerald-500/20 pointer-events-none"></div>
                     )}
-                    
+
                     <Image
                       src={item.images[0] || `/placeholder.svg?height=200&width=200`}
                       alt={item.name}
                       fill
                       className="object-cover"
                     />
-                    
+
                     {/* Enhanced Offer Badge on Image */}
                     {item.offerInfo?.hasOffer && (
                       <div className="absolute top-2 left-2">
@@ -286,18 +302,20 @@ export default async function CartPage() {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="p-6 flex-1 flex flex-col justify-between">
                     <div className="space-y-2">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className={`font-semibold text-xl ${item.offerInfo?.hasOffer ? 'text-green-900 dark:text-green-100' : ''}`}>
+                          <h3
+                            className={`font-semibold text-xl ${item.offerInfo?.hasOffer ? "text-green-900 dark:text-green-100" : ""}`}
+                          >
                             {item.name}
                             {item.offerInfo?.hasOffer && (
                               <Sparkles className="inline h-4 w-4 ml-1 text-green-600 animate-pulse" />
                             )}
                           </h3>
-                          
+
                           {/* Enhanced offer applied indicator */}
                           {item.offerInfo?.hasOffer && (
                             <div className="flex items-center mt-1 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full w-fit">
@@ -308,14 +326,12 @@ export default async function CartPage() {
                             </div>
                           )}
                         </div>
-                        
+
                         {/* Enhanced Price Display with Offer */}
                         <div className="text-right">
                           {item.offerInfo?.hasOffer ? (
                             <div>
-                              <div className="text-sm text-muted-foreground line-through">
-                                ₹{item.price.toFixed(2)}
-                              </div>
+                              <div className="text-sm text-muted-foreground line-through">₹{item.price.toFixed(2)}</div>
                               <div className="font-bold text-lg text-green-600">
                                 ₹{item.offerInfo.discountedPrice.toFixed(2)}
                               </div>
@@ -330,22 +346,24 @@ export default async function CartPage() {
                       </div>
 
                       {item.customization && (
-                        <div className={`px-3 py-2 rounded-md ${item.offerInfo?.hasOffer ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-muted/20'}`}>
+                        <div
+                          className={`px-3 py-2 rounded-md ${item.offerInfo?.hasOffer ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800" : "bg-muted/20"}`}
+                        >
                           <h4 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">
                             Customization
                           </h4>
                           <p className="text-sm">{item.customization}</p>
                         </div>
                       )}
-                      
+
                       {/* Enhanced Cost Breakdown */}
-                      <div className={`mt-3 px-3 py-2 rounded-md ${item.offerInfo?.hasOffer ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-muted/10'}`}>
+                      <div
+                        className={`mt-3 px-3 py-2 rounded-md ${item.offerInfo?.hasOffer ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800" : "bg-muted/10"}`}
+                      >
                         <h4 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1 flex items-center">
                           Cost Breakdown
                           {item.offerInfo?.hasOffer && (
-                            <Badge className="ml-2 bg-green-600 text-white text-xs px-2 py-0">
-                              Offer Applied
-                            </Badge>
+                            <Badge className="ml-2 bg-green-600 text-white text-xs px-2 py-0">Offer Applied</Badge>
                           )}
                         </h4>
                         <div className="space-y-1 text-sm">
@@ -370,7 +388,7 @@ export default async function CartPage() {
                                 <span>
                                   {name} × {details.count}
                                 </span>
-                                <span>₹{(details.cost * (details.count-details.default)).toFixed(2)}</span>
+                                <span>₹{(details.cost * (details.count - details.default)).toFixed(2)}</span>
                               </div>
                             ))}
 
@@ -417,41 +435,40 @@ export default async function CartPage() {
                           DELIVERY
                         </Badge>
                       )}
-                      
+
                       {item.recieveBy && Object.keys(item.recieveBy).length > 0 && item.scheduledDateTime ? (
                         <div className="max-w-full">
                           <Badge variant="secondary" className="font-semibold whitespace-normal text-xs bg-green-400">
                             Pickup Slot - {item.scheduledDateTime.date} | Time {item.scheduledDateTime.timeSlot}
                           </Badge>
                         </div>
-                      ) : (
-                      null
-                      )}
-                      
+                      ) : null}
+
                       <div className="flex items-center mt-2">
                         <Package className="h-4 w-4 text-muted-foreground mr-1.5" />
                         <span
                           className={`text-sm ${
-                            item.stock === 0 
-                            ? "text-destructive font-medium" 
-                            : item.stock <= 3 
-                              ? "text-amber-600 font-medium" 
-                              : "text-muted-foreground"
+                            item.stock === 0
+                              ? "text-destructive font-medium"
+                              : item.stock <= 3
+                                ? "text-amber-600 font-medium"
+                                : "text-muted-foreground"
                           }`}
                         >
-                          {item.stock === 0 
-                            ? "Out of stock" 
-                            : item.stock <= 3 
-                              ? `Only ${item.stock} left in stock!` 
-                              : `${item.stock} in stock`
-                          }
+                          {item.stock === 0
+                            ? "Out of stock"
+                            : item.stock <= 3
+                              ? `Only ${item.stock} left in stock!`
+                              : `${item.stock} in stock`}
                         </span>
                       </div>
 
                       {/* Quantity controls */}
                       <div className="flex items-center mt-4">
                         <span className="text-sm text-muted-foreground mr-3">Quantity:</span>
-                        <div className={`flex items-center border rounded-md ${item.offerInfo?.hasOffer ? 'border-green-300 bg-green-50 dark:bg-green-900/20' : ''}`}>
+                        <div
+                          className={`flex items-center border rounded-md ${item.offerInfo?.hasOffer ? "border-green-300 bg-green-50 dark:bg-green-900/20" : ""}`}
+                        >
                           <form action={decreaseQuantity.bind(null, cart.id, cart.cartItems, item, cart.address)}>
                             <Button
                               type="submit"
@@ -464,7 +481,9 @@ export default async function CartPage() {
                             </Button>
                           </form>
 
-                          <span className={`px-3 font-semibold ${item.offerInfo?.hasOffer ? 'text-green-700 dark:text-green-300' : ''}`}>
+                          <span
+                            className={`px-3 font-semibold ${item.offerInfo?.hasOffer ? "text-green-700 dark:text-green-300" : ""}`}
+                          >
                             {item.quantity}
                           </span>
 
@@ -517,7 +536,7 @@ export default async function CartPage() {
                   <span className="text-muted-foreground">Subtotal</span>
                   <span>₹{totalCost.toFixed(2)}</span>
                 </div>
-                
+
                 {/* Show discount breakdown if any offers applied */}
                 {totalDiscount > 0 && (
                   <div className="space-y-2 bg-green-50 dark:bg-green-900/20 p-3 rounded-md border border-green-200 dark:border-green-800">
@@ -531,7 +550,9 @@ export default async function CartPage() {
                           <Tag className="h-3 w-3 mr-1" />
                           {offer.appliedOffer.title}
                         </span>
-                        <span className="text-green-700 dark:text-green-300 font-semibold">-₹{offer.bestDiscount.toFixed(2)}</span>
+                        <span className="text-green-700 dark:text-green-300 font-semibold">
+                          -₹{offer.bestDiscount.toFixed(2)}
+                        </span>
                       </div>
                     ))}
                     <Separator className="my-2 bg-green-200 dark:bg-green-800" />
@@ -541,7 +562,7 @@ export default async function CartPage() {
                     </div>
                   </div>
                 )}
-                
+
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
                   <span className="text-green-600 font-medium">Free</span>
@@ -559,19 +580,19 @@ export default async function CartPage() {
                         ₹{(totalCost + taxAmount).toFixed(2)}
                       </div>
                     )}
-                    <span className={totalDiscount > 0 ? 'text-green-600' : ''}>
-                      ₹{totalWithTax.toFixed(2)}
-                    </span>
+                    <span className={totalDiscount > 0 ? "text-green-600" : ""}>₹{totalWithTax.toFixed(2)}</span>
                   </div>
                 </div>
-                
+
                 {/* Enhanced total savings summary */}
                 {totalDiscount > 0 && (
                   <div className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 p-4 rounded-lg mt-3 border border-green-300 dark:border-green-700">
                     <div className="flex items-center justify-center text-green-700 dark:text-green-300">
                       <div className="flex items-center bg-white dark:bg-gray-800 px-3 py-2 rounded-full shadow-sm">
                         <Sparkles className="h-4 w-4 mr-2 text-green-600 animate-pulse" />
-                        <span className="text-sm font-bold">🎉 You saved ₹{totalDiscount.toFixed(2)} on this order!</span>
+                        <span className="text-sm font-bold">
+                          🎉 You saved ₹{totalDiscount.toFixed(2)} on this order!
+                        </span>
                       </div>
                     </div>
                   </div>
