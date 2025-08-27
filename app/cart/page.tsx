@@ -1,3 +1,4 @@
+"use client"
 import { getCartsByUserId } from "@/app/api/business/products"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
