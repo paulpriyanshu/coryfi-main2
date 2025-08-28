@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { FileText, Printer, Truck } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import DeliveryReminder from "./deliver-reminder"
+import RefundHelpCard from "./refund-help"
 
 function Orderdetails({ orderData }) {
   // Initialize state with a default expanded order if available
@@ -143,9 +144,11 @@ function Orderdetails({ orderData }) {
       <div className="flex flex-col gap-2 mb-6">
         <h1 className="text-3xl font-bold tracking-tight">My Orders</h1>
         <p className="text-muted-foreground">View and track your order history</p>
-          </div>
-      <DeliveryReminder/>
 
+          </div>
+      <RefundHelpCard/>
+      
+      
       <div className="space-y-6">
         {orderData.data.map((order) => (
           <Card
@@ -288,6 +291,7 @@ function Orderdetails({ orderData }) {
                     order.fulfillmentStatus === "cancelled" ? "bg-red-50/30 dark:bg-red-950/30" : ""
                   }`}
                 >
+                  <DeliveryReminder/>
                   {order.fulfillmentStatus === "cancelled" && (
                     <div className="mb-4 p-3 bg-red-100 border border-red-200 rounded-md dark:bg-red-900/50 dark:border-red-800">
                       <div className="flex items-center gap-2">
