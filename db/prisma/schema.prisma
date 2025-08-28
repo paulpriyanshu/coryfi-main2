@@ -412,6 +412,7 @@ model BusinessPageLayout {
   employees           Employee[]
   payouts             Payout[]
   visibility          Boolean             @default(false)
+  cod                 Boolean             @default(false)
   PageAlertsBeforeCart    Json?
 
   // posts               Post[]
@@ -452,6 +453,7 @@ model Order {
   updatedAt   DateTime   @updatedAt
   address     Json? 
   fulfillmentStatus String  @default("pending")
+  payment_method   String?  @default("pre-paid")
   // payoutId    String? 
   // payout      Payout?   @relation(fields: [payoutId],references: [payout_id]). // removed as payout depends on order Items which is the orders for each outlet and each product
   tasks       Task[]     // This is still valid; it's a reverse relation.

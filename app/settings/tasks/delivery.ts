@@ -4,13 +4,13 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 
-export const overRideFulfillment = async (orderId: string) => {
+export const overRideFulfillment = async (orderId: string,productId:number) => {
   try {
     console.log("Override fulfillment for order:", orderId);
 
     // 1. Mark all order items as fulfilled
     const updatedItems = await db.orderItem.updateMany({
-      where: { orderId },
+      where: { orderId,productId},
       data: { productFulfillmentStatus: "fulfilled" },
     });
 
@@ -61,7 +61,7 @@ export const overRideFulfillment = async (orderId: string) => {
       await db.order.update({
         where: { id: orderId },
         data: {
-          status: "fulfilled",
+          status: "completed",
           fulfillmentStatus: "fulfilled",
         },
       });

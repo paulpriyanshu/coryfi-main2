@@ -167,12 +167,12 @@ export default function AddressFormModal({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="city">City</Label>
               <Input id="city" name="city" placeholder="City" defaultValue={selectedAddress?.city || ""} required />
-            </div>
+            </div> */}
 
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="state">State/Province</Label>
               <Input
                 id="state"
@@ -181,11 +181,11 @@ export default function AddressFormModal({
                 defaultValue={selectedAddress?.state || ""}
                 required
               />
-            </div>
+            </div> */}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="country">Country</Label>
               <Input
                 id="country"
@@ -194,9 +194,9 @@ export default function AddressFormModal({
                 defaultValue={selectedAddress?.country || ""}
                 required
               />
-            </div>
+            </div> */}
 
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="zip">ZIP/Postal Code</Label>
               <Input
                 id="zip"
@@ -205,7 +205,7 @@ export default function AddressFormModal({
                 defaultValue={selectedAddress?.zip || ""}
                 required
               />
-            </div>
+            </div> */}
           </div>
 
           <div className="space-y-2">

@@ -14,7 +14,7 @@ export const getOrders = async (userId: number) => {
       const orders = await db.order.findMany({
         where: {
           userId,
-          // status: 'completed',
+          status: 'completed',
         },
         orderBy: {
           createdAt: 'desc',
@@ -332,6 +332,7 @@ export const getOrdersByBusinessPage = async (businessPageId: string) => {
         totalCost: true,
         createdAt: true,
         fulfillmentStatus: true,
+        payment_method:true,
         tasks: {
           where: { businessId: businessPageId },
           include: {

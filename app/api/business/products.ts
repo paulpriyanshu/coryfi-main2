@@ -934,7 +934,8 @@ export async function moveCartToOrder(
   order_id: string,
   userId: number,
   address: any,
-  totalCost: any
+  totalCost: any,
+  payment_method:string
 ) {
   const cart = await db.cart.findUnique({ where: { id: cartId } });
   if (!cart) throw new Error("Cart not found");
@@ -1023,6 +1024,21 @@ export async function moveCartToOrder(
   );
   console.log("order item data",orderItemsData)
   console.log("order total cost",parseFloat(recalculatedTotal))
+  if(payment_method==="COD"){
+     const order = await db.order.create({
+    data: {
+      order_id,
+      userId,
+      totalCost: parseFloat(recalculatedTotal),
+      address: address ?? "No address provided",
+      status: "completed",
+      orderItems: { create: orderItemsData },
+      payment_method
+    },
+  });
+  return order
+
+  }
   const order = await db.order.create({
     data: {
       order_id,
@@ -1031,6 +1047,7 @@ export async function moveCartToOrder(
       address: address ?? "No address provided",
       status: "pending",
       orderItems: { create: orderItemsData },
+      payment_method
     },
   });
 

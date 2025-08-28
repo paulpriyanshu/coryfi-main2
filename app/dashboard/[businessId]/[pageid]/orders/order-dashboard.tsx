@@ -308,11 +308,13 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
     return order.user || null
   }
 
-  const handleOverrideFulfillment = async (order) => {
+  const handleOverrideFulfillment = async (order,item) => {
     const totalItems = order.orderItems.reduce((sum, item) => sum + item.quantity, 0)
+    // console.log("item for over ride",item.product.id)
     setSelectedOrderForOverride({
       order_id: order.order_id,
       orderId: order.id,
+      productId:item.product.id,
       totalItems,
     })
     setIsOverrideModalOpen(true)
@@ -322,24 +324,28 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
     if (!selectedOrderForOverride) return
 
     try {
-      const result = await overRideFulfillment(selectedOrderForOverride.orderId)
+      console.log("selected order for override",selectedOrderForOverride)
+      const result = await overRideFulfillment(selectedOrderForOverride.orderId,selectedOrderForOverride.productId)
 
-      if (result.success) {
-        // Update the local state to reflect the changes
-        const updatedOrders = [...processedOrders]
-        const orderIndex = updatedOrders.findIndex((o) => o.id === selectedOrderForOverride.orderId)
+   if (result.success) {
+  const updatedOrders = [...processedOrders]
+  const orderIndex = updatedOrders.findIndex(
+    (o) => o.id === selectedOrderForOverride.orderId
+  )
 
-        if (orderIndex >= 0) {
-          // Mark all items as fulfilled
-          updatedOrders[orderIndex].orderItems = updatedOrders[orderIndex].orderItems.map((item) => ({
-            ...item,
-            productFulfillmentStatus: "fulfilled",
-          }))
-          setProcessedOrders(updatedOrders)
-        }
+  if (orderIndex >= 0) {
+    // Update only the item with matching productId
+    updatedOrders[orderIndex].orderItems = updatedOrders[orderIndex].orderItems.map(
+      (item) =>
+        item.productId === selectedOrderForOverride.productId
+          ? { ...item, productFulfillmentStatus: "fulfilled" }
+          : item
+    )
 
-        toast.success(result.message)
-      } else {
+    setProcessedOrders(updatedOrders)
+  }
+  toast.success(result.message)
+} else {
         toast.error(result.message || "Failed to override fulfillment")
       }
     } catch (error) {
@@ -555,19 +561,23 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                     key={order.id}
                     open={expandedOrders[order.id]}
                     onOpenChange={() => toggleOrderExpanded(order.id)}
-                    className={`border-b border-border last:border-b-0 ${
-                      order.orderItems.every((item) => item.productFulfillmentStatus === "fulfilled")
-                        ? "border-4 border-green-500 bg-green-100 dark:bg-green-900/20"
-                        : order.orderItems.every((item) => item.productFulfillmentStatus === "cancelled")
-                          ? "border-4 border-red-500 bg-red-100 dark:bg-red-900/20"
-                          : ""
-                    }`}
-                  >
+                  className={`border-b border-border last:border-b-0 ${
+                  order.orderItems.every((item) => item.productFulfillmentStatus === "fulfilled")
+                    ? "border-4 border-green-500 bg-green-100 dark:bg-green-900/20"
+                    : order.orderItems.every((item) => item.productFulfillmentStatus === "cancelled")
+                    ? "border-4 border-red-500 bg-red-100 dark:bg-red-900/20"
+                    : order.orderItems.some((item) =>
+                        ["cancelled", "pending", "fulfilled"].includes(item.productFulfillmentStatus)
+                      )
+                    ? "border-4 border-yellow-500 bg-yellow-100 dark:bg-yellow-900/20"
+                    : ""
+                }`}
+                >
                     <div
                       className="flex items-center p-4 hover:bg-muted/50 cursor-pointer"
                       onClick={() => toggleOrderExpanded(order.id)}
                     >
-                      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 flex-1">
+                      <div className="grid grid-cols-3 md:grid-cols-7 gap-4 flex-1">
                         <div>
                           <p className="text-sm font-medium text-foreground">Order ID</p>
                           <p className="text-sm text-muted-foreground">
@@ -621,6 +631,13 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                           <p className="text-sm text-muted-foreground">
                             ₹
                             {order.totalCost.toFixed(2)}
+                          </p>
+                          
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Payment Method</p>
+                          <p className="text-sm text-muted-foreground">
+                            {order.payment_method}
                           </p>
                         </div>
                         <div>
@@ -792,7 +809,11 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                                 })
 
                                 return groupedItems.map((item, index) => (
-                                  <TableRow key={index} className="border-border hover:bg-muted/50">
+                                  <TableRow key={index} className={`border-border  ${
+                                    item.productFulfillmentStatus === "cancelled"
+                                      ? "border-red-500 bg-red-100 dark:bg-red-900/20"
+                                      : ""
+                                  }`}>
                                     <TableCell className="font-medium text-foreground">{item.product.id}</TableCell>
                                     <TableCell className="text-foreground">{item.product.name}</TableCell>
                                     <TableCell>
@@ -941,7 +962,7 @@ export default function OrdersDashboard({ pageId, businessId, employees }) {
                                             variant="destructive"
                                             onClick={(e) => {
                                               e.stopPropagation()
-                                              handleOverrideFulfillment(order)
+                                              handleOverrideFulfillment(order,item)
                                             }}
                                           >
                                             Override Fulfillment

@@ -6,10 +6,12 @@ import { redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import OrderButton from "./OrderButton"
 import { fetchUserData } from "../../api/actions/media"
 import AddressFormClient from "./address-form-client"
 import { applyBestOffer } from "@/app/cart/best-offers"
+import dynamic from "next/dynamic"
+
+const PaymentMethodClient = dynamic(() => import("./payment-method-client"), { ssr: false })
 
 export default async function CheckoutPage({ params }) {
   const userId = params.id
@@ -22,15 +24,15 @@ export default async function CheckoutPage({ params }) {
 
   // Apply offers
   const ans = await applyBestOffer(
-    cart.cartItems.map(item => ({
+    cart.cartItems.map((item) => ({
       productId: item.productId,
       price: item.price,
-    }))
+    })),
   )
 
   const originalTotalCost = cart?.totalCost || 0
   const taxAmount = 0
-  
+
   // Calculate totals from the new data structure
   const totalDiscount = Object.values(ans).reduce((sum, offer) => sum + (offer.bestDiscount || 0), 0)
   const finalTotalAfterOffers = Object.values(ans).reduce((sum, offer) => sum + (offer.finalTotal || 0), 0)
@@ -62,7 +64,7 @@ export default async function CheckoutPage({ params }) {
         for (const [businessPageId, offerData] of Object.entries(ans)) {
           if (offerData.appliedOffer && offerData.products) {
             // Find the specific product in the products array
-            const productOffer = offerData.products.find(p => p.productId === item.productId)
+            const productOffer = offerData.products.find((p) => p.productId === item.productId)
             if (productOffer) {
               itemOfferInfo = {
                 businessPageId,
@@ -70,7 +72,7 @@ export default async function CheckoutPage({ params }) {
                 hasOffer: true,
                 originalPrice: productOffer.originalPrice,
                 discountedPrice: productOffer.discountedPrice,
-                discount: productOffer.originalPrice - productOffer.discountedPrice
+                discount: productOffer.originalPrice - productOffer.discountedPrice,
               }
               discountedPrice = productOffer.discountedPrice
               originalPrice = productOffer.originalPrice
@@ -78,14 +80,14 @@ export default async function CheckoutPage({ params }) {
             }
           }
         }
-        
-        groupedItems.push({ 
-          ...item, 
-          quantity: 1, 
+
+        groupedItems.push({
+          ...item,
+          quantity: 1,
           uniqueKey,
           offerInfo: itemOfferInfo,
           displayPrice: discountedPrice,
-          originalPrice: originalPrice
+          originalPrice: originalPrice,
         })
       }
     }
@@ -96,7 +98,7 @@ export default async function CheckoutPage({ params }) {
 
   // Helper function to get active offers for display
   const getActiveOffers = () => {
-    return Object.values(ans).filter(offer => offer.appliedOffer !== null)
+    return Object.values(ans).filter((offer) => offer.appliedOffer !== null)
   }
 
   return (
@@ -122,11 +124,16 @@ export default async function CheckoutPage({ params }) {
             <CardContent className="p-4">
               <div className="flex items-center mb-3">
                 <Tag className="h-5 w-5 text-green-600 mr-2" />
-                <h3 className="font-semibold text-green-800 dark:text-green-200">Great News! Your Offers Are Applied</h3>
+                <h3 className="font-semibold text-green-800 dark:text-green-200">
+                  Great News! Your Offers Are Applied
+                </h3>
               </div>
               <div className="space-y-2">
                 {getActiveOffers().map((offer, index) => (
-                  <div key={index} className="flex items-center justify-between bg-white dark:bg-gray-800 p-3 rounded-md">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between bg-white dark:bg-gray-800 p-3 rounded-md"
+                  >
                     <div className="flex items-center">
                       <Percent className="h-4 w-4 text-green-600 mr-2" />
                       <div>
@@ -134,7 +141,10 @@ export default async function CheckoutPage({ params }) {
                         <p className="text-xs text-muted-foreground">{offer.appliedOffer.description}</p>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+                    <Badge
+                      variant="secondary"
+                      className="bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100"
+                    >
                       -₹{offer.bestDiscount.toFixed(2)}
                     </Badge>
                   </div>
@@ -224,40 +234,19 @@ export default async function CheckoutPage({ params }) {
                         <Shield className="h-5 w-5 text-primary" />
                         Payment Method
                       </CardTitle>
-                      <CardDescription>Complete your purchase securely with Google Pay</CardDescription>
                     </div>
-                    <Badge
-                      variant="secondary"
-                      className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                    >
-                      Secure
-                    </Badge>
+                    <div>{/* Placeholder for additional content if needed */}</div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="p-8 border-2 border-dashed border-muted rounded-lg flex flex-col items-center justify-center text-center bg-muted/5">
-                    <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                      <Image
-                        src="/google-pay-logo.png"
-                        alt="Google Pay"
-                        width={40}
-                        height={40}
-                        className="opacity-80"
-                      />
-                    </div>
-                    <h3 className="font-semibold text-lg mb-2">Secure Payment Processing</h3>
-                    <p className="text-muted-foreground mb-6 max-w-md">
-                      Your payment is processed securely through Google Pay. We never store your payment information.
-                    </p>
-                    <OrderButton
-                      userId={userId}
-                      user_email={userData.email}
-                      user_name={userData.name}
-                      user_phone={userData?.userDetails?.phoneNumber}
-                      total_amount={totalWithTax}
-                      cart={cart}
-                    />
-                  </div>
+                  <PaymentMethodClient
+                    userId={userId}
+                    userEmail={userData.email}
+                    userName={userData.name}
+                    userPhone={userData?.userDetails?.phoneNumber}
+                    totalAmount={totalWithTax}
+                    cart={cart}
+                  />
                 </CardContent>
               </Card>
             )}
@@ -299,7 +288,7 @@ export default async function CheckoutPage({ params }) {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-medium truncate">{item.name}</h4>
-                        
+
                         {/* Show offer applied indicator */}
                         {item.offerInfo?.hasOffer && (
                           <div className="flex items-center mt-1">
@@ -356,7 +345,9 @@ export default async function CheckoutPage({ params }) {
                               </div>
                             ) : (
                               <div>
-                                <p className="text-sm font-semibold">₹{(item.displayPrice * item.quantity).toFixed(2)}</p>
+                                <p className="text-sm font-semibold">
+                                  ₹{(item.displayPrice * item.quantity).toFixed(2)}
+                                </p>
                                 <p className="text-xs text-muted-foreground">₹{item.displayPrice.toFixed(2)} each</p>
                               </div>
                             )}
@@ -374,7 +365,7 @@ export default async function CheckoutPage({ params }) {
                     <span className="text-muted-foreground">Subtotal</span>
                     <span className="font-medium">₹{originalTotalCost.toFixed(2)}</span>
                   </div>
-                  
+
                   {/* Show discount breakdown if any offers applied */}
                   {totalDiscount > 0 && (
                     <div className="space-y-2">
@@ -393,7 +384,7 @@ export default async function CheckoutPage({ params }) {
                       </div>
                     </div>
                   )}
-                  
+
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
                     <span className="text-green-600 font-medium flex items-center gap-1">
@@ -417,13 +408,15 @@ export default async function CheckoutPage({ params }) {
                       <span className="text-primary">₹{totalWithTax.toFixed(2)}</span>
                     </div>
                   </div>
-                  
+
                   {/* Show total savings summary */}
                   {totalDiscount > 0 && (
                     <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-md mt-3">
                       <div className="flex items-center justify-center text-green-700 dark:text-green-300">
                         <Tag className="h-4 w-4 mr-2" />
-                        <span className="text-sm font-medium">You saved ₹{totalDiscount.toFixed(2)} on this order!</span>
+                        <span className="text-sm font-medium">
+                          You saved ₹{totalDiscount.toFixed(2)} on this order!
+                        </span>
                       </div>
                     </div>
                   )}

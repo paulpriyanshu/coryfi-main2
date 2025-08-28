@@ -6,22 +6,23 @@ import { load } from "@cashfreepayments/cashfree-js";
 import { generateOrderId } from "@/app/api/business/order/order";
 import { deleteCart, moveCartToOrder } from "@/app/api/business/products";
 import { fetchUserData } from "@/app/api/actions/media";
-import { Loader2 } from "lucide-react"; // if you're using lucide-react icons
-import { generateOTP } from "./otp";
+import { Loader2 } from "lucide-react";
 
 let cashfree: any;
 
-function Checkout({ userId, user_name, user_email, user_phone, total_amount, cart }) {
+function Checkout({ userId, user_name, user_email, user_phone, total_amount, cart, COD = false }) {
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function initSDK() {
-      cashfree = await load({ mode: "production" });
-      setLoaded(true);
+      if (!COD) {
+        cashfree = await load({ mode: "production" });
+        setLoaded(true);
+      }
     }
     initSDK();
-  }, []);
+  }, [COD]);
 
   const doPayment = async (paymentSessionId: string) => {
     cashfree.checkout({ paymentSessionId, redirectTarget: "_self" });
@@ -30,8 +31,32 @@ function Checkout({ userId, user_name, user_email, user_phone, total_amount, car
   const createOrder = async () => {
     setLoading(true);
     try {
-      const order_id = await  generateOrderId();
-      console.log("order_id",order_id)
+      const order_id = await generateOrderId();
+      console.log("order_id", order_id);
+
+      const userData = await fetchUserData(parseInt(userId));
+
+      // ✅ If COD, skip payment gateway
+      if (COD) {
+        const cartToOrder = await moveCartToOrder(
+          cart.id,
+          order_id,
+          parseInt(userId),
+          userData.userDetails.addresses,
+          total_amount,
+          "COD"
+        );
+        console.log("COD Order created", cartToOrder);
+        await deleteCart(cart.id)
+        // Optionally delete cart after conversion
+        // await deleteCart(cart.id);
+
+        // Redirect to order details
+        window.location.href = `/orders/${userId}`;
+        return;
+      }
+
+      // ✅ Online Payment flow
       const cleanPhone = user_phone.replace(/\s+/g, "");
 
       const orderPayload = {
@@ -53,21 +78,18 @@ function Checkout({ userId, user_name, user_email, user_phone, total_amount, car
       });
 
       const data = await res.json();
-      console.log("order created", order_id, data);
+      console.log("order created (online)", order_id, data);
 
-      const userData = await fetchUserData(parseInt(userId));
-      
       const cartToOrder = await moveCartToOrder(
         cart.id,
         order_id,
         parseInt(userId),
         userData.userDetails.addresses,
         total_amount,
-        
+        "pre-paid"
       );
 
-      // console.log("moved cart to order", cartToOrder);
-      // await deleteCart(cart.id)
+      // await deleteCart(cart.id);
 
       await doPayment(data.paymentSessionId);
     } catch (err) {
@@ -80,15 +102,13 @@ function Checkout({ userId, user_name, user_email, user_phone, total_amount, car
   return (
     <div>
       <p>Click below to open the checkout page in current tab</p>
-      <Button onClick={createOrder} disabled={!loaded || loading}>
+      <Button onClick={createOrder} disabled={(!loaded && !COD) || loading}>
         {loading ? (
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" />
             Processing...
           </div>
-        ) : (
-          "Pay Now"
-        )}
+        ) : COD ? "Place Order (COD)" : "Pay Now"}
       </Button>
     </div>
   );
