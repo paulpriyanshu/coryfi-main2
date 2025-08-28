@@ -24,6 +24,7 @@ export default function PaymentMethodClient({
   cart,
 }: PaymentMethodClientProps) {
   const [isCOD, setIsCOD] = useState(false)
+  const isCODDisabled = totalAmount > 500
 
   return (
     <div className="space-y-4">
@@ -33,11 +34,20 @@ export default function PaymentMethodClient({
             id="cod"
             checked={isCOD}
             onCheckedChange={(v) => setIsCOD(Boolean(v))}
+            disabled={isCODDisabled}
             aria-checked={isCOD}
             aria-label="Pay with Cash on Delivery (COD)"
           />
-          <label htmlFor="cod" className="text-sm select-none">
+          <label 
+            htmlFor="cod" 
+            className={`text-sm select-none ${isCODDisabled ? 'text-muted-foreground cursor-not-allowed' : ''}`}
+          >
             Cash on Delivery (COD)
+            {isCODDisabled && (
+              <span className="text-xs text-red-500 ml-2">
+                (Not available for orders above ₹500)
+              </span>
+            )}
           </label>
         </div>
         <Badge
